@@ -1,4 +1,4 @@
-clear; close all; clc;
+clear; close all; clc; 
 %-------------------------------------------------------------------------%
 %-------------------------------------------------------------------------%
 %-------------------------------------------------------------------------%
@@ -12,8 +12,8 @@ clear; close all; clc;
 %-------------------------------------------------------------------------%
 
 Nt = 100;
-Nh = 20; 
-Nn = 20;
+Nh = 50; 
+Nn = 10;
 Nr = 2; 
 Nj = 1; 
 Np = 2;
@@ -23,27 +23,41 @@ Ns = 3;
 % params
 %-------------------------------------------------------------------------%
 
-mean_lams = [0.6, 0.4, 0, 0];
-sig_lams = [0.1, 0.1, 0.7, 0.7];
+mean_lams = [0.6, -0.4, 0, 0];
+sig_lams = [0.1, 0.1, 0.3, 0.3];
 lam = mean_lams(1) + sig_lams(1) * randn(Nn, Nr);
 for s = 1:Ns
     lam = [lam mean_lams(s+1) + sig_lams(s+1) * randn(Nn, Nr)];
 end
 
-Phi = [0.4 * eye(Nr) 0.1 * eye(Nr)];
+phi = [0.7 * eye(Nr), -0.2 * eye(Nr)];
+sig_ups = eye(Nr);
 
-Psi = -0.3 * ones(Nn, 1);
 
-Sig_ups = eye(Nr);
-Sig_eps = 0.2 + unifrnd(0.0, 0.2, Nn, 1);
+Np_eff = max(Np, Ns+1);
+Sig_f_prev = eye(Nr * Np_eff);
+err = 999;
+phi_comp = [phi zeros(Nr, (Np_eff - Np)*Nr); eye(Nr * (Np_eff-1)), zeros(Nr * (Np_eff-1), Nr)]; 
+sig_ups_comp = zeros(Nr * Np_eff);
+sig_ups_comp(1:Nr, 1:Nr) = sig_ups; 
+
+while err > 1e-5
+    Sig_f = phi_comp * Sig_f_prev * phi_comp' + sig_ups_comp;
+    err = max(abs(Sig_f(:) - Sig_f_prev(:)));
+    Sig_f_prev = Sig_f;
+end
+
+psi = -0.2 * ones(Nn, 1);
+
+sig_eps = diag(lam * Sig_f(1:Nr*(Ns+1), 1:Nr*(Ns+1)) * lam') * (1-psi(1)^2) * 3/7; % 70 percent of variation explained by common component!
 
 %-------------------------------------------------------------------------%
 % initialize mats for storage
 %-------------------------------------------------------------------------%
 
 Nburnin = 20; % sufficiently large burn-in so we don't have to worry about initalisation and can start the loop at t= max(Ns, Np, Nj)+1
-y = NaN(Nn, Nburnin + Nt + Nh);
-y(:, 1:Nburnin) = 0;
+Y = NaN(Nn, Nburnin + Nt + Nh);
+Y(:, 1:Nburnin) = 0;
 e = NaN(Nn, Nburnin + Nt + Nh);
 e(:, 1:Nburnin) = 0;
 f = NaN(Nr, Nburnin + Nt + Nh);
@@ -58,24 +72,24 @@ for t = 5:Nburnin+Nt+Nh
   for p = 1 : Np
       f_lags = [f_lags; f(:, t-p)];
   end
-  f(:, t) = Phi * f_lags + mvnrnd(zeros(Nr, 1), Sig_ups)';
+  f(:, t) = phi * f_lags + mvnrnd(zeros(Nr, 1), sig_ups)';
   e_lags = []; Psi_diag = [];
   for j = 1:Nj
-       Psi_diag = [Psi_diag diag(Psi(:, j))];
+       Psi_diag = [Psi_diag diag(psi(:, j))];
        e_lags = [e_lags; e(:, t-j)];
   end
-  e(:, t) = diag(Psi) * e_lags + sqrt(Sig_eps) .* randn(Nn, 1);
+  e(:, t) = diag(psi) * e_lags + sqrt(sig_eps) .* randn(Nn, 1);
   F = [];
   for s = 0:Ns
       F = [F; f(:, t-s)];
   end
-  y(:, t) = lam * F + e(:, t);
+  Y(:, t) = lam * F + e(:, t);
 end
 
 % remove burn-in 
-y = y(:, Nburnin + 1:end);
-yobs = y(:, 1:Nt);
-yfore = y(:, Nt+1:Nt+Nh);
+Y = Y(:, Nburnin + 1:end);
+Yobs = Y(:, 1:Nt);
+Yfore = Y(:, Nt+1:Nt+Nh);
 e = e(:, Nburnin + 1:end);
 f = f(:, Nburnin + 1:end);
 
@@ -85,23 +99,26 @@ f = f(:, Nburnin + 1:end);
 
 figure;plot(f', 'r-'); hold on; plot([f(:, 1:Nt)'; NaN(Nh, Nr)], 'b-')
 title('f')
-figure;plot(y', 'r-'); hold on; plot([yobs'; NaN(Nh, Nn)], 'b-')
+figure;plot(Y', 'r-'); hold on; plot([Yobs'; NaN(Nh, Nn)], 'b-')
 title('y')
-tmp = corr(yobs');
-figure; histogram(tmp(:));title('correlation coefficients');
+tmp = corr(Yobs');
+tmp = tmp(:);
+tmp = tmp(tmp ~= 1);
+figure; histogram(tmp);title('correlation coefficients');
 
 %-------------------------------------------------------------------------%
 % export to mat
 %-------------------------------------------------------------------------%
 
-simdata.params.lam = lam;
-simdata.params.Phi = Phi;
-simdata.params.Psi = Psi;
-simdata.params.Sig_eps = Sig_eps;
-simdata.params.Sig_ups = Sig_ups;
-simdata.yobs = yobs;
-simdata.yfore = yfore;
+simdata.params.lambda = lam;
+simdata.params.phi = phi;
+simdata.params.psi = psi;
+simdata.params.sig_eps = sig_eps;
+simdata.params.sig_ups = sig_ups;
+simdata.Yobs = Yobs;
+simdata.Yfore = Yfore;
 simdata.f = f;
+simdata.e = e;
 simdata.setup.Nn = Nn;
 simdata.setup.Nt = Nt;
 simdata.setup.Nh = Nh;
