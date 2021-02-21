@@ -31,7 +31,7 @@ This paper proposes precision-based sampling algorithms for conditional forecast
 
 \subsection{Precision-based sampling}
 
-Let $\mathbf{y_t} = [y_{1t}, \dots, y_{Nt}]'$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $R \times 1$ vector of unobserved states. Consider the following state space model $\forall \: t = 1:T$
+Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $R \times 1$ vector of unobserved states. Consider the following state space model $\forall \: t = 1:T$
 
 \begin{subequations}
     \label{eqn:statespacesys}
@@ -58,13 +58,13 @@ and $\Sigma_{\epsilon} = \text{diag}(\sigma^2_{\epsilon, 1}, \dots, \sigma^2_{\e
 
 Bayesian estimation of \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans} requires a draw from the distribution of the state vector conditional on the observations $\mathbf{y}_{1:T}$ and parameters $\Theta$, $p(\mathbf{f}_{1:T}|\mathbf{y}_{1:T}, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature.
 
-Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods. To derive the sampler, we stack the observations over time $\mathbf{y} = [\mathbf{y}'_1, \dots, \mathbf{y}'_T]'$ which yields the following measurement equation
+Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods. To derive the sampler, we stack the observations over time $\mathbf{y} = \transpose{[\transpose{\mathbf{y}}_1, \dots, \transpose{\mathbf{y}}_T]}$ which yields the following measurement equation
 
 \begin{equation}
 \mathbf{y} = \mathbf{L} \, \mathbf{f} + \epsilon
 \end{equation} 
 
-where $ \mathbf{L} = I_T \otimes \Lambda$ and $\epsilon \sim \mathcal{N}(0, I_T \otimes \Sigma_{\epsilon})$. The transition equation of the states can be written compactly as $\mathbf{H}_{\Phi} \, \mathbf{f_t} = \upsilon$ using the differencing matrix 
+where $ \mathbf{L} = I_T \otimes \Lambda$ and $\epsilon \sim \mathcal{N}(0, \mathbf{V}_{\epsilon})$ with $\mathbf{V}_{\epsilon} = I_T \otimes \Sigma_{\epsilon}$. The transition equation of the states can be written compactly as $\mathbf{H}_{\Phi} \, \mathbf{f_t} = \upsilon$ using the differencing matrix 
 $$
 \mathbf{H}_{\Phi}
 =
@@ -77,7 +77,8 @@ $$
 \end{bmatrix}.
 $$
 
-The variance of the states (conditional on parameters) is thus given by $\mathcal{N}(\mathbf{0},\mathbf{H}^{-1}_{\Phi} \mathbf{V}_{\upsilon} \mathbf{H}^{-1'}_{\Phi})$ where 
+Unconditional of the data, the states are distributed as $\mathcal{N}(\mathbf{0},\mathbf{H}^{-1}_{\Phi} \mathbf{V}_{\upsilon} \mathbf{H}^{-1'}_{\Phi})$ where 
+
 $$
 \mathbf{V}_{\upsilon} = 
 \begin{bmatrix}
@@ -86,10 +87,9 @@ $$
     \vdots & \ddots & \ddots \\
     & & & \Sigma_{\upsilon} 
 \end{bmatrix}
-.
 $$
 
-The precision matrix of the joint vector 
+The joint distribution of states and observables
 
 \begin{equation}
     \mathbf{z} = 
@@ -108,7 +108,7 @@ The precision matrix of the joint vector
     \end{bmatrix} 
 \end{equation}
 
-is given by
+is thus multivariate Normal with mean 0 and covariance $V_z$. The precision matrix of $z$ is the inverse of the covariance matrix: 
 
 \begin{align*}
     \mathbf{P}_z 
@@ -151,13 +151,13 @@ is given by
     \end{bmatrix} \\
     &=
     \begin{bmatrix}
-        \mathbf{L}' \mathbf{H}'_{\Phi} \mathbf{P}^{-1}_{\upsilon} \mathbf{H}_{\Phi} L + \Sigma_{\epsilon} & \shortminus \mathbf{L}' \Sigma^{-1}_{\epsilon} \\
-        \Sigma^{-1}_{\epsilon} L & \Sigma^{-1}_{\epsilon}
+         \transpose{\mathbf{H}}_{\Phi} \mathbf{P}^{-1}_{\upsilon} \mathbf{H}_{\Phi} + \transpose{\mathbf{L}}\Sigma_{\epsilon}\mathbf{L}  & \shortminus \transpose{\mathbf{L}} \Sigma^{-1}_{\epsilon} \\
+        \Sigma^{-1}_{\epsilon} \mathbf{L} & \Sigma^{-1}_{\epsilon}
     \end{bmatrix} \\
     &= 
     \begin{bmatrix}
         \mathbf{P}_{\text{f}} & \mathbf{P}_{\text{fy}} \\
-        \mathbf{P}'_{\text{fy}} & \mathbf{P}_{\text{y}}  
+        \transpose{\mathbf{P}}_{\text{fy}} & \mathbf{P}_{\text{y}}  
     \end{bmatrix}
 \end{align*}
 
@@ -170,21 +170,21 @@ Using standard results for multivariate Normal distributions \citep[e.g.][pp. 86
      \right) 
     &\sim \mathcal{N}
         \left(
-            \mu_{\text{f}\mid y}, P_{\text{f}\mid y}^{-1}
+            \mu_{\text{f}\mid y}, \mathbf{P}_{\text{f}\mid y}^{-1}
         \right) \\
     &=    
     \mathcal{N}
         \left(
-        \shortminus P^{-1}_{\text{f}} P_{\text{fy}} \mathbf{y}, P_{\text{f}}^{-1}
+        \shortminus \mathbf{P}^{-1}_{\text{f}} \mathbf{P}_{\text{fy}} \mathbf{y}, \mathbf{P}_{\text{f}}^{-1}
         \right) \\
     &= 
     \mathcal{N}
     \left(
-    \shortminus P^{-1}_{\text{f}} L' \Sigma_{\epsilon}^{-1} \mathbf{y}, P_{\text{f}}^{-1}
+    (\transpose{\mathbf{H}}_{\Phi} \mathbf{V}^{-1}_{\upsilon} \mathbf{H}_{\Phi}  + \transpose{\mathbf{L}} \Sigma_{\epsilon}\mathbf{L})^{-1} \transpose{\mathbf{L}} \Sigma_{\epsilon}^{-1} \mathbf{y}, \transpose{\mathbf{H}}_{\Phi} \mathbf{V}^{-1}_{\upsilon} \mathbf{H}_{\Phi} + {\transpose{\mathbf{L}} \Sigma_{\epsilon}\mathbf{L} }^{-1}
     \right).
 \end{align}
 
-Draws from this distribution can be obtained efficiently since the $T\cdot R \times \cdot R$  $P_{\text{f}}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 5]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $v$ be a $T\cdot R \times 1$ matrix of independent draws from the standard Normal. Then solving $C'x = v$ for x via forward substitution where $C$ is the lower Cholesky factor of $P_{\text{f}}$  yields a draw from $\mathcal{N}(0, P^{-1}_{\text{f}})$ to which the mean $\mu_{\text{f}\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 4]{rueheld_2005}.
+Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{P}_{\text{f}}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 5]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $v$ be a $T\cdot R \times 1$ matrix of independent draws from the standard Normal. Then solving $\transpose{C}x = v$ for x via forward substitution where $C$ is the lower Cholesky factor of $P_{\text{f}}$  yields a draw from $\mathcal{N}(0, P^{-1}_{\text{f}})$ to which the mean $\mu_{\text{f}\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 4]{rueheld_2005}.
 
 \section{Empirical application}
 
