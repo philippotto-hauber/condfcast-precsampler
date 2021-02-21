@@ -1,7 +1,8 @@
 \documentclass[notitlepage,a4paper,12pt]{article}
 \usepackage[authoryear]{natbib}
 \usepackage{amsmath}
-
+\usepackage{cleveref}
+\newcommand{\crefrangeconjunction}{--} % dash instead of "to" in range
 \usepackage{amsfonts} 
 \DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
@@ -32,10 +33,13 @@ This paper proposes precision-based sampling algorithms for conditional forecast
 
 Let $\mathbf{y_t} = [y_{1t}, \dots, y_{Nt}]'$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $R \times 1$ vector of unobserved states. Consider the following state space model $\forall \: t = 1:T$
 
-\begin{align}
-    \mathbf{y_t} &= \Lambda \, \mathbf{f_t} + \epsilon_t \\
-    \mathbf{f_t} &= \Phi \, \mathbf{f_{t-1}} + \upsilon_t
-\end{align}
+\begin{subequations}
+    \label{eqn:statespacesys}
+    \begin{align}
+        \mathbf{y_t} &= \Lambda \, \mathbf{f_t} + \epsilon_t \label{eqn:statespacesys_meas}\\
+        \mathbf{f_t} &= \Phi \, \mathbf{f_{t-1}} + \upsilon_t \label{eqn:statespacesys_trans}
+    \end{align}
+\end{subequations}
 
 where 
 $$
@@ -52,7 +56,7 @@ $$
 $$
 and $\Sigma_{\epsilon} = \text{diag}(\sigma^2_{\epsilon, 1}, \dots, \sigma^2_{\epsilon, N})$. The recursions are initialized with $\mathbf{f}_1 \sim \mathcal{N}(0, \Sigma_0)$.
 
-Bayesian estimation of such models requires a draw from the distribution of the state vector conditional on the observations $\mathbf{y}_{1:T}$ and parameters $\Theta$, $p(\mathbf{f}_{1:T}|\mathbf{y}_{1:T}, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature.
+Bayesian estimation of \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans} requires a draw from the distribution of the state vector conditional on the observations $\mathbf{y}_{1:T}$ and parameters $\Theta$, $p(\mathbf{f}_{1:T}|\mathbf{y}_{1:T}, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature.
 
 Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods. To derive the sampler, we stack the observations over time $\mathbf{y} = [\mathbf{y}'_1, \dots, \mathbf{y}'_T]'$ which yields the following measurement equation
 
