@@ -3,3 +3,6 @@
 # ignore all latex related files except tex
 latex/condfcast_precsampler.*
 !latex/condfcast_precsampler.tex
+
+# ignore all files in figures folder
+figures
