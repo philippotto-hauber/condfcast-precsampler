@@ -1,14 +1,15 @@
 \documentclass[notitlepage,a4paper,12pt]{article}
 \usepackage[authoryear]{natbib}
 \usepackage{amsmath}
+\usepackage{mathtools}
 \usepackage{cleveref}
 \newcommand{\crefrangeconjunction}{--} % dash instead of "to" in range
 \usepackage{amsfonts} 
+\usepackage{xfrac}
 \DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
 
 \begin{document}
-
 \title{Precision-based algorithms for conditional forecasting and scenario analysis in large state space models}
 
 \author{
@@ -31,13 +32,13 @@ This paper proposes precision-based sampling algorithms for conditional forecast
 
 \subsection{Precision-based sampling}
 
-Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $R \times 1$ vector of unobserved states. Consider the following state space model $\forall \: t = 1:T$
+Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $R \times 1$ vector of unobserved states. Consider the following state space model which $\forall \: t = 1:T$ 
 
 \begin{subequations}
     \label{eqn:statespacesys}
     \begin{align}
-        \mathbf{y_t} &= \Lambda \, \mathbf{f_t} + \epsilon_t \label{eqn:statespacesys_meas}\\
-        \mathbf{f_t} &= \Phi \, \mathbf{f_{t-1}} + \upsilon_t \label{eqn:statespacesys_trans}
+        \mathbf{y_t} &= \mathbf{d_t} + \mathbf{F} \boldsymbol{\alpha_t} + \epsilon_t \label{eqn:statespacesys_meas}\\
+        \boldsymbol{\alpha_t} &= \mathbf{c_t} + \mathbf{T} \, \boldsymbol{\alpha_{t-1}} + \upsilon_t \label{eqn:statespacesys_trans}
     \end{align}
 \end{subequations}
 
@@ -49,66 +50,107 @@ $$
 \end{bmatrix}
 \sim \mathcal{N}(0,
 \begin{bmatrix}
-\Sigma_{\epsilon} & \mathbf{0} \\
-\mathbf{0} & \Sigma_{\epsilon}
+\Omega & \mathbf{0} \\
+\mathbf{0} & \Sigma
 \end{bmatrix}
 )
 $$
-and $\Sigma_{\epsilon} = \text{diag}(\sigma^2_{\epsilon, 1}, \dots, \sigma^2_{\epsilon, N})$. The recursions are initialized with $\mathbf{f}_1 \sim \mathcal{N}(0, \Sigma_0)$.
+and $\Omega = \text{diag}(\omega^2_{1}, \dots, \omega^2_{N})$. The recursions are initialized with $\boldsymbol{\alpha_1} \sim \mathcal{N}(\mathbf{c_1}, \Sigma_0)$.
 
-Bayesian estimation of \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans} requires a draw from the distribution of the state vector conditional on the observations $\mathbf{y}_{1:T}$ and parameters $\Theta$, $p(\mathbf{f}_{1:T}|\mathbf{y}_{1:T}, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature.
+Bayesian estimation of \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans} requires a draw from the distribution of the state vector conditional on the observations $\mathbf{y}_{1:T}$ and parameters $\Theta$, $p(\mathbf{\alpha}_{1:T}|\mathbf{y}_{1:T}, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature.
 
 Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods. To derive the sampler, we stack the observations over time $\mathbf{y} = \transpose{[\transpose{\mathbf{y}}_1, \dots, \transpose{\mathbf{y}}_T]}$ which yields the following measurement equation
 
 \begin{equation}
-\mathbf{y} = \mathbf{L} \, \mathbf{f} + \epsilon
+\mathbf{y} = \mathbf{d} + \mathbf{M} \, \boldsymbol{\alpha} + \epsilon
 \end{equation} 
 
-where $ \mathbf{L} = I_T \otimes \Lambda$ and $\epsilon \sim \mathcal{N}(0, \mathbf{V}_{\epsilon})$ with $\mathbf{V}_{\epsilon} = I_T \otimes \Sigma_{\epsilon}$. The transition equation of the states can be written compactly as $\mathbf{H}_{\Phi} \, \mathbf{f_t} = \upsilon$ using the differencing matrix 
+where $ \mathbf{M} = I_T \otimes \mathbf{F}$ and $\epsilon \sim \mathcal{N}(0, \mathbf{V}_{\epsilon})$ with $\mathbf{V}_{\epsilon} = I_T \otimes \Omega$. The transition equation of the states can be written compactly as $\mathbf{H}\, \boldsymbol{\alpha} = \mathbf{c} + \upsilon$ using the differencing matrix 
 $$
-\mathbf{H}_{\Phi}
+\mathbf{H}
 =
 \begin{bmatrix}
     I_R & 0_R & \dots \\
-    \shortminus\Phi & I_R & \ddots \\
-    0_R & \shortminus\Phi & I_R & \ddots \\
+    \shortminus T & I_R & \ddots \\
+    0_R & \shortminus T & I_R & \ddots \\
     \vdots & \ddots & \ddots & \ddots \\
-    & & & \shortminus\Phi & I_R
+    & & & \shortminus T & I_R
 \end{bmatrix}.
 $$
 
-Unconditional of the data, the states are distributed as $\mathcal{N}(\mathbf{0},\mathbf{H}^{-1}_{\Phi} \mathbf{V}_{\upsilon} \mathbf{H}^{-1'}_{\Phi})$ where 
+The marginal distribution of the states, i.e. unconditional of the data, is $\mathcal{N}(\tilde{c},\mathbf{H}^{-1} \mathbf{V}_{\upsilon} \transpose{\mathbf{H}^{-1}})$ where 
 
 $$
+\tilde{\mathbf{c}}
+=
+\mathbf{H}^{-1} \mathbf{c}
+, \:
 \mathbf{V}_{\upsilon} = 
 \begin{bmatrix}
     \Sigma_{0} & 0_R & \dots \\
-    0_R & \Sigma_{\upsilon} & \ddots \\
+    0_R & \Sigma & \ddots \\
     \vdots & \ddots & \ddots \\
-    & & & \Sigma_{\upsilon} 
+    & & & \Sigma 
 \end{bmatrix}
 $$
 
-The joint distribution of states and observables
+Define the joint vector 
 
 \begin{equation}
-    \mathbf{z} = 
+    \mathbf{z} \coloneqq 
     \begin{bmatrix}
-        \mathbf{f} \\
+        \boldsymbol{\alpha} \\
+        \mathbf{y}
+    \end{bmatrix}.
+\end{equation}
+
+The joint distribution of states and observables is Normal with mean and given by
+
+\begin{equation}
+    \mathbf{z} \coloneqq 
+    \begin{bmatrix}
+        \boldsymbol{\alpha} \\
         \mathbf{y}
     \end{bmatrix}
     = 
     \begin{bmatrix}
+        \tilde{\mathbf{c}} \\
+        \mathbf{d} 
+    \end{bmatrix}
+    +
+    \begin{bmatrix}
         I_{TR} & 0 \\
-        \mathbf{L} & I_{TN} 
+        \mathbf{M} & I_{TN} 
     \end{bmatrix}
     \begin{bmatrix}
-        \mathbf{f} \\
+        \boldsymbol{\alpha}\\
         \mathbf{\epsilon}
     \end{bmatrix} 
 \end{equation}
 
-is thus multivariate Normal with mean 0 and covariance $V_z$. The precision matrix of $z$ is the inverse of the covariance matrix: 
+% \begin{equation}
+%     \mathbf{z} = 
+%     \begin{bmatrix}
+%         \boldsymbol{\alpha} \\
+%         \mathbf{y}
+%     \end{bmatrix}
+%     = 
+%     \begin{bmatrix}
+%         \tilde{\mathbf{c}} \\
+%         \mathbf{d} 
+%     \end{bmatrix}
+%     +
+%     \begin{bmatrix}
+%         I_{TR} & 0 \\
+%         \mathbf{M} & I_{TN} 
+%     \end{bmatrix}
+%     \begin{bmatrix}
+%         \boldsymbol{\alpha}\\
+%         \mathbf{\epsilon}
+%     \end{bmatrix} 
+% \end{equation}
+
+is thus multivariate Normal with mean 0 and covariance $\mathbf{V}_z$. The precision matrix of $\mathbf{z}$ is the inverse of the covariance matrix: 
 
 \begin{align*}
     \mathbf{P}_z 
@@ -117,7 +159,7 @@ is thus multivariate Normal with mean 0 and covariance $V_z$. The precision matr
     &= 
     Var\left(
     \begin{bmatrix}
-        \mathbf{f} \\
+        \boldsymbol{\alpha} \\
         \mathbf{y}
     \end{bmatrix}
     \right)^{-1} \\
@@ -125,68 +167,234 @@ is thus multivariate Normal with mean 0 and covariance $V_z$. The precision matr
     \left(
     \begin{bmatrix}
         I & 0 \\
-        \mathbf{L} & I
+        \mathbf{M} & I
     \end{bmatrix}
     \begin{bmatrix}
-        \mathbf{H}^{-1}_{\Phi} \mathbf{P}_{\upsilon} \transpose{\mathbf{H}^{-1}_{\Phi}} & 0 \\
-        0 & \Sigma_{\epsilon}
+        \mathbf{H}^{-1} \mathbf{V}_{\upsilon} \transpose{\mathbf{H}^{-1}} & 0 \\
+        0 & \mathbf{V}_{\epsilon}
     \end{bmatrix} 
     \begin{bmatrix}
-        I & \mathbf{L}^{\sf{T}} \\
+        I & \transpose{\mathbf{M}} \\
         0 & I
     \end{bmatrix}
     \right)^{-1}\\
     &=
     \begin{bmatrix}
-        I & \shortminus\mathbf{L}' \\
+        I & \shortminus\transpose{\mathbf{M}} \\
         0 & I
     \end{bmatrix}
     \begin{bmatrix}
-        \mathbf{H}'_{\Phi} \mathbf{P}^{-1}_{\upsilon} \mathbf{H}_{\Phi} & 0 \\
-        0 & \Sigma^{-1}_{\epsilon}
+        \transpose{\mathbf{H}} \mathbf{V}^{-1}_{\upsilon} \mathbf{H} & 0 \\
+        0 & \mathbf{V}^{-1}_{\epsilon}
     \end{bmatrix} 
     \begin{bmatrix}
         I & 0 \\
-        \shortminus\mathbf{L} & I 
+        \shortminus\mathbf{M} & I 
     \end{bmatrix} \\
     &=
     \begin{bmatrix}
-         \transpose{\mathbf{H}}_{\Phi} \mathbf{P}^{-1}_{\upsilon} \mathbf{H}_{\Phi} + \transpose{\mathbf{L}}\Sigma_{\epsilon}\mathbf{L}  & \shortminus \transpose{\mathbf{L}} \Sigma^{-1}_{\epsilon} \\
-        \Sigma^{-1}_{\epsilon} \mathbf{L} & \Sigma^{-1}_{\epsilon}
+         \transpose{\mathbf{H}} \mathbf{V}^{-1}_{\upsilon} \mathbf{H} + \transpose{\mathbf{M}}\mathbf{V}_{\epsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \mathbf{V}^{-1}_{\epsilon} \\
+         \mathbf{V}^{-1}_{\epsilon} \mathbf{M} & \mathbf{V}^{-1}_{\epsilon}
     \end{bmatrix} \\
     &= 
     \begin{bmatrix}
-        \mathbf{P}_{\text{f}} & \mathbf{P}_{\text{fy}} \\
-        \transpose{\mathbf{P}}_{\text{fy}} & \mathbf{P}_{\text{y}}  
+        \mathbf{P}_{\alpha} & \mathbf{P}_{\alpha\text{y}} \\
+        \transpose{\mathbf{P}}_{\alpha \text{y}} & \mathbf{P}_{\text{y}}  
     \end{bmatrix}
 \end{align*}
 
-Using standard results for multivariate Normal distributions \citep[e.g.][pp. 86-87]{bishop_prml_2006}, we can derive the desired conditional distribution \citep[see also][eqn. 5]{chanjeliazkov_2009}:
+Using standard results for multivariate Normal distributions \citep[e.g.][pp. 86-87]{bishop_prml_2006}, we can derive the desired conditional distribution:
 
-\begin{align}
+\begin{align*}
     p
     \left(
-        \mathbf{f} \mid \mathbf{y}, \Theta
+        \boldsymbol{\alpha} \mid \mathbf{y}, \Theta
      \right) 
-    &\sim \mathcal{N}
-        \left(
-            \mu_{\text{f}\mid y}, \mathbf{P}_{\text{f}\mid y}^{-1}
-        \right) \\
-    &=    
-    \mathcal{N}
-        \left(
-        \shortminus \mathbf{P}^{-1}_{\text{f}} \mathbf{P}_{\text{fy}} \mathbf{y}, \mathbf{P}_{\text{f}}^{-1}
-        \right) \\
-    &= 
+    &\sim
     \mathcal{N}
     \left(
-    (\transpose{\mathbf{H}}_{\Phi} \mathbf{V}^{-1}_{\upsilon} \mathbf{H}_{\Phi}  + \transpose{\mathbf{L}} \Sigma_{\epsilon}\mathbf{L})^{-1} \transpose{\mathbf{L}} \Sigma_{\epsilon}^{-1} \mathbf{y}, \transpose{\mathbf{H}}_{\Phi} \mathbf{V}^{-1}_{\upsilon} \mathbf{H}_{\Phi} + {\transpose{\mathbf{L}} \Sigma_{\epsilon}\mathbf{L} }^{-1}
-    \right).
-\end{align}
+    \mathbf{P}^{-1}_{\alpha} \left( \mathbf{P}_{\alpha}\boldsymbol{\mu}_{\alpha} - \mathbf{P}^{-1}_{\alpha} \mathbf{P}_{\alpha y} \left(\mathbf{y} - \boldsymbol{\mu}_{\text{y}}\right)\right), \mathbf{P}_{\alpha}^{-1}
+    \right) \\
+    &\coloneqq \mathcal{N}
+        \left(
+            \boldsymbol{\mu}_{\alpha\mid y}, \mathbf{P}_{\alpha\mid y}^{-1}
+        \right) \\
+\end{align*}
 
-Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{P}_{\text{f}}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 5]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $v$ be a $T\cdot R \times 1$ matrix of independent draws from the standard Normal. Then solving $\transpose{C}x = v$ for x via forward substitution where $C$ is the lower Cholesky factor of $P_{\text{f}}$  yields a draw from $\mathcal{N}(0, P^{-1}_{\text{f}})$ to which the mean $\mu_{\text{f}\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 4]{rueheld_2005}.
+with \citep[see also][eqn. XXXX]{chanjeliazkov_2009}:
+\begin{align*}
+    \mathbf{P}_{\alpha\mid y} &= \mathbf{P}_{\alpha} \\
+    &= 
+    \transpose{\mathbf{H}} \mathbf{V}^{-1}_{\upsilon} \mathbf{H} + {\transpose{\mathbf{M}} \mathbf{V}_{\epsilon}\mathbf{M}}\\
+    \boldsymbol\mu_{\alpha} &= \mathbf{P}_{\alpha}^{-1} \left(\mathbf{P}_{\alpha} \tilde{c}+ \transpose{\mathbf{M}} \mathbf{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
+\end{align*}
+
+
+
+
+
+Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{P}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 5]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot R \times 1$ matrix of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{P}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{P}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{P}^{-1}_{\alpha})$ to which the mean $\mathbf{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 4]{rueheld_2005}.
+
+\subsection{Forecasting}
+
+In addition to a draw of the state vector conditional on the data, macroeconomic applications may require forecasts - both unconditional and conditional on future paths of other variables - from the model in \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans}. 
+These can be obtained by drawing on the insights in Hauber and Schumacher (2021), who generalize the precision sampler outlined above to applications with missing data. Since future values of the variables can simply be considered as missing, draws from the joint distribution of states and forecasts conditional on the data (and possibly the future paths of a subset of the variables) can be sampled efficiently. 
+
+To illustrate the approach, I focus on unconditional forecasts first; the generalization to conditional forecasts is straight-forward as it simply involves a larger conditioning set. For the sake of exposition, I assume that between periods $t=1$ and $t=T$ all observations are available. Situations where this is not the case, e.g. because some series start at a later date in the sample or because outlying observations have been removed by setting them to missing, can naturally be accommodated. Moreover, I assume that the time-varying intercepts $c_{T+1:T+H}$ and $d_{T+1:T+H}$ are known at $t=T$. This assumption is reasonable to the extent that these reflect deterministic trends or seasonal components. 
+
+\subsubsection{Unconditional forecasts}\label{sec:uncondfcast}
+
+Let $h = 1:H$ denote the forecast horizons and $\mathbf{y}^{\sf{f}} = \transpose{[\mathbf{y}^{\sf{T}}_{T+1}, \dots, \mathbf{y}^{\sf{T}}_{T+H}]}$. In contrast, the observations throught $T$ are denoted as $\mathbf{y}^{\sf{o}} = \transpose{[\mathbf{y}^{\sf{T}}_{1}, \dots, \mathbf{y}^{\sf{T}}_{T}]}$. 
+
+The stacked vectors of states and observations then become
+\begin{align*}
+\mathbf{y} &= \transpose{[\transpose{\mathbf{y}^{\sf{o}}}, \transpose{\mathbf{y}^{\sf{f}}}]} \\
+\boldsymbol{\alpha} &= [\boldsymbol{\alpha}_1, \dots, \boldsymbol{\alpha}_{T+H}].
+\end{align*}
+
+As above, we define $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$ which is Normal with mean $\boldsymbol{\mu}_{z_\mathcal{P}}$ and precision matrix $\mathbf{P}_{z_\mathcal{P}}$. An expression for the conditional distribution $p\left(\mathbf{y}^{\sf{f}}, \boldsymbol{\alpha} \mid \mathbf{y}^{\sf{o}}, \Theta \right)$ from which draws can be obtained efficiently, requires a reordering or permutation of $\mathbf{z}$. To this end, define the permutation matrix $\mathcal{P}$ that reorders $\mathbf{z}$ such that the states and elements of $\mathbf{y^f}$ - ordered by time period $t$ - are placed first. That is to say,
+
+$$
+\mathbf{z_{\mathcal{P}}} \coloneqq \mathcal{P} \mathbf{z} =
+ \transpose{[
+     \alpha^{\sf{T}}_1, 
+     \dots, 
+     \alpha^{\sf{T}}_T, 
+     \alpha^{\sf{T}}_{T+1}, 
+     \mathbf{y}^{\sf{T}}_{T+1}, 
+     \dots, 
+     \alpha^{\sf{T}}_{T+H}, 
+     \mathbf{y}^{\sf{T}}_{T+H},
+     \mathbf{y}^{\sf{T}}_1,
+     \dots,
+     \mathbf{y}^{\sf{T}}_T}]
+$$
+
+The permuted vector of states and observations is also Normal with (permuted) moments given by 
+
+\begin{equation*}
+    \mathbf{z_{\mathcal{P}}} \sim \mathcal{N}\left(\mathcal{P}\boldsymbol{\mu}_z, \left(\mathcal{P} \mathbf{P}_z \transpose{\mathcal{P}}\right)^{-1}\right)
+\end{equation*}
+
+where we have made use of the fact that the inverse of a permutation matrix is equal to its transpose. 
+
+The precision matrix of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as follows: 
+
+\begin{align*}
+    \mathbf{P}_{z_{\mathcal{P}}} &\coloneqq  \mathcal{P} \mathbf{P}_z \transpose{\mathcal{P}} \\
+    &= 
+    \begin{bmatrix}
+        \mathbf{P}_{\alpha\! y^{\sf{f}}} & \mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}} \\ 
+        \mathbf{P}^{\sf{T}}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}} & \mathbf{P}_{y^{\sf{o}}}
+    \end{bmatrix}
+\end{align*}
+
+% where $\mathbf{P}_{\alpha\! y^{\sf{f}}}$, $\mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}$ and $\mathbf{P}_{y^{\sf{o}}}$ are of dimensions $T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!R + H\!\cdot\!N$, $T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!N$ and $T\!\cdot\!N \times T\!\cdot\!N$, respectively. 
+
+where $\mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}$ is a 
+$T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!N$ matrix and $\mathbf{P}_{\alpha\! y^{\sf{f}}}$ and $\mathbf{P}_{y^{\sf{o}}}$ are square with dimensions $T\!\cdot\!R + H\!\cdot\!N$ and $T\!\cdot\!N $, respectively. Similarly, the mean of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as 
+$$
+\boldsymbol{\mu}_{z_{\mathcal{P}}} = 
+\begin{bmatrix}
+    \boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} \\
+    \boldsymbol{\mu}_{y^{\sf{o}}}
+\end{bmatrix}
+$$
+
+A draw from the desired distribution - $p\left(\mathbf{y}^{\sf{f}}\!,\boldsymbol{\alpha}\!\mid\! \mathbf{y}^{\sf{o}},\!\Theta \right)$ - is obtained from the following conditional 
+
+\begin{equation*}
+    \mathbf{z}_{\alpha\! y^{\sf{f}}} \sim 
+    \mathcal{N}\left(
+        \mathbf{P}^{-1}_{\alpha\! y^{\sf{f}}}\left( \mathbf{P}_{\alpha\! y^{\sf{f}}}\boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} - \mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}\left(\mathbf{y}^o-\boldsymbol{\mu}_{y^{\sf{o}}}\right)\right)
+    ,
+    \mathbf{P}_{\alpha\! y^{\sf{f}}}
+    \right)
+\end{equation*}
+and then reversing the permutation, i.e 
+$$
+\begin{bmatrix}
+    \boldsymbol{\alpha} \\
+    \mathbf{y^{\sf{f}}}
+\end{bmatrix}
+= 
+\mathcal{P}^{-1} \mathbf{z}_{\alpha\! y^{\sf{f}}}
+$$.
+
+\subsubsection{Conditional forecasting}\label{sec:condfcast}
+
+Forecasts conditional on the future path of a subset of the variables in the model arise frequently in macroeconomic applications. Examples are projections of inflation which take assumptions regarding the macroeconomic environment into account \citep{giannone_etal_2014_ijf} or quarterly DSGE models, where higher-frequency external information (\textit{nowcasts}) serves to inform forecasts for $T+1$ \citep{delnegro_schorfheide_2013_hb}.\footnote{Note that \citet{delnegro_schorfheide_2013_hb} do not feed external nowcasts into the model as observations but rather treat them as newsy or noisy measurements of the future values. We leave it to future research to incorporate such an approach into the algorithms outlined in this paper.}
+
+Only minor modifications to the conditioning set and the permutation matrix are required to handle such cases. Extending the notation, let $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ denote the observations which are being conditioned on. Conversely, $\mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observation for which no conditioning information is available at time $t$. The entire conditioning set is given by 
+$$
+\mathbf{y}^{\sf{c}} = \transpose{[\mathbf{y}^{\sf{T}}_{c,T+1}, \dots, \mathbf{y}^{\sf{T}}_{c,T+H}]}
+$$ 
+with $N^c = \text{dim}(\mathbf{y}^{\sf{c}})$.
+
+With $\mathbf{y}$, $\boldsymbol{\alpha}$ defined, as in Section \ref{sec:uncondfcast}, let $\mathcal{P}'$ be a permutation matrix that reorders $z$ as follows:
+$$
+\mathbf{z}_{\mathcal{P}'} \coloneqq \mathcal{P}' \mathbf{z} =
+ \transpose{[
+     \alpha^{\sf{T}}_1, 
+     \dots, 
+     \alpha^{\sf{T}}_T, 
+     \alpha^{\sf{T}}_{T+1}, 
+     \mathbf{y}^{\sf{T}}_{c,T+1}, 
+     \dots, 
+     \alpha^{\sf{T}}_{T+H}, 
+     \mathbf{y}^{\sf{T}}_{c,T+H},
+     \mathbf{y}^{o\sf{T}},
+     \mathbf{y}^{c\sf{T}}]}
+$$
+
+As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and forecasts can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{P}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$. 
+
+\subsection{Simulation}
+
+To illustrate the sampler and demonstrate its usefulness in applications, I simulate data from the model in with $T=50, H=20, R = 1, N=10$. Morever, the parameters are set to the following values: 
+\begin{align*}
+\mathbf{T} &= 0.7 \\
+\mathbf{F} &\sim N(0.5, 0.1 \mathbf{I}), \\
+\Omega &= 1.
+\end{align*}
+The variance of the measurement error for variable $i$ is chosen such that the common component - $\mathbf{F}_i \alpha_t$ - explains \sfrac{2}{3} of the variation in $\mathbf{y}_{i,1:T}$. 
+
+Taking the parameters as given, we obtain 1000 draws from both the unconditional and conditional predictive density. For the latter, the values of the first series over the entire projection horizon are taken as given, while for the second series we only condition on the first ten observations. That is to say 
+
+$$\mathbf{y}^c = \transpose{[y_{1,T+1}, y_{2,T+1}, \dots, y_{1,T+10}, y_{2,T+10}, y_{1,T+11}, \dots, y_{1,T+H}]}
+$$
+
+The impact that the permutation of $z$ has on the precision matrix can be seen in Figure 1. As Figure 2 demonstrates... 
 
 \section{Empirical application}
+
+\subsection{Models}
+
+\subsubsection{Dynamic factor models}
+
+\begin{subequations}
+    \label{eqn:factormodel}
+    \begin{align}
+        \mathbf{y_t} &= \Lambda \, \mathbf{f_t} + \mathbf{e}_t \\
+        \mathbf{f_t} &= \Phi \, \mathbf{f_{t-1}} + \upsilon_t \\
+        \mathbf{e_t} &= \Psi \mathbf{e_{t-1}} + \epsilon_t 
+    \end{align}
+\end{subequations}
+
+\subsubsection{Vector autoregressions}
+
+\subsection{Estimation}
+
+\subsection{Data}
+
+\section{Results}
+
+\subsection{Analyzing structural stability}
+
+\subsection{Real-time forecast evaluation}
+
+\section{Conclusion}
+
 
 \bibliographystyle{aernobold}
 \bibliography{papers}
