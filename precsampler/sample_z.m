@@ -5,7 +5,7 @@ Nmis = sum(sum(isnan(Y)));
 Nr = size(params.phi, 1);
 
 % precision matrix Q
-[PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, Nt, Nmis, p_z);
+[~, PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, Nt, Nmis, p_z);
 
 % vectorized yobs, removing missings
 y = Y(:); 

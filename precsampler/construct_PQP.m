@@ -1,4 +1,4 @@
-function [PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, Nt, Nmis, p_z)
+function [PQP, PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, Nt, Nmis, p_z)
 
 % back out dims
 Nr = size(params.phi, 1);
