@@ -359,12 +359,38 @@ To illustrate the sampler and demonstrate its usefulness in applications, I simu
 \end{align*}
 The variance of the measurement error for variable $i$ is chosen such that the common component - $\mathbf{F}_i \alpha_t$ - explains \sfrac{2}{3} of the variation in $\mathbf{y}_{i,1:T}$. 
 
-Taking the parameters as given, we obtain 1000 draws from both the unconditional and conditional predictive density. For the latter, the values of the first series over the entire projection horizon are taken as given, while for the second series we only condition on the first ten observations. That is to say 
+Taking the parameters as given, we obtain 1000 draws from both the unconditional and conditional predictive density. For the latter, the values of the first series over the entire projection horizon are taken as given, while for the second series we only condition on the first H/2 observations. That is to say 
 
-$$\mathbf{y}^c = \transpose{[y_{1,T+1}, y_{2,T+1}, \dots, y_{1,T+10}, y_{2,T+10}, y_{1,T+11}, \dots, y_{1,T+H}]}
+$$\mathbf{y}^c = \transpose{[y_{1,T+1}, y_{2,T+1}, \dots, y_{1,T+\frac{H}{2}}, y_{2,T+\frac{H}{2}}, y_{1,T+11}, \dots, y_{1,T+H}]}
 $$
 
-The impact that the permutation of $z$ has on the precision matrix can be seen in Figure 1. As Figure 2 demonstrates... 
+The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. 
+
+\begin{figure}[htbp] \centering
+    \caption{Precision matrix of $z$ and $z_{\mathcal{P}'}$\label{fig_Pperm}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+    \includegraphics*[scale=0.5,clip,trim=10 60 10 60]{../precsampler/fig_P_perm.pdf} \\
+    \footnotesize \textbf{Note:} Ladida.
+    \end{tabular}
+    \newline
+    \normalsize
+\end{figure}
+
+\begin{figure}[htbp] \centering
+    \caption{Unconditional and conditional forecasts - simulation results\label{fig_simfore}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+    \includegraphics*[scale=0.7,clip,trim=10 60 10 60]{../precsampler/fig_fore.pdf} \\
+    \footnotesize \textbf{Note:} Ladida.
+    \end{tabular}
+    \newline
+    \normalsize
+\end{figure}
+
+
+
+As Figure \ref{fig_simfore} demonstrates... 
 
 \section{Empirical application}
 
