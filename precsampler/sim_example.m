@@ -161,6 +161,28 @@ print('../figures/fig_fore.pdf','-dpdf','-fillpage') ;
  
 Nmis = sum(sum(isnan(Y))); % # of missings
 
+% % get position of missings
+% ind_t_vars = kron(ones(Nn, 1), 1:Nt+Nh);
+% ind_t_alps = 1:Nt+Nh;
+% 
+% ind_t = [ind_t_alps'; ind_t_vars(:)];
+% 
+% ind_nan_orig = ind_t > Nt;
+% 
+% ind_t_perm = ind_t(p_z);
+% 
+% ind_nan_perm = ind_t_perm > Nt;
+% 
+% figure;
+% subplot(1,2,1)
+% spy(P_z(ind_nan_orig, ind_nan_orig), 'b')
+% hold on
+% spy(P_z(~ind_nan_orig, ~ind_nan_orig), 'r')
+% subplot(1,2,2)
+% spy(P_z_perm(ind_nan_perm, ind_nan_perm), 'b')
+% hold on
+% spy(P_z_perm(~ind_nan_perm, ~ind_nan_perm), 'r')
+
 % permute
 [P_z, P_aalphaYfore] = construct_PQP_example(simdata.params, Nt+Nh, Nmis, 1:length(p_z));
 [P_z_perm, P_aalphaYfore_perm] = construct_PQP_example(simdata.params, Nt+Nh, Nmis, p_z);
@@ -178,7 +200,6 @@ title('$$P_z$$','interpreter','latex','FontSize',16)
 subplot(1,2,2)
 spy(P_z_perm)
 title('')
-%title('$$\mathcal{P}''P_z\mathcal{P}''^{\sf{T}}$$','interpreter','latex','FontSize',14)
 title('$$P_{z_{\mathcal{P}''}}$$','interpreter','latex','FontSize',16)
 
 print('../figures/fig_P_perm.pdf','-dpdf','-fillpage') ; 
