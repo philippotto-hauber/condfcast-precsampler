@@ -364,14 +364,14 @@ Taking the parameters as given, we obtain 1000 draws from both the unconditional
 $$\mathbf{y}^c = \transpose{[y_{1,T+1}, y_{2,T+1}, \dots, y_{1,T+\frac{H}{2}}, y_{2,T+\frac{H}{2}}, y_{1,T+11}, \dots, y_{1,T+H}]}
 $$
 
-The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. 
+The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. The bandwidth of the upper left $T\!\cdot\!N + H\!\cdot\!N - N^c$ block is nearly full (230) in the case of $P_z$. However, it is reduced to 10 for $P_{z_{\mathcal{P}'}}$ by the permutation. 
 
 \begin{figure}[htbp] \centering
     \caption{Precision matrix of $z$ and $z_{\mathcal{P}'}$\label{fig_Pperm}}
     \footnotesize
     \begin{tabular}{p{16cm}}
-    \includegraphics*[scale=0.5,clip,trim=10 60 10 60]{../precsampler/fig_P_perm.pdf} \\
-    \footnotesize \textbf{Note:} Ladida.
+    \includegraphics*[scale=0.5,clip,trim=10 60 10 60]{../figures/fig_P_perm.pdf} \\
+    \footnotesize \textbf{Note:} The left panel shows the original precision matrix of $z=[\alpha, y]$. The right panel shows the permuted precision matrix, placing the conditioning information at the end and ordering states and forecasts by time periods. The highlighted blocks correspond to the precision matrix of the conditional distribution. The bandwidth of $P_z$ is 230 while for $P_{z_{\mathcal{P}'}}$ it is 10. 
     \end{tabular}
     \newline
     \normalsize
@@ -381,16 +381,14 @@ The impact that the permutation of $z$ has on the precision matrix can be seen i
     \caption{Unconditional and conditional forecasts - simulation results\label{fig_simfore}}
     \footnotesize
     \begin{tabular}{p{16cm}}
-    \includegraphics*[scale=0.7,clip,trim=10 60 10 60]{../precsampler/fig_fore.pdf} \\
-    \footnotesize \textbf{Note:} Ladida.
+    \includegraphics*[scale=0.7,clip,trim=10 60 10 60]{../figures/fig_fore.pdf} \\
+    \footnotesize \textbf{Note:} The figure shows draws of the latent states as well as unconditonal and conditional forecasts for three series. For details on the simulation design see the main text.
     \end{tabular}
     \newline
     \normalsize
 \end{figure}
 
-
-
-As Figure \ref{fig_simfore} demonstrates... 
+As Figure \ref{fig_simfore} demonstrates, the estimates of $\mathbf{\alpha}$ are virtually identical for $t \leq T$, as the same observations are used to estimate the states. However, out-of-sample the state tracks the actual values much closer when additional conditioning information is used. The impact of conditioning on the paths of $y_2$ and $y_{10}$ can also be seen clearly.  
 
 \section{Empirical application}
 
