@@ -364,14 +364,15 @@ Taking the parameters as given, we obtain 1000 draws from both the unconditional
 $$\mathbf{y}^c = \transpose{[y_{1,T+1}, y_{2,T+1}, \dots, y_{1,T+\frac{H}{2}}, y_{2,T+\frac{H}{2}}, y_{1,T+11}, \dots, y_{1,T+H}]}
 $$
 
-The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. The bandwidth of the upper left $T\!\cdot\!N + H\!\cdot\!N - N^c$ block is nearly full (230) in the case of $P_z$. However, it is reduced to 10 for $P_{z_{\mathcal{P}'}}$ by the permutation. 
+The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. By placing the conditioning information at the end and ordering states and forecasts by time periods, the bandwidth of $\mathbf{P}_{z_{\mathcal{P}'}}$ - the upper left $T\!\cdot\!N + H\!\cdot\!N - N^c$ block highlighted in the right panel - is kept small (in the example, it is equal to 10), allowing for efficient sampling. 
+
 
 \begin{figure}[htbp] \centering
     \caption{Precision matrix of $z$ and $z_{\mathcal{P}'}$\label{fig_Pperm}}
     \footnotesize
     \begin{tabular}{p{16cm}}
     \includegraphics*[scale=0.5,clip,trim=10 60 10 60]{../figures/fig_P_perm.pdf} \\
-    \footnotesize \textbf{Note:} The left panel shows the original precision matrix of $z=[\alpha, y]$. The right panel shows the permuted precision matrix, placing the conditioning information at the end and ordering states and forecasts by time periods. The highlighted blocks correspond to the precision matrix of the conditional distribution. The bandwidth of $P_z$ is 230 while for $P_{z_{\mathcal{P}'}}$ it is 10. 
+    \footnotesize \textbf{Note:} The left panel shows the original precision matrix of $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$. The right panel shows the permuted precision matrix, placing the conditioning information at the end and ordering states and forecasts by time periods. The highlighted block corresponds to the precision matrix $P_{\alpha\mathbf{y}^{\sf{f}}}$. Its bandwidth is 10. 
     \end{tabular}
     \newline
     \normalsize
