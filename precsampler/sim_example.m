@@ -191,6 +191,7 @@ Nmis = sum(sum(isnan(Y))); % # of missings
 [bw_z_l, bw_z_u] = bandwidth(P_aalphaYfore);
 [bw_z_perm_l, bw_z_perm_u] = bandwidth(P_aalphaYfore_perm);
 
+highl_area = (Nt+Nh)*Nr + Nn * Nh - sum(sum(~isnan(Y_c)));
 figure(2);
 fig = gcf;
 fig.PaperOrientation = 'landscape';
@@ -199,7 +200,8 @@ spy(P_z)
 title('$$P_z$$','interpreter','latex','FontSize',16)
 subplot(1,2,2)
 spy(P_z_perm)
-title('')
+rectangle('Position',[0 0 highl_area highl_area],...
+          'FaceColor','none','EdgeColor',[0 0 0])
 title('$$P_{z_{\mathcal{P}''}}$$','interpreter','latex','FontSize',16)
 
 print('../figures/fig_P_perm.pdf','-dpdf','-fillpage') ; 
