@@ -155,15 +155,15 @@ p1 = plot([simdata.y(ind_n,:) simdata.yfore(ind_n,:)]', 'k-');
 legend([p1, p2, p3], {'actual', 'unconditional', 'conditional'}, 'Location', 'SouthWest')
 title('$$y_{10,1:T+H}$$','interpreter','latex', 'Fontsize', 11)
 
-print('fig_fore.pdf','-dpdf','-fillpage') ; 
+print('../figures/fig_fore.pdf','-dpdf','-fillpage') ; 
 
 %% plot original and permuted precision matrix
  
 Nmis = sum(sum(isnan(Y))); % # of missings
 
 % permute
-[P_z, P_aalphaYfore, ~] = construct_PQP(simdata.params, Nt+Nh, Nmis, 1:length(p_z));
-[P_z_perm, P_aalphaYfore_perm, ~] = construct_PQP(simdata.params, Nt+Nh, Nmis, p_z);
+[P_z, P_aalphaYfore] = construct_PQP_example(simdata.params, Nt+Nh, Nmis, 1:length(p_z));
+[P_z_perm, P_aalphaYfore_perm] = construct_PQP_example(simdata.params, Nt+Nh, Nmis, p_z);
 
 % bandwidth
 [bw_z_l, bw_z_u] = bandwidth(P_aalphaYfore);
@@ -181,9 +181,55 @@ title('')
 %title('$$\mathcal{P}''P_z\mathcal{P}''^{\sf{T}}$$','interpreter','latex','FontSize',14)
 title('$$P_{z_{\mathcal{P}''}}$$','interpreter','latex','FontSize',16)
 
-print('fig_P_perm.pdf','-dpdf','-fillpage') ; 
+print('../figures/fig_P_perm.pdf','-dpdf','-fillpage') ; 
 
+%% functions
 
+function [PQP, PQP_fymis] = construct_PQP_example(params, Nt, Nmis, p_z)
+
+% back out dims
+Nr = size(params.phi, 1);
+Np = size(params.phi, 2) / Nr;
+Nn = size(params.lambda, 1);
+Ns = size(params.lambda, 2) / Nr - 1;
+Nj = size(params.psi, 2);
+
+% Llambda
+Llambda = kron(speye(Nt), params.lambda(:, 1:Nr));
+
+for s = 1:Ns
+    tmp = spdiags(ones(Nt,1), -s, Nt, Nt);
+    Llambda = Llambda + kron(tmp, params.lambda(:, Nr*s+1:Nr*(s+1)));
+end
+
+% Q_eps and H_e
+Q_eps = kron(speye(Nt), eye(Nn) / diag(params.sig_eps)); 
+H_e = speye(Nt*Nn);
+
+for j = 1:Nj
+    tmp = spdiags(ones(Nt,1), -j, Nt, Nt);
+    H_e = H_e + kron(tmp, -diag(params.psi(:, j)));
+end
+
+% Q_ups and H_f
+Q_ups = kron(speye(Nt), params.sig_ups \ eye(Nr));
+
+H_f = speye(Nt*Nr);
+for p = 1:Np
+    tmp = spdiags(ones(Nt,1), -p, Nt, Nt);
+    H_f = H_f + kron(tmp, -params.phi(:, (p-1)*Nr+1:p*Nr));
+end
+
+% blocks of Q
+Q_y = H_e' * Q_eps * H_e;
+Q_f = H_f' * Q_ups * H_f + Llambda' * Q_y * Llambda; 
+Q_f_y = -Llambda' * Q_y; 
+Q = [Q_f, Q_f_y; Q_f_y', Q_y];
+
+% permute Q
+PQP = Q(p_z, p_z); 
+PQP_fymis = PQP(1:(Nr*Nt + Nmis), 1:(Nr*Nt + Nmis));
+end
 
 
 
