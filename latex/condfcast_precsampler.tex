@@ -1,6 +1,7 @@
 \documentclass[notitlepage,a4paper,12pt]{article}
 \usepackage[authoryear]{natbib}
 \usepackage{amsmath}
+\usepackage{bm}
 \usepackage{mathtools}
 \usepackage{cleveref}
 \newcommand{\crefrangeconjunction}{--} % dash instead of "to" in range
@@ -78,7 +79,7 @@ $$
 \end{bmatrix}.
 $$
 
-The marginal distribution of the states, i.e. unconditional of the data, is $\mathcal{N}(\tilde{c},\mathbf{H}^{-1} \mathbf{V}_{\upsilon} \transpose{\mathbf{H}^{-1}})$ where 
+The marginal distribution of the states, i.e. unconditional of the data, is $\mathcal{N}(\tilde{\mathbf{c}},\mathbf{H}^{-1} \bm{V}_{\upsilon} \transpose{\mathbf{H}^{-1}})$, where 
 
 $$
 \tilde{\mathbf{c}}
@@ -94,24 +95,15 @@ $$
 \end{bmatrix}
 $$
 
-Define the joint vector 
+The joint distribution of states and observables is Normal with mean $\bm{\mu}_z$ and covariance matrix $\bm{V}_z$, where we have defined: 
 
 \begin{equation}
-    \mathbf{z} \coloneqq 
+    \mathbf{z} 
+    \coloneqq 
     \begin{bmatrix}
         \boldsymbol{\alpha} \\
         \mathbf{y}
-    \end{bmatrix}.
-\end{equation}
-
-The joint distribution of states and observables is Normal with mean and given by
-
-\begin{equation}
-    \mathbf{z} \coloneqq 
-    \begin{bmatrix}
-        \boldsymbol{\alpha} \\
-        \mathbf{y}
-    \end{bmatrix}
+    \end{bmatrix} 
     = 
     \begin{bmatrix}
         \tilde{\mathbf{c}} \\
@@ -128,29 +120,7 @@ The joint distribution of states and observables is Normal with mean and given b
     \end{bmatrix} 
 \end{equation}
 
-% \begin{equation}
-%     \mathbf{z} = 
-%     \begin{bmatrix}
-%         \boldsymbol{\alpha} \\
-%         \mathbf{y}
-%     \end{bmatrix}
-%     = 
-%     \begin{bmatrix}
-%         \tilde{\mathbf{c}} \\
-%         \mathbf{d} 
-%     \end{bmatrix}
-%     +
-%     \begin{bmatrix}
-%         I_{TR} & 0 \\
-%         \mathbf{M} & I_{TN} 
-%     \end{bmatrix}
-%     \begin{bmatrix}
-%         \boldsymbol{\alpha}\\
-%         \mathbf{\epsilon}
-%     \end{bmatrix} 
-% \end{equation}
-
-is thus multivariate Normal with mean 0 and covariance $\mathbf{V}_z$. The precision matrix of $\mathbf{z}$ is the inverse of the covariance matrix: 
+ The precision matrix of $\mathbf{z}$ is the inverse of the covariance matrix: 
 
 \begin{align*}
     \mathbf{P}_z 
@@ -254,8 +224,9 @@ The stacked vectors of states and observations then become
 
 As above, we define $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$ which is Normal with mean $\boldsymbol{\mu}_{z_\mathcal{P}}$ and precision matrix $\mathbf{P}_{z_\mathcal{P}}$. An expression for the conditional distribution $p\left(\mathbf{y}^{\sf{f}}, \boldsymbol{\alpha} \mid \mathbf{y}^{\sf{o}}, \Theta \right)$ from which draws can be obtained efficiently, requires a reordering or permutation of $\mathbf{z}$. To this end, define the permutation matrix $\mathcal{P}$ that reorders $\mathbf{z}$ such that the states and elements of $\mathbf{y^f}$ - ordered by time period $t$ - are placed first. That is to say,
 
-$$
-\mathbf{z_{\mathcal{P}}} \coloneqq \mathcal{P} \mathbf{z} =
+\begin{equation*}
+\mathbf{z_{\mathcal{P}}} \coloneqq \mathcal{P} \mathbf{z} 
+=
  \transpose{[
      \alpha^{\sf{T}}_1, 
      \dots, 
@@ -268,7 +239,7 @@ $$
      \mathbf{y}^{\sf{T}}_1,
      \dots,
      \mathbf{y}^{\sf{T}}_T}]
-$$
+\end{equation*}
 
 The permuted vector of states and observations is also Normal with (permuted) moments given by 
 
@@ -289,8 +260,6 @@ The precision matrix of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as follows
     \end{bmatrix}
 \end{align*}
 
-% where $\mathbf{P}_{\alpha\! y^{\sf{f}}}$, $\mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}$ and $\mathbf{P}_{y^{\sf{o}}}$ are of dimensions $T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!R + H\!\cdot\!N$, $T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!N$ and $T\!\cdot\!N \times T\!\cdot\!N$, respectively. 
-
 where $\mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}$ is a 
 $T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!N$ matrix and $\mathbf{P}_{\alpha\! y^{\sf{f}}}$ and $\mathbf{P}_{y^{\sf{o}}}$ are square with dimensions $T\!\cdot\!R + H\!\cdot\!N$ and $T\!\cdot\!N $, respectively. Similarly, the mean of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as 
 $$
@@ -301,7 +270,7 @@ $$
 \end{bmatrix}
 $$
 
-A draw from the desired distribution - $p\left(\mathbf{y}^{\sf{f}}\!,\boldsymbol{\alpha}\!\mid\! \mathbf{y}^{\sf{o}},\!\Theta \right)$ - is obtained from the following conditional 
+A draw from the desired distribution - $p(\mathbf{y}^{\sf{f}},\boldsymbol{\alpha} | \mathbf{y}^{\sf{o}},\Theta)$ - is obtained from the following conditional 
 
 \begin{equation*}
     \mathbf{z}_{\alpha\! y^{\sf{f}}} \sim 
@@ -320,6 +289,20 @@ $$
 = 
 \mathcal{P}^{-1} \mathbf{z}_{\alpha\! y^{\sf{f}}}
 $$.
+
+The following algorithm summarizes the required steps to generate $G$ independent draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o)$:\\
+
+ \noindent\textbf{Algorithm 1: draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o)$}\\
+
+\begin{enumerate}
+    \item Draw $\Theta^{(m)}$ from $p(\Theta | y^o)$
+    \item Construct the system matrices $\mathbf{H}, \mathbf{M}, \dots$
+    \item Compute the mean and precision matrix of the joint distribution of $\mathbf{z} = [\boldsymbol{\alpha}, \mathbf{y}]$  
+    \item Permute 
+    \item Compute the conditional mean
+    \item Obtain a draw of from using Rue and Held
+    \item repeat steps 1.-5. $G$ times
+\end{enumerate}
 
 \subsubsection{Conditional forecasting}\label{sec:condfcast}
 
@@ -383,7 +366,7 @@ The impact that the permutation of $z$ has on the precision matrix can be seen i
     \footnotesize
     \begin{tabular}{p{16cm}}
     \includegraphics*[scale=0.7,clip,trim=10 60 10 60]{../figures/fig_fore.pdf} \\
-    \footnotesize \textbf{Note:} The figure shows draws of the latent states as well as unconditonal and conditional forecasts for three series. For details on the simulation design see the main text.
+    \footnotesize \textbf{Note:} The figure shows draws of the latent states as well as unconditonal (blue lines) and conditional (red lines) forecasts for three series. The dashed lines correspond to the 5\textsuperscript{th} and 95\textsuperscript{th} percentile of the posterior distribution. For details on the simulation design see the main text.
     \end{tabular}
     \newline
     \normalsize
