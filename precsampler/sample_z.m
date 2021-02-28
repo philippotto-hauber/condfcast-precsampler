@@ -13,9 +13,8 @@ yobs = y(~isnan(y),1);
 
 % joint draw of f, ymis
 chol_PQP_fymis = chol(PQP_fymis, 'lower'); 
-w = chol_PQP_fymis  \ (-PQP_fymis_yobs * yobs); 
-b_fymis = chol_PQP_fymis' \ w; 
-fxmis_draw = b_fymis + chol_PQP_fymis' \ randn(Nt * Nr + Nmis, 1); 
+b_fymis = rue_held_alg2_1(chol_PQP_fymis, -PQP_fymis_yobs * yobs);
+fxmis_draw = rue_held_alg2_4(chol_PQP_fymis, b_fymis);
 
 % reverse permutation
 z_draw(p_z,:) = [fxmis_draw; repmat(yobs, 1)];
