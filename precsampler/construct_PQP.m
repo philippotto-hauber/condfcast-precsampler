@@ -37,7 +37,7 @@ end
 Q_y = H_e' * Q_eps * H_e;
 Q_f = H_f' * Q_ups * H_f + Llambda' * Q_y * Llambda; 
 Q_f_y = -Llambda' * Q_y; 
-Q = [Q_f, Q_f_y; Q_f_y', Q_y];
+Q = [[Q_f, Q_f_y]; [Q_f_y', Q_y]];
 
 % permute Q
 PQP = Q(p_z, p_z); 
