@@ -199,11 +199,7 @@ with \citep[see also][eqn. 6-8]{chanjeliazkov_2009}:
     \boldsymbol\mu_{\alpha} &= \mathbf{P}_{\alpha}^{-1} \left(\mathbf{P}_{\alpha} \tilde{c}+ \transpose{\mathbf{M}} \mathbf{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
 \end{align*}
 
-
-
-
-
-Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{P}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 5]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot R \times 1$ matrix of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{P}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{P}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{P}^{-1}_{\alpha})$ to which the mean $\mathbf{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 4]{rueheld_2005}.
+Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{P}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 2.1]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot R \times 1$ matrix of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{P}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{P}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{P}^{-1}_{\alpha})$ to which the mean $\mathbf{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 2.4]{rueheld_2005}.
 
 \subsection{Forecasting}
 
