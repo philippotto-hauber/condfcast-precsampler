@@ -197,12 +197,12 @@ fig = gcf;
 fig.PaperOrientation = 'landscape';
 subplot(1,2,1)
 spy(P_z)
-title('$$P_z$$','interpreter','latex','FontSize',16)
+title('$$Q_z$$','interpreter','latex','FontSize',16)
 subplot(1,2,2)
 spy(P_z_perm)
 rectangle('Position',[0 0 highl_area highl_area],...
           'FaceColor','none','EdgeColor',[0 0 0])
-title('$$P_{z_{\mathcal{P}''}}$$','interpreter','latex','FontSize',16)
+title('$$Q_{z_{\mathcal{P}''}}$$','interpreter','latex','FontSize',16)
 
 print('../figures/fig_P_perm.pdf','-dpdf','-fillpage') ; 
 
