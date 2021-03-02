@@ -95,7 +95,8 @@ $$
 \end{bmatrix}
 $$
 
-The joint distribution of states and observables is Normal with mean $\bm{\mu}_z$ and covariance matrix $\bm{V}_z$, where we have defined: 
+The joint distribution of states and observables is Normal with mean $\boldsymbol{\mu}_z$ and covariance matrix $\bm{V}_z$, where we have defined: 
+
 
 \begin{equation}
     \mathbf{z} 
@@ -123,9 +124,9 @@ The joint distribution of states and observables is Normal with mean $\bm{\mu}_z
  The precision matrix of $\mathbf{z}$ is the inverse of the covariance matrix: 
 
 \begin{align*}
-    \mathbf{P}_z 
+    \mathbf{Q}_z 
     &= 
-    \mathbf{V}^{-1}_z \\
+    \bm{V}^{-1}_z \\
     &= 
     Var\left(
     \begin{bmatrix}
@@ -140,8 +141,8 @@ The joint distribution of states and observables is Normal with mean $\bm{\mu}_z
         \mathbf{M} & I
     \end{bmatrix}
     \begin{bmatrix}
-        \mathbf{H}^{-1} \mathbf{V}_{\upsilon} \transpose{\mathbf{H}^{-1}} & 0 \\
-        0 & \mathbf{V}_{\epsilon}
+        \mathbf{H}^{-1} \bm{V}_{\upsilon} \transpose{\mathbf{H}^{-1}} & 0 \\
+        0 & \bm{V}_{\epsilon}
     \end{bmatrix} 
     \begin{bmatrix}
         I & \transpose{\mathbf{M}} \\
@@ -154,8 +155,8 @@ The joint distribution of states and observables is Normal with mean $\bm{\mu}_z
         0 & I
     \end{bmatrix}
     \begin{bmatrix}
-        \transpose{\mathbf{H}} \mathbf{V}^{-1}_{\upsilon} \mathbf{H} & 0 \\
-        0 & \mathbf{V}^{-1}_{\epsilon}
+        \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} & 0 \\
+        0 & \bm{V}^{-1}_{\epsilon}
     \end{bmatrix} 
     \begin{bmatrix}
         I & 0 \\
@@ -163,13 +164,13 @@ The joint distribution of states and observables is Normal with mean $\bm{\mu}_z
     \end{bmatrix} \\
     &=
     \begin{bmatrix}
-         \transpose{\mathbf{H}} \mathbf{V}^{-1}_{\upsilon} \mathbf{H} + \transpose{\mathbf{M}}\mathbf{V}_{\epsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \mathbf{V}^{-1}_{\epsilon} \\
-         \mathbf{V}^{-1}_{\epsilon} \mathbf{M} & \mathbf{V}^{-1}_{\epsilon}
+         \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + \transpose{\mathbf{M}}\bm{V}_{\epsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \bm{V}^{-1}_{\epsilon} \\
+         \bm{V}^{-1}_{\epsilon} \mathbf{M} & \bm{V}^{-1}_{\epsilon}
     \end{bmatrix} \\
     &= 
     \begin{bmatrix}
-        \mathbf{P}_{\alpha} & \mathbf{P}_{\alpha\text{y}} \\
-        \transpose{\mathbf{P}}_{\alpha \text{y}} & \mathbf{P}_{\text{y}}  
+        \mathbf{Q}_{\alpha} & \mathbf{Q}_{\alpha\text{y}} \\
+        \transpose{\mathbf{Q}}_{\alpha \text{y}} & \mathbf{Q}_{\text{y}}  
     \end{bmatrix}
 \end{align*}
 
@@ -183,42 +184,66 @@ Using standard results for multivariate Normal distributions \citep[e.g.][pp. 86
     &\sim
     \mathcal{N}
     \left(
-    \mathbf{P}^{-1}_{\alpha} \left( \mathbf{P}_{\alpha}\boldsymbol{\mu}_{\alpha} - \mathbf{P}^{-1}_{\alpha} \mathbf{P}_{\alpha y} \left(\mathbf{y} - \boldsymbol{\mu}_{\text{y}}\right)\right), \mathbf{P}_{\alpha}^{-1}
+    \mathbf{Q}^{-1}_{\alpha} \left( \mathbf{Q}_{\alpha}\boldsymbol{\mu}_{\alpha} - \mathbf{Q}^{-1}_{\alpha} \mathbf{Q}_{\alpha y} \left(\mathbf{y} - \boldsymbol{\mu}_{\text{y}}\right)\right), \mathbf{Q}_{\alpha}^{-1}
     \right) \\
     &\coloneqq \mathcal{N}
         \left(
-            \boldsymbol{\mu}_{\alpha\mid y}, \mathbf{P}_{\alpha\mid y}^{-1}
+            \boldsymbol{\mu}_{\alpha\mid y}, \mathbf{Q}_{\alpha\mid y}^{-1}
         \right) \\
 \end{align*}
 
 with \citep[see also][eqn. 6-8]{chanjeliazkov_2009}:
 \begin{align*}
-    \mathbf{P}_{\alpha\mid y} &= \mathbf{P}_{\alpha} \\
+    \mathbf{Q}_{\alpha\mid y} &= \mathbf{Q}_{\alpha} \\
     &= 
-    \transpose{\mathbf{H}} \mathbf{V}^{-1}_{\upsilon} \mathbf{H} + {\transpose{\mathbf{M}} \mathbf{V}_{\epsilon}\mathbf{M}}\\
-    \boldsymbol\mu_{\alpha} &= \mathbf{P}_{\alpha}^{-1} \left(\mathbf{P}_{\alpha} \tilde{c}+ \transpose{\mathbf{M}} \mathbf{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
+    \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + {\transpose{\mathbf{M}} \bm{V}^{-1}_{\epsilon}\mathbf{M}}\\
+    \boldsymbol\mu_{\alpha} &= \mathbf{Q}_{\alpha}^{-1} \left(\mathbf{Q}_{\alpha} \tilde{\mathbf{c}}+ \transpose{\mathbf{M}} \bm{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
 \end{align*}
 
-Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{P}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 2.1]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot R \times 1$ matrix of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{P}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{P}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{P}^{-1}_{\alpha})$ to which the mean $\mathbf{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 2.4]{rueheld_2005}.
+Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{Q}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 2.1]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot R \times 1$ matrix of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{Q}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{Q}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{Q}^{-1}_{\alpha})$ to which the mean $\mathbf{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 2.4]{rueheld_2005}.
 
 \subsection{Forecasting}
 
 In addition to a draw of the state vector conditional on the data, macroeconomic applications may require forecasts - both unconditional and conditional on future paths of other variables - from the model in \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans}. 
-These can be obtained by drawing on the insights in Hauber and Schumacher (2021), who generalize the precision sampler outlined above to applications with missing data. Since future values of the variables can simply be considered as missing, draws from the joint distribution of states and forecasts conditional on the data (and possibly the future paths of a subset of the variables) can be sampled efficiently. 
 
-To illustrate the approach, I focus on unconditional forecasts first; the generalization to conditional forecasts is straight-forward as it simply involves a larger conditioning set. For the sake of exposition, I assume that between periods $t=1$ and $t=T$ all observations are available. Situations where this is not the case, e.g. because some series start at a later date in the sample or because outlying observations have been removed by setting them to missing, can naturally be accommodated. Moreover, I assume that the intercepts $c_{T+1:T+H}$ and $d_{T+1:T+H}$ are known at $t=T$. This assumption is reasonable to the extent that these reflect (time-invariant) constant terms, deterministic trends or seasonal and calendar components. 
+From a Bayesian perspective, the aim is to sample from the predictive density 
+
+$$
+p(\mathbf{y^{\sf{f}}}|\mathcal{I}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathcal{I}, \mathbf{\alpha},\Theta) p(\mathbf{\alpha}|\mathcal{I}, \Theta) p(\Theta|\mathcal{I})\, \text{d}\Theta
+$$
+
+where $\mathcal{I}$ denotes the relevant conditioning information and $p(\Theta|\mathcal{I})$ the posterior distribution of the parameters. 
+
+Draws from this density can be obtained by applying the insights in Hauber and Schumacher (2021). They generalize the precision sampler outlined above to applications with missing data and propose to  sample i) either from the joint distribution of states and missing observations, or ii) sequentially from the respective conditional distributions. Since future values of the variables can simply be considered as missing, draws from the joint distribution of states and forecasts conditional on the data (and possibly the future paths of a subset of the variables) can be sampled efficiently. 
+
+In what follows, I will not be concerned with the estimation of $\Theta$ and therefore simply assume that random draws from $p(\Theta|\mathcal{I})$ are readily available. Note,however, Hauber and Schumacher (2021) 
+
+Also, for the sake of exposition, I assume that between periods $t=1$ and $t=T$ all observations are available. Situations where this is not the case, e.g. because some series start at a later date in the sample or because outlying observations have been removed by setting them to missing, can naturally be accommodated. Moreover, I assume that the intercepts $c_{T+1:T+H}$ and $d_{T+1:T+H}$ are known at $t=T$. This assumption is reasonable to the extent that these reflect (time-invariant) constant terms, deterministic trends or seasonal and calendar components. 
+
+To illustrate the approach, I focus on unconditional forecasts first (Section \ref{sec:uncondfcast}). In Section \ref{sec:condfcast} I consider forecasts which in principle simply involves a larger conditioning set. However, additional steps are required when the impact of the conditioning values on the posterior of the parameters is taken into account or if the researcher conditions on a range of values rather than a specific value. 
 
 \subsubsection{Unconditional forecasts}\label{sec:uncondfcast}
 
 Let $h = 1:H$ denote the forecast horizons and $\mathbf{y}^{\sf{f}} = \transpose{[\mathbf{y}^{\sf{T}}_{T+1}, \dots, \mathbf{y}^{\sf{T}}_{T+H}]}$. In contrast, the observations throught $T$ are denoted as $\mathbf{y}^{\sf{o}} = \transpose{[\mathbf{y}^{\sf{T}}_{1}, \dots, \mathbf{y}^{\sf{T}}_{T}]}$. 
 
-The stacked vectors of states and observations then become
+Let $\mathbf{y}^{\sf{o}} = \transpose{[\mathbf{y}^{\sf{T}}_{1}, \dots, \mathbf{y}^{\sf{T}}_{T}]}$ denote the observations through $T$.
+
+Draws from the predictive density 
+
+$$
+p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}})\, \text{d}\Theta
+$$
+
+can then be obtained by stacking states and observables  $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$ 
+
+with 
+
 \begin{align*}
-\mathbf{y} &= \transpose{[\transpose{\mathbf{y}^{\sf{o}}}, \transpose{\mathbf{y}^{\sf{f}}}]} \\
-\boldsymbol{\alpha} &= [\boldsymbol{\alpha}_1, \dots, \boldsymbol{\alpha}_{T+H}].
+    \mathbf{y} &= \transpose{[\transpose{\mathbf{y}^{\sf{o}}}, \transpose{\mathbf{y}^{\sf{f}}}]} \\
+    \boldsymbol{\alpha} &= [\boldsymbol{\alpha}_1, \dots, \boldsymbol{\alpha}_{T+H}].
 \end{align*}
 
-As above, we define $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$ which is Normal with mean $\boldsymbol{\mu}_{z_\mathcal{P}}$ and precision matrix $\mathbf{P}_{z_\mathcal{P}}$. An expression for the conditional distribution $p\left(\mathbf{y}^{\sf{f}}, \boldsymbol{\alpha} \mid \mathbf{y}^{\sf{o}}, \Theta \right)$ from which draws can be obtained efficiently, requires a reordering or permutation of $\mathbf{z}$. To this end, define the permutation matrix $\mathcal{P}$ that reorders $\mathbf{z}$ such that the states and elements of $\mathbf{y^f}$ - ordered by time period $t$ - are placed first. That is to say,
+The distribution of $\mathbf{z}$ is Normal with mean $\boldsymbol{\mu}_{z_\mathcal{P}}$ and precision matrix $\mathbf{Q}_{z_\mathcal{P}}$. An expression for the conditional distribution $p\left(\mathbf{y}^{\sf{f}}, \boldsymbol{\alpha} \mid \mathbf{y}^{\sf{o}}, \Theta \right)$ from which draws can be obtained efficiently, requires a reordering or permutation of $\mathbf{z}$. To this end, define the permutation matrix $\mathcal{P}$ that reorders $\mathbf{z}$ such that the states and elements of $\mathbf{y^f}$ - ordered by time period $t$ - are placed first. That is to say,
 
 \begin{equation*}
 \mathbf{z_{\mathcal{P}}} \coloneqq \mathcal{P} \mathbf{z} 
@@ -240,7 +265,7 @@ As above, we define $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \
 The permuted vector of states and observations is also Normal with (permuted) moments given by 
 
 \begin{equation*}
-    \mathbf{z_{\mathcal{P}}} \sim \mathcal{N}\left(\mathcal{P}\boldsymbol{\mu}_z, \left(\mathcal{P} \mathbf{P}_z \transpose{\mathcal{P}}\right)^{-1}\right)
+    \mathbf{z_{\mathcal{P}}} \sim \mathcal{N}\left(\mathcal{P}\boldsymbol{\mu}_z, \left(\mathcal{P} \mathbf{Q}_z \transpose{\mathcal{P}}\right)^{-1}\right)
 \end{equation*}
 
 where we have made use of the fact that the inverse of a permutation matrix is equal to its transpose. 
@@ -248,16 +273,16 @@ where we have made use of the fact that the inverse of a permutation matrix is e
 The precision matrix of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as follows: 
 
 \begin{align*}
-    \mathbf{P}_{z_{\mathcal{P}}} &\coloneqq  \mathcal{P} \mathbf{P}_z \transpose{\mathcal{P}} \\
+    \mathbf{Q}_{z_{\mathcal{P}}} &\coloneqq  \mathcal{P} \mathbf{Q}_z \transpose{\mathcal{P}} \\
     &= 
     \begin{bmatrix}
-        \mathbf{P}_{\alpha\! y^{\sf{f}}} & \mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}} \\ 
-        \mathbf{P}^{\sf{T}}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}} & \mathbf{P}_{y^{\sf{o}}}
+        \mathbf{Q}_{\alpha\! y^{\sf{f}}} & \mathbf{Q}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}} \\ 
+        \mathbf{Q}^{\sf{T}}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}} & \mathbf{Q}_{y^{\sf{o}}}
     \end{bmatrix}
 \end{align*}
 
-where $\mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}$ is a 
-$T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!N$ matrix and $\mathbf{P}_{\alpha\! y^{\sf{f}}}$ and $\mathbf{P}_{y^{\sf{o}}}$ are square with dimensions $T\!\cdot\!R + H\!\cdot\!N$ and $T\!\cdot\!N $, respectively. Similarly, the mean of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as 
+where $\mathbf{Q}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}$ is a 
+$T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!N$ matrix and $\mathbf{Q}_{\alpha\! y^{\sf{f}}}$ and $\mathbf{Q}_{y^{\sf{o}}}$ are square with dimensions $T\!\cdot\!R + H\!\cdot\!N$ and $T\!\cdot\!N $, respectively. Similarly, the mean of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as 
 $$
 \boldsymbol{\mu}_{z_{\mathcal{P}}} = 
 \begin{bmatrix}
@@ -271,9 +296,9 @@ A draw from the desired distribution - $p(\mathbf{y}^{\sf{f}},\boldsymbol{\alpha
 \begin{equation*}
     \mathbf{z}_{\alpha\! y^{\sf{f}}} \sim 
     \mathcal{N}\left(
-        \mathbf{P}^{-1}_{\alpha\! y^{\sf{f}}}\left( \mathbf{P}_{\alpha\! y^{\sf{f}}}\boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} - \mathbf{P}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}\left(\mathbf{y}^o-\boldsymbol{\mu}_{y^{\sf{o}}}\right)\right)
+        \mathbf{Q}^{-1}_{\alpha\! y^{\sf{f}}}\left( \mathbf{Q}_{\alpha\! y^{\sf{f}}}\boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} - \mathbf{Q}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}\left(\mathbf{y}^o-\boldsymbol{\mu}_{y^{\sf{o}}}\right)\right)
     ,
-    \mathbf{P}_{\alpha\! y^{\sf{f}}}
+    \mathbf{Q}_{\alpha\! y^{\sf{f}}}
     \right)
 \end{equation*}
 and then reversing the permutation, i.e 
@@ -326,7 +351,7 @@ $$
      \mathbf{y}^{c\sf{T}}]}
 $$
 
-As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and forecasts can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{P}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$. 
+As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and forecasts can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{Q}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$. 
 
 \subsection{Simulation}
 
@@ -343,7 +368,7 @@ Taking the parameters as given, we obtain 1000 draws from both the unconditional
 $$\mathbf{y}^c = \transpose{[y_{1,T+1}, y_{2,T+1}, \dots, y_{1,T+\frac{H}{2}}, y_{2,T+\frac{H}{2}}, y_{1,T+11}, \dots, y_{1,T+H}]}
 $$
 
-The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. By placing the conditioning information at the end and ordering states and forecasts by time periods, the bandwidth of $\mathbf{P}_{z_{\mathcal{P}'}}$ - the upper left $T\!\cdot\!N + H\!\cdot\!N - N^c$ block highlighted in the right panel - is kept small (in the example, it is equal to 10), allowing for efficient sampling. 
+The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. By placing the conditioning information at the end and ordering states and forecasts by time periods, the bandwidth of $\mathbf{Q}_{z_{\mathcal{P}'}}$ - the upper left $T\!\cdot\!N + H\!\cdot\!N - N^c$ block highlighted in the right panel - is kept small (in the example, it is equal to 10), allowing for efficient sampling. 
 
 
 \begin{figure}[htbp] \centering
@@ -351,7 +376,7 @@ The impact that the permutation of $z$ has on the precision matrix can be seen i
     \footnotesize
     \begin{tabular}{p{16cm}}
     \includegraphics*[scale=0.5,clip,trim=10 60 10 60]{../figures/fig_P_perm.pdf} \\
-    \footnotesize \textbf{Note:} The left panel shows the original precision matrix of $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$. The right panel shows the permuted precision matrix, placing the conditioning information at the end and ordering states and forecasts by time periods. The highlighted block corresponds to the precision matrix $P_{\alpha\mathbf{y}^{\sf{f}}}$. Its bandwidth is 10. 
+    \footnotesize \textbf{Note:} The left panel shows the original precision matrix of $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$. The right panel shows the permuted precision matrix, placing the conditioning information at the end and ordering states and forecasts by time periods. The highlighted block corresponds to the precision matrix $P_{\alpha\mathbf{y}^{\sf{f}}}$. Its bandwidth is 10.
     \end{tabular}
     \newline
     \normalsize
