@@ -1,4 +1,4 @@
-function [fdraw, Ydraw] = sample_z_softcond(Y, Nh, Y_l, Y_u, params, p_z)
+function [fdraw, Ydraw, iter] = sample_z_softcond(Y, Nh, Y_l, Y_u, params, p_z)
 
 [Nn, Nt] = size(Y);
 Nr = size(params.phi, 1);
@@ -26,7 +26,7 @@ restr = 0;
 max_iter = 10000; 
 iter = 0;
 z_draw = NaN(size(b_fymis, 1), 1);
-while restr == 0 && iter <= max_iter
+while restr == 0 && iter < max_iter
     % update iter
     iter = iter + 1; 
     % draw candidate
@@ -39,8 +39,6 @@ while restr == 0 && iter <= max_iter
         restr = 1;
     end
 end
-
-disp(iter)
 
 % reshape draw of z
 fdraw = reshape(z_draw(1:(Nt+Nh)*Nr, :), Nr, Nt+Nh); 
