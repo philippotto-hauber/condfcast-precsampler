@@ -13,7 +13,7 @@ Nh = 20;
 Nn = 10;
 Nr = 1;
 
-simdata = sim_data(Nt, Nh, Nn, Nr);
+simdata = generate_data(Nt, Nh, Nn, Nr);
 
 %% sample unconditional and conditional forecasts
 

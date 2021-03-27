@@ -22,7 +22,7 @@ for Nn = Nns
                 end
                 for g = 1:Ng
                     % simulate data
-                    simdata = sim_data(Nt, Nh, Nn, Nr);
+                    simdata = generate_data(Nt, Nh, Nn, Nr);
 
                     if strcmp(type_fore{t}, 'cond_soft')                     
                         Y = [simdata.y];
