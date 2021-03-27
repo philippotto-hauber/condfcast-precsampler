@@ -32,10 +32,14 @@ for Nn = Nns
                         Y_l = NaN(Nn, Nh);
                         Y_l(1:Nn/10,1:Nh/4) = simdata.yfore(1:Nn/10,1:Nh/4) - repmat(2 * sig(1:Nn/10, 1), 1, Nh/4);
                         p_z = p_timet([Y, NaN(Nn, Nh)], Nr);
-
-                        tstart = tic;
-                        for m = 1:Nm
-                            [fdraw, Ydraw, iter_count(g, m)] = sample_z_softcond(Y, Nh, Y_l, Y_u, simdata.params, p_z);
+                        max_iter = 5000;
+                        m = 1; 
+                        tstart = tic;                        
+                        while m < Nm
+                            [fdraw, Ydraw, iter] = sample_z_softcond(Y, Nh, Y_l, Y_u, simdata.params, p_z, max_iter);
+                            if iter < max_iter
+                                m = m + 1;
+                            end
                         end
                         telapsed(g, 1) = toc(tstart);
                     elseif strcmp(type_fore{t}, 'cond_hard')
