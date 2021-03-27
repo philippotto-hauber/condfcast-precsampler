@@ -1,17 +1,33 @@
 clear; close all; 
-addpath('../../sim/')
-
-rng(1234)
+%% Description --------------------------------------------------------- %%
+%  This code tests the function simsmoothCK.m in different forecasting 
+%  settings (ftype):
+%           -standard simulation smoothing, i.e. no forecasting
+%           -unconditional forecasting
+%           -conditional forecasting with hard, i.e. exact conditions
+%           -conditional forecasting with soft, i.e. interval conditions
+%  Artifical data from a state space model are generated and Nm draws from 
+%  the posterior distribution are sampled. The results for the factors and
+%  both restricted and unrestricted series are plotted.
+%------------------------------------------------------------------------ %
 
 %% set-up
 
-Nt = 50;
-Nn = 10;
-Nr = 1;
-Nm = 1000; 
+addpath('../../sim/') % path to generate_data.m
+
+rng(1234) % set random seed for reproducibility
+
+Nt = 50; % # of in-sample observations
+Nn = 10; % # of variables
+Nr = 1; % # of states
+Nm = 1000; % # of draws
+
+% type of forecast
 ftype = 'unconditional'; % {'none', 'unconditional', 'unconditional (hard)', 'unconditional (soft)'} 
+
+% forecast horizon
 if strcmp(ftype, 'none')
-    Nh = 0;
+    Nh = 0; 
 else
     Nh = 20;
 end
