@@ -6,13 +6,14 @@ addpath('../sim/')
 
 rng(1234)
 
-%% simulate data
-% set-up
+%% set-up 
 Nt = 50;
 Nh = 20; 
 Nn = 10;
 Nr = 1;
+Nm = 500; 
 
+% simulate data
 simdata = generate_data(Nt, Nh, Nn, Nr);
 
 %% sample unconditional and conditional forecasts
@@ -20,57 +21,57 @@ simdata = generate_data(Nt, Nh, Nn, Nr);
 Nm = 500; % # of draws
 
 % unconditional forecasts
-Y = [simdata.y NaN(Nn, Nh)];
+Y_o = simdata.y;
+Y_f = NaN(Nn, Nh);
+Y_l = [];
+Y_u = [];
 
-p_z = p_timet(Y, Nr);
+p_z = p_timet([Y_o, Y_f], Nr);
 
 store_aalpha_u = NaN(Nr, Nt+Nh, Nm);
 store_Yfore_u = NaN(Nn, Nh, Nm);
 for m = 1:Nm
-    [fdraw, Ydraw] = sample_z(Y, simdata.params, p_z);
-    store_aalpha_u(:, :, m) = fdraw;
-    store_Yfore_u(:, :, m) = Ydraw(:, Nt+1:Nt+Nh);
+    [store_aalpha_u(:, :, m), store_Yfore_u(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z);
 end
 
 % conditional forecasts (hard)
-Y_c = NaN(Nn, Nh);
-Y_c(1,:) = simdata.yfore(1,:);
-Y_c(2,1:Nh/2) = simdata.yfore(2,1:Nh/2);
-Y = [simdata.y Y_c];
-p_z = p_timet(Y, Nr);
+Y_f = NaN(Nn, Nh);
+Y_f(1,:) = simdata.yfore(1,:);
+Y_f(2,1:Nh/2) = simdata.yfore(2,1:Nh/2);
+Y_l = [];
+Y_u = [];
+p_z = p_timet([Y_o, Y_f], Nr);
 
 store_aalpha_c_h = NaN(Nr, Nt+Nh, Nm);
 store_Yfore_c_h = NaN(Nn, Nh, Nm);
 for m = 1:Nm
-    [fdraw, Ydraw] = sample_z(Y, simdata.params, p_z);
-    store_aalpha_c_h(:, :, m) = fdraw;
-    store_Yfore_c_h(:, :, m) = Ydraw(:, Nt+1:Nt+Nh);
+      [store_aalpha_c_h(:, :, m), store_Yfore_c_h(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z);
 end
 
 % conditional forecasts (soft)
-Y = [simdata.y];
+Y_o = simdata.y;
+Y_f = NaN(Nn, Nh); 
 sig = sqrt(var(simdata.y, [], 2));
-Y_u = NaN(Nn, Nh);
-%Y_u(1,1:Nh) = simdata.yfore(1,1:Nh) + repmat(1 * sig(1, 1), 1, Nh);
-%Y_u(2,1:Nh/2) = simdata.yfore(2,1:Nh/2) + repmat(1 * sig(2, 1), 1, Nh/2);
-Y_u(1:Nn/10,:) = simdata.yfore(1:Nn/10,1:Nh) + repmat(3 * sig(1:Nn/10, 1), 1, Nh);
-Y_l = NaN(Nn, Nh);
-%Y_l(1:Nn/10,1:Nh/2) = simdata.yfore(1:Nn/10,1:Nh/2) - repmat(1 * sig(1:Nn/10, 1), 1, Nh/2);
-Y_l(1:Nn/10,:) = 0; 
 
-p_z = p_timet([Y, NaN(Nn, Nh)], Nr);
+% two sets of restrictions
+restr = 'y1 < 0' ; %{'y1,y2 +- 1 std. dev.', 'y1 < 0'}
+Y_u = NaN(Nn, Nh);
+Y_l = NaN(Nn, Nh);
+if strcmp(restr, 'y1,y2 +- 1 std. dev.')    
+    Y_u(1,1:Nh) = simdata.yfore(1,1:Nh) + repmat(1 * sig(1, 1), 1, Nh);
+    Y_u(2,1:Nh/2) = simdata.yfore(2,1:Nh/2) + repmat(1 * sig(2, 1), 1, Nh/2);
+    Y_l(1:Nn/10,1:Nh/2) = simdata.yfore(1:Nn/10,1:Nh/2) - repmat(1 * sig(1:Nn/10, 1), 1, Nh/2);
+    Y_l(2,1:Nh/2) = simdata.yfore(2,1:Nh/2) - repmat(1 * sig(2, 1), 1, Nh/2);
+elseif strcmp(restr, 'y1 < 0')
+    Y_u(1:Nn/10,:) = 0;
+    Y_l(1:Nn/10,1:Nh) = simdata.yfore(1:Nn/10,1:Nh) - repmat(3 * sig(1:Nn/10, 1), 1, Nh);
+end
+p_z = p_timet([Y_o, Y_f], Nr);
 
 store_aalpha_c_s = NaN(Nr, Nt+Nh, Nm);
 store_Yfore_c_s = NaN(Nn, Nh, Nm);
-max_iter = 5000;
-m = 1; 
-while m < Nm
-    [fdraw, Ydraw, iter] = sample_z_softcond(Y, Nh, Y_l, Y_u, simdata.params, p_z, max_iter);
-    if iter < max_iter
-        m = m + 1;
-        store_aalpha_c_s(:, :, m) = fdraw;
-        store_Yfore_c_s(:, :, m) = Ydraw(:, Nt+1:Nt+Nh);
-    end
+for m = 1:Nm
+     [store_aalpha_c_s(:, :, m), store_Yfore_c_s(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z);
 end
 
 %% plot states and series
@@ -83,28 +84,10 @@ q_c_h.Yfore = calc_quantiles(store_Yfore_c_h);
 q_c_s.aalpha = calc_quantiles(store_aalpha_c_s); 
 q_c_s.Yfore = calc_quantiles(store_Yfore_c_s); 
 
-quantiles_draw_aalpha_u = quantile(store_aalpha_u, [0.1 0.5 0.9], 3); 
-med_aalpha_u = quantiles_draw_aalpha_u(:, :, 2);
-upper_aalpha_u = quantiles_draw_aalpha_u(:, :, 3);
-lower_aalpha_u = quantiles_draw_aalpha_u(:, :, 1);
 
-quantiles_draw_aalpha_c = quantile(store_aalpha_c_h, [0.1 0.5 0.9], 3); 
-med_aalpha_c = quantiles_draw_aalpha_c(:, :, 2);
-upper_aalpha_c = quantiles_draw_aalpha_c(:, :, 3);
-lower_aalpha_c = quantiles_draw_aalpha_c(:, :, 1);
-
-quantiles_draw_Yfore_u = quantile(store_Yfore_u, [0.1 0.5 0.9], 3); 
-med_Yfore_u = quantiles_draw_Yfore_u(:, :, 2);
-upper_Yfore_u = quantiles_draw_Yfore_u(:, :, 3);
-lower_Yfore_u = quantiles_draw_Yfore_u(:, :, 1);
-
-quantiles_draw_Yfore_c = quantile(store_Yfore_c_h, [0.1 0.5 0.9], 3); 
-med_Yfore_c = quantiles_draw_Yfore_c(:, :, 2);
-upper_Yfore_c = quantiles_draw_Yfore_c(:, :, 3);
-lower_Yfore_c = quantiles_draw_Yfore_c(:, :, 1);
 
 % figure
-figure(1)
+figure
 fig = gcf;
 fig.PaperOrientation = 'portrait';
 subplot(4,1,1)
