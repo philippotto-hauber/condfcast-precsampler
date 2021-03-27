@@ -4,6 +4,9 @@ function x = rue_held_alg2_4(L, m)
 % Input:            L - NxN matrix, lower Cholesky factor of Q, i.e. L = chol(Q, 'lower')
 %                   b - Nx1 vector, mean of the Normal
 % Output:           x - Nx1 vector, draw from N(b,Q^{-1})
+if ~istril(L)
+    error('L needs to be the lower Cholesky factor!')
+end
 z = randn(size(m, 1), 1);
 v = L' \ z;
 x = m + v;
