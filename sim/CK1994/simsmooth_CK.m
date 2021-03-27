@@ -23,7 +23,6 @@ function [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0)
 % if Nh = 0).
 %-------------------------------------------------------------------------%
 
-
 % check args, infer forecast type
 if isempty(Y_f) && isempty(Y_u) && isempty(Y_l)
     ftype = 'none';
