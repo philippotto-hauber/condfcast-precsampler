@@ -1,4 +1,4 @@
-function [fdraw, Ydraw, iter] = sample_z_softcond(Y, Nh, Y_l, Y_u, params, p_z)
+function [fdraw, Ydraw, iter] = sample_z_softcond(Y, Nh, Y_l, Y_u, params, p_z, max_iter)
 
 [Nn, Nt] = size(Y);
 Nr = size(params.phi, 1);
@@ -23,7 +23,6 @@ Nmis = sum(sum(isnan([Y, NaN(Nn, Nh)])));
 chol_PQP_fymis = chol(PQP_fymis, 'lower'); 
 b_fymis = rue_held_alg2_1(chol_PQP_fymis, -PQP_fymis_yobs * yobs);
 restr = 0;
-max_iter = 10000; 
 iter = 0;
 z_draw = NaN(size(b_fymis, 1), 1);
 while restr == 0 && iter < max_iter
