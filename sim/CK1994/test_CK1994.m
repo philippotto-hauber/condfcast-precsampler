@@ -23,7 +23,7 @@ Nr = 1; % # of states
 Nm = 1000; % # of draws
 
 % type of forecast
-ftype = 'unconditional'; % {'none', 'unconditional', 'unconditional (hard)', 'unconditional (soft)'} 
+ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
 
 % forecast horizon
 if strcmp(ftype, 'none')
