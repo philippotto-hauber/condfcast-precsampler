@@ -1,24 +1,32 @@
 clear; close all; clc;
-%-------------------------------------------------------------------------%
-%-------------------------------------------------------------------------%
-%-------------------------------------------------------------------------%
-addpath('../sim/')
-
-rng(1234)
+%------------------------------------------------------------------------ %
+%-This code tests the function simsmooth_HS.m, which implements a
+% precision-sampler to draw the states and forecasts from a state space
+% model. Data are generated using generate_data.m and then different types
+% of forecasts are considered: unconditional as well as hard and soft
+% conditional forecasts. For the latter, two different scenarios are
+% implemented and can be activated with the switch soft_restr (see Section 
+% set-up). Note that 'y1,y2 +- 1 std. dev.' can take a while to run!
+%------------------------------------------------------------------------ %
 
 %% set-up 
+
+addpath('../sim/') % path to generate_data.m
+
+rng(1234) % set random seed
+
+Nm = 500; % # of draws
+
+soft_restr = 'y1 < 0' ; % type of soft restrictions. Options: {'y1,y2 +- 1 std. dev.', 'y1 < 0'}, 
+
+% simulate data
 Nt = 50;
 Nh = 20; 
 Nn = 10;
 Nr = 1;
-Nm = 500; 
-
-% simulate data
 simdata = generate_data(Nt, Nh, Nn, Nr);
 
 %% sample unconditional and conditional forecasts
-
-Nm = 500; % # of draws
 
 % unconditional forecasts
 Y_o = simdata.y;
@@ -53,16 +61,15 @@ Y_o = simdata.y;
 Y_f = NaN(Nn, Nh); 
 sig = sqrt(var(simdata.y, [], 2));
 
-% two sets of restrictions
-restr = 'y1 < 0' ; %{'y1,y2 +- 1 std. dev.', 'y1 < 0'}
+% select sets of restrictions
 Y_u = NaN(Nn, Nh);
 Y_l = NaN(Nn, Nh);
-if strcmp(restr, 'y1,y2 +- 1 std. dev.')    
+if strcmp(soft_restr, 'y1,y2 +- 1 std. dev.')    
     Y_u(1,1:Nh) = simdata.yfore(1,1:Nh) + repmat(1 * sig(1, 1), 1, Nh);
     Y_u(2,1:Nh/2) = simdata.yfore(2,1:Nh/2) + repmat(1 * sig(2, 1), 1, Nh/2);
     Y_l(1:Nn/10,1:Nh/2) = simdata.yfore(1:Nn/10,1:Nh/2) - repmat(1 * sig(1:Nn/10, 1), 1, Nh/2);
     Y_l(2,1:Nh/2) = simdata.yfore(2,1:Nh/2) - repmat(1 * sig(2, 1), 1, Nh/2);
-elseif strcmp(restr, 'y1 < 0')
+elseif strcmp(soft_restr, 'y1 < 0')
     Y_u(1:Nn/10,:) = 0;
     Y_l(1:Nn/10,1:Nh) = simdata.yfore(1:Nn/10,1:Nh) - repmat(3 * sig(1:Nn/10, 1), 1, Nh);
 end
@@ -84,8 +91,6 @@ q_c_h.Yfore = calc_quantiles(store_Yfore_c_h);
 q_c_s.aalpha = calc_quantiles(store_aalpha_c_s); 
 q_c_s.Yfore = calc_quantiles(store_Yfore_c_s); 
 
-
-
 % figure
 figure
 fig = gcf;
@@ -106,7 +111,6 @@ subplot(4,1,4)
 ind_n = 10;
 flag_alpha = false;
 plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, Nh, '$$y_{10,1:T+H}$$', flag_alpha)
-print('../figures/fig_fore.pdf','-dpdf','-fillpage') ; 
 
 figure; 
 ind_n = 10;
@@ -132,9 +136,6 @@ q.upper = tmp(:, :, 3);
 q.med = tmp(:, :, 2);
 q.lower = tmp(:, :, 1);
 end
-
-% 
-% colors = [[1 .5 0]; [0.6 0 0.6]; [0 0 1]; [0 0 1]];
 
 function plot_draws_actuals(simdata, q_u, q_c_h, q_c_s, ind_n, Nh, title_str, flag_alpha)
 if flag_alpha
