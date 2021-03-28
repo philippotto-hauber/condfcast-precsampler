@@ -35,24 +35,24 @@ elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
 end
 
 % back out dimensions
-Ns = size(T, 1);
-[Nn, Nt] = size(Y_o);
-Nh = size(Y_f, 2);
-Nobs = Nt + Nh; 
+Ns = size(T, 1); % # of states 
+[Nn, Nt] = size(Y_o); % # of variables and observations, respectively
+Nh = size(Y_f, 2); % forecast horizon
+NtNh = Nt + Nh; % # of total periods
 
 % empty matrices to store stuff
-sdraw = NaN(Ns, Nobs);
+sdraw = NaN(Ns, NtNh);
 Ydraw = Y_f;
-stt = NaN(Ns,Nobs);
-Ptt = NaN(Ns,Ns,Nobs);
-stT = NaN(Ns,Nobs);
-PtT = NaN(Ns,Ns,Nobs);
+stt = NaN(Ns,NtNh);
+Ptt = NaN(Ns,Ns,NtNh);
+stT = NaN(Ns,NtNh);
+PtT = NaN(Ns,Ns,NtNh);
 
 % forward recursions 
 eye_N = eye(Nn); % 
 Y = [Y_o, Y_f]; 
 
-for t = 1:Nobs
+for t = 1:NtNh
     % predict!
     if t==1
         st = T*s0;
@@ -86,38 +86,11 @@ if t > Nt
     if isempty(Y_u); y_u = [];else y_u = Y_u(:, t-Nt);end
     [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype);
 else
-    %sdraw(:, t) = mvnrnd(stT(:, t), PtT(:, :, t));
     sdraw(:, t) = rue_held_alg2_3(stT(:, t), chol(PtT(:, :, t), 'lower'));
 end
-% if ~strcmp(ftype, 'none')
-%     cholH = chol(H, 'lower');
-%     cholP = chol(PtT(:, : , t), 'lower');
-%     restr = 0; 
-%     ind_o = isnan(Y(:, t));
-%     if strcmp(ftype, 'conditional (soft)')
-%         ind_r_u = ~isnan(Y_u(:, t-Nt));
-%         ind_r_l = ~isnan(Y_l(:, t-Nt));
-% 
-%         while restr == 0
-%             s_tmp = stT(:, t) + cholP' * randn(Ns, 1);
-%             Ydraw_tmp = Z * s_tmp + cholH' * randn(Nn, 1);
-%             if all(Ydraw_tmp(ind_r_l, 1) > Y_l(ind_r_l, 1)) && all(Ydraw_tmp(ind_r_u, 1) < Y_u(ind_r_u, 1))
-%                 restr = 1;
-%                 sdraw(:, t) = s_tmp; 
-%                 Ydraw(ind_o, t-Nt) = Ydraw_tmp(ind_o, 1); 
-%             end
-%         end
-%     elseif strcmp(ftype, 'unconditional') || strcmp(ftype, 'conditional (hard)') 
-%        sdraw(:, t) = stT(:, t) + cholP' * randn(Ns, 1);
-%        Ydraw_tmp = Z * sdraw(:, t) + cholH' * randn(Nn, 1); 
-%        Ydraw(ind_o, t-Nt) = Ydraw_tmp(ind_o, 1); 
-%     end
-% else
-%     sdraw(:, t) = mvnrnd(stT(:, t), PtT(:, :, t));
-% end
 
 % backward recursions 
-for t=Nobs-1:-1:1
+for t=NtNh-1:-1:1
     % stT and PtT
     J = Ptt(:, :, t) * T'/(T*Ptt(:,:,t)*T' + RQR);
     stT(:,t) = stt(:,t) + J*(sdraw(:,t+1) - T*stt(:,t));
@@ -129,26 +102,6 @@ for t=Nobs-1:-1:1
     else
         sdraw(:, t) = rue_held_alg2_3(stT(:, t), chol(PtT(:, :, t), 'lower'));
     end
-    % draw states and missing obs
-%     if t > Nt
-%     cholH = chol(H, 'lower');
-%     cholP = chol(PtT(:, : , t), 'lower');
-%     restr = 0; 
-%     ind_o = isnan(Y(:, t)); 
-%     ind_r_u = ~isnan(Y_u(:, t-Nt));
-%     ind_r_l = ~isnan(Y_l(:, t-Nt));
-%     while restr == 0
-%         s_tmp = stT(:, t) + cholP' * randn(Ns, 1);
-%         Ydraw_tmp = Z * s_tmp + cholH' * randn(Nn, 1);
-%         if all(Ydraw_tmp(ind_r_l, 1) > Y_l(ind_r_l, 1)) && all(Ydraw_tmp(ind_r_u, 1) < Y_u(ind_r_u, 1))
-%             restr = 1;
-%             sdraw(:, t) = s_tmp;             
-%             Ydraw(ind_o, t-Nt) = Ydraw_tmp(ind_o, 1); 
-%         end
-%     end
-%     else
-%         sdraw(:, t) = mvnrnd(stT(:, t), PtT(:, :, t));
-%     end
 end
 
 function [sdraw, ydraw] = draw_s_y(s, P, Z, H, y, y_u, y_l, ftype)
