@@ -23,7 +23,7 @@ Nr = 1; % # of states
 Nm = 1000; % # of draws
 
 % type of forecast
-ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
+ftype = 'conditional (hard)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
 
 % forecast horizon
 if strcmp(ftype, 'none')
@@ -139,7 +139,7 @@ if ~strcmp(ftype, 'none')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
-    title(ftype)
+    title([ftype, ', y_{' num2str(ind_n) '}'])
     subplot(3,1,2)
     ind_n = 2; 
     plot([simdata.y(ind_n, :) simdata.yfore(ind_n, :)]', 'k-')
@@ -147,6 +147,7 @@ if ~strcmp(ftype, 'none')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+    title([ftype, ', y_{' num2str(ind_n) '}'])
     subplot(3,1,3)
     ind_n = Nn; 
     plot([simdata.y(ind_n, :) simdata.yfore(ind_n, :)]', 'k-')
@@ -154,4 +155,5 @@ if ~strcmp(ftype, 'none')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+    title([ftype, ', y_{' num2str(ind_n) '}'])
 end
