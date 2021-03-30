@@ -2,6 +2,17 @@ function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1
 % This code samples states and forecasts from a state space model of the
 % following form: 
 
+% check args, infer forecast type
+if isempty(Y_f) && isempty(Y_u) && isempty(Y_l)
+    ftype = 'none';
+elseif all(isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
+    ftype = 'unconditional';
+elseif any(~isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
+    ftype = 'conditional (hard)';
+elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
+    ftype = 'conditional (soft)';
+end
+
 % back out dimensions
 Ns = size(T, 1); % # of states
 [Nn, Nt] = size(Y_o); % # of variables and observations, respectively
@@ -10,20 +21,51 @@ NtNh = Nt + Nh; % # of total periods
 ind_fore = isnan(Y_f);
 Y = [Y_o, Y_f]; 
 
-% draw from joint distribution of a and Y
-[aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
-Ystar = Y-Yplus;
+% case distinction
+if strcmp(ftype, 'conditional (soft)')
+    % ind
+    ind_y_l = not(isnan(Y_l));
+    ind_y_u = not(isnan(Y_u));
+    % run Kalman smoother on data
+    ahat = kalmansmoother(Y, T, Z, H, R, Q, a1, P1);
+    
+    % draw until conditions are satisfied 
+    condition_satisfied = false;
+    while not(condition_satisfied)    
+        % draw from joint distribution of a and Y
+        [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
 
-% run Kalman smoother
-ahatstar = kalmansmoother(Ystar, T, Z, H, R, Q, a1, P1);
+        % run Kalman smoother on simulated data
+        aplushat = kalmansmoother(Yplus, T, Z, H, R, Q, a1, P1);
 
-% draw a and Y_f
-adraw = ahatstar + aplus ; % random draw of state vector
-Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh);
+        % draw of a and Y_f
+        adraw = ahat - aplushat + aplus ; % random draw of state vector
+        Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh);
+
+        % check conditions
+        if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
+            condition_satisfied = true;
+        end
+    end
+    
+else
+    % draw from joint distribution of a and Y
+    [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
+    Ystar = Y-Yplus;
+
+    % run Kalman smoother
+    ahatstar = kalmansmoother(Ystar, T, Z, H, R, Q, a1, P1);
+
+    % draw a and Y_f
+    adraw = ahatstar + aplus ; % random draw of state vector
+    Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh);
+end
+
+% overwrite NaN's in Y_f with draws
 Ydraw = Y_f;
 Ydraw(ind_fore) = Ydraw_tmp(ind_fore); 
 if any(isnan(Ydraw), 'all')
-    error('There should be no NaN in return arg!')
+    error('There should be no NaN in return arg Ydraw!')
 end
 
 function [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn)

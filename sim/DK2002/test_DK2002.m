@@ -23,7 +23,7 @@ Ns = 1; % # of states
 Nm = 1000; % # of draws
 
 % type of forecast
-ftype = 'conditional (hard)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
+ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
 
 % forecast horizon
 if strcmp(ftype, 'none')
@@ -90,7 +90,7 @@ if strcmp(ftype, 'conditional (hard)')
     Y_u = [];
     Y_l = [];
     
-    % CK sim smoother
+    % DK sim smoother
     adraw = NaN(Ns, Nt+Nh, Nm);
     Ydraw = NaN(Nn, Nh, Nm);
 
@@ -101,6 +101,27 @@ if strcmp(ftype, 'conditional (hard)')
     toc
 end
 
+%% conditional forecasting (soft)
+
+if strcmp(ftype, 'conditional (soft)')
+    Y_f = NaN(Nn, Nh); 
+    sig = sqrt(var(simdata.y, [], 2));
+    Y_l = NaN(Nn, Nh);
+    Y_l(1:Nn/10,1:Nh) = simdata.yfore(1:Nn/10,1:Nh) - repmat(3 * sig(1:Nn/10, 1), 1, Nh);
+    Y_u = NaN(Nn, Nh);
+    Y_u(1:Nn/10,:) = 0; 
+    
+    % DK sim smoother
+    adraw = NaN(Ns, Nt+Nh, Nm);
+    Ydraw = NaN(Nn, Nh, Nm);
+
+    tic
+    for m = 1:Nm
+        m
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0);
+    end
+    toc
+end   
 
 %% plot 
 figure;
