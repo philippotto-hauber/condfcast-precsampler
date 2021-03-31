@@ -15,8 +15,8 @@ addpath('../sim/') % path to generate_data.m
 
 rng(1234) % set random seed
 
-Nm = 500; % # of draws
-max_iter = 10000; % maxmimum number of candidates per parameter draw
+Nm = 1e3; % # of draws
+max_iter = 1e4; % maxmimum number of candidates per parameter draw
 soft_restr = 'y1 < 0' ; % type of soft restrictions. Options: {'y1,y2 +- 1 std. dev.', 'y1 < 0'}, 
 
 % simulate data
