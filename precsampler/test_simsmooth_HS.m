@@ -16,7 +16,7 @@ addpath('../sim/') % path to generate_data.m
 rng(1234) % set random seed
 
 Nm = 500; % # of draws
-
+max_iter = 10000; % maxmimum number of candidates per parameter draw
 soft_restr = 'y1 < 0' ; % type of soft restrictions. Options: {'y1,y2 +- 1 std. dev.', 'y1 < 0'}, 
 
 % simulate data
@@ -39,7 +39,7 @@ p_z = p_timet([Y_o, Y_f], Nr);
 store_aalpha_u = NaN(Nr, Nt+Nh, Nm);
 store_Yfore_u = NaN(Nn, Nh, Nm);
 for m = 1:Nm
-    [store_aalpha_u(:, :, m), store_Yfore_u(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z);
+    [store_aalpha_u(:, :, m), store_Yfore_u(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
 end
 
 % conditional forecasts (hard)
@@ -53,7 +53,7 @@ p_z = p_timet([Y_o, Y_f], Nr);
 store_aalpha_c_h = NaN(Nr, Nt+Nh, Nm);
 store_Yfore_c_h = NaN(Nn, Nh, Nm);
 for m = 1:Nm
-      [store_aalpha_c_h(:, :, m), store_Yfore_c_h(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z);
+      [store_aalpha_c_h(:, :, m), store_Yfore_c_h(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
 end
 
 % conditional forecasts (soft)
@@ -78,7 +78,7 @@ p_z = p_timet([Y_o, Y_f], Nr);
 store_aalpha_c_s = NaN(Nr, Nt+Nh, Nm);
 store_Yfore_c_s = NaN(Nn, Nh, Nm);
 for m = 1:Nm
-     [store_aalpha_c_s(:, :, m), store_Yfore_c_s(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z);
+     [store_aalpha_c_s(:, :, m), store_Yfore_c_s(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter);
 end
 
 %% plot states and series

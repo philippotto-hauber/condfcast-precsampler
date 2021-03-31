@@ -1,4 +1,4 @@
-function [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0)
+function [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, max_iter)
 % This code samples states and forecasts from a state space model of the
 % following form: 
 % y_t = Z s_t + e_t; e_t ~N(0, H)
@@ -82,9 +82,9 @@ end
 stT(:, t) = stt(:, t);
 PtT(:, :, t) = Ptt(:, :, t);
 if t > Nt
-    if isempty(Y_l); y_l = [];else y_l = Y_l(:, t-Nt);end
-    if isempty(Y_u); y_u = [];else y_u = Y_u(:, t-Nt);end
-    [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype);
+    if isempty(Y_l); y_l = [];else; y_l = Y_l(:, t-Nt);end
+    if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
+    [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype, max_iter);
 else
     sdraw(:, t) = rue_held_alg2_3(stT(:, t), chol(PtT(:, :, t), 'lower'));
 end
@@ -96,32 +96,35 @@ for t=NtNh-1:-1:1
     stT(:,t) = stt(:,t) + J*(sdraw(:,t+1) - T*stt(:,t));
     PtT(:,:,t) = Ptt(:,:,t) + J*(PtT(:,:,t+1) - (T*Ptt(:,:,end)*T' + RQR))*J';  
     if t > Nt
-        if isempty(Y_l); y_l = [];else y_l = Y_l(:, t-Nt);end
-        if isempty(Y_u); y_u = [];else y_u = Y_u(:, t-Nt);end
-        [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype);
+        if isempty(Y_l); y_l = [];else; y_l = Y_l(:, t-Nt);end
+        if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
+        [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype, max_iter);
     else
         sdraw(:, t) = rue_held_alg2_3(stT(:, t), chol(PtT(:, :, t), 'lower'));
     end
 end
 
-function [sdraw, ydraw] = draw_s_y(s, P, Z, H, y, y_u, y_l, ftype)
+function [sdraw, ydraw] = draw_s_y(s, P, Z, H, y, y_u, y_l, ftype, max_iter)
 cholH = chol(H, 'lower');
 cholP = chol(P, 'lower');
-restr = 0; 
 ind_o = isnan(y);
 ydraw = y; 
 if strcmp(ftype, 'conditional (soft)')
     ind_r_u = ~isnan(y_u);
     ind_r_l = ~isnan(y_l);
-
-    while restr == 0
+    iter = 0;
+    while true
+        % update iter and check limit
+        iter = iter + 1; 
+        if iter == max_iter
+            error(['Did not obtain an acceptable draw in ' num2str(max_iter) ' attempts. Consider raising the limit or relaxing the restrictions.'])
+        end
         s_tmp = rue_held_alg2_3(s, cholP);
         ydraw_tmp = rue_held_alg2_3(Z * s_tmp, cholH);
-        %ydraw_tmp = Z * s_tmp + cholH' * randn(Nn, 1);
         if all(ydraw_tmp(ind_r_l, 1) > y_l(ind_r_l, 1)) && all(ydraw_tmp(ind_r_u, 1) < y_u(ind_r_u, 1))
-            restr = 1;
             sdraw = s_tmp; 
             ydraw(ind_o, 1) = ydraw_tmp(ind_o, 1); 
+            break;
         end
     end
 elseif strcmp(ftype, 'unconditional') || strcmp(ftype, 'conditional (hard)') 

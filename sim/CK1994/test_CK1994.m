@@ -21,9 +21,11 @@ Nt = 50; % # of in-sample observations
 Nn = 10; % # of variables
 Nr = 1; % # of states
 Nm = 1000; % # of draws
+max_iter = 10000; % maxmimum number of candidates per parameter draw
+
 
 % type of forecast
-ftype = 'conditional (hard)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
+ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
 
 % forecast horizon
 if strcmp(ftype, 'none')
@@ -57,7 +59,7 @@ if strcmp(ftype, 'none')
     adraw = NaN(Nr, Nt, Nm);
     tic
     for m = 1:Nm
-        [adraw(:, :, m), ~] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0);
+        [adraw(:, :, m), ~] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, []);
     end
     toc
 end
@@ -75,7 +77,7 @@ if strcmp(ftype, 'unconditional')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, []);
     end
     toc
 end
@@ -95,7 +97,7 @@ if strcmp(ftype, 'conditional (hard)')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, []);
     end
     toc
 end
@@ -116,7 +118,7 @@ if strcmp(ftype, 'conditional (soft)')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, max_iter);
     end
     toc
 end    

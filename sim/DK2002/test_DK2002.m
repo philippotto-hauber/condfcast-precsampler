@@ -20,7 +20,8 @@ rng(1234) % set random seed for reproducibility
 Nt = 50; % # of in-sample observations
 Nn = 10; % # of variables
 Ns = 1; % # of states
-Nm = 1000; % # of draws
+Nm = 10; % # of draws
+max_iter = 10000; % maxmimum number of candidates per parameter draw
 
 % type of forecast
 ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
@@ -58,7 +59,7 @@ if strcmp(ftype, 'none')
     adraw = NaN(Ns, Nt, Nm);
     tic
     for m = 1:Nm
-        [adraw(:, :, m), ~] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0);
+        [adraw(:, :, m), ~] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
     end
     toc
 end
@@ -76,7 +77,7 @@ if strcmp(ftype, 'unconditional')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
     end
     toc
 end
@@ -96,7 +97,7 @@ if strcmp(ftype, 'conditional (hard)')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
     end
     toc
 end
@@ -117,8 +118,7 @@ if strcmp(ftype, 'conditional (soft)')
 
     tic
     for m = 1:Nm
-        m
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
     end
     toc
 end   

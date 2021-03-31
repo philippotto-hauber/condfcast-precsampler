@@ -1,4 +1,4 @@
-function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1)
+function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter)
 % This code samples states and forecasts from a state space model of the
 % following form: 
 
@@ -30,8 +30,14 @@ if strcmp(ftype, 'conditional (soft)')
     ahat = kalmansmoother(Y, T, Z, H, R, Q, a1, P1);
     
     % draw until conditions are satisfied 
-    condition_satisfied = false;
-    while not(condition_satisfied)    
+    iter = 0; 
+    while true 
+        % update iter and check limit
+        iter = iter + 1; 
+        if iter == max_iter
+            error(['Did not obtain an acceptable draw in ' num2str(max_iter) ' attempts. Consider raising the limit or relaxing the restrictions.'])
+        end
+        
         % draw from joint distribution of a and Y
         [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
 
@@ -44,7 +50,7 @@ if strcmp(ftype, 'conditional (soft)')
 
         % check conditions
         if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
-            condition_satisfied = true;
+            break; % conditions satisfied
         end
     end
     
