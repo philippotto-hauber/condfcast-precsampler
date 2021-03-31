@@ -1,4 +1,4 @@
-function simdata = sim_data(Nt, Nh, Nn, Ns)
+function simdata = generate_data(Nt, Nh, Nn, Ns)
 %-----------------------------------------------------------------------%
 %- This code simulates data from a state space model 
 %- y_t = F aalpha_t + e_t; e_t ~ N(0, diag(oomega))
