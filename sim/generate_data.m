@@ -1,4 +1,56 @@
-function simdata = generate_data(Nt, Nh, Nn, Ns)
+function simdata = generate_data(dims, model)
+%-------------------------------------------------------------------------%
+%- This code simulates data from a state space model, a dynamic factor
+%- model or a vector autoregression, depending on the input argument model
+%- model = {'ssm', 'dfm', 'var'}.
+%- Inputs are model-dependent and stored in the structure dims. 
+%- Output is a structure which is also model-dependent but always includes
+%- the simulated data and forecasts as well as the parameters. 
+%- See the Matlab LiveScript XXXX for details on the models
+%-------------------------------------------------------------------------%
+
+if strcmp(model, 'ssm')
+    %-------------------------------------------------------------------- %
+    %- state space model
+    %-------------------------------------------------------------------- %
+    
+    % params
+    T = 0.7 * eye(dims.Ns);
+    Ssigma = eye(dims.Ns);
+    tmp = uncondvar(T, Ssigma); Var_alpha = tmp(1:dims.Ns, 1:dims.Ns);
+    F = sqrt(0.1)*randn(dims.Nn, dims.Ns) + 0.5;
+    oomega = 0.5 * diag(F * Var_alpha * F');
+
+    % loop over t
+    y = NaN(dims.Nn, dims.Nt+dims.Nh);
+    aalpha = NaN(dims.Ns, dims.Nt+dims.Nh);
+    for t = 1:dims.Nt+dims.Nh
+        if t == 1
+            aalpha(:, t) = sqrt(Ssigma) * randn(dims.Ns, 1);         
+        else
+            aalpha(:, t) = T * aalpha(:, t-1) + sqrt(Ssigma) * randn(dims.Ns, 1);   
+        end
+        y(:, t) = F * aalpha(:, t) + oomega .* randn(dims.Nn, 1);
+    end
+
+    % store in structure
+    simdata.y = y(:, 1:dims.Nt);
+    simdata.yfore = y(:, dims.Nt+1:end);
+    simdata.aalpha = aalpha;
+    simdata.params.phi = T;
+    simdata.params.psi = [];
+    simdata.params.lambda = F;
+    simdata.params.sig_eps = oomega;
+    simdata.params.sig_ups = Ssigma; 
+
+elseif strcmp(model, 'dfm')
+    
+elseif strcmp(model, 'var')
+    
+else
+    error('Could not identify the model you selected. Please choose either ssm, dfm or var!')
+end
+
 %-----------------------------------------------------------------------%
 %- This code simulates data from a state space model 
 %- y_t = F aalpha_t + e_t; e_t ~ N(0, diag(oomega))
@@ -11,34 +63,6 @@ function simdata = generate_data(Nt, Nh, Nn, Ns)
 %_ Output is a structure 
 %-----------------------------------------------------------------------%
 
-% params
-T = 0.7 * eye(Ns);
-Ssigma = eye(Ns);
-tmp = uncondvar(T, Ssigma); Var_alpha = tmp(1:Ns, 1:Ns);
-F = sqrt(0.1)*randn(Nn, Ns) + 0.5;
-oomega = 0.5 * diag(F * Var_alpha * F');
-
-% loop over t
-y = NaN(Nn, Nt+Nh);
-aalpha = NaN(Ns, Nt+Nh);
-for t = 1:Nt+Nh
-    if t == 1
-        aalpha(:, t) = sqrt(Ssigma) * randn(Ns, 1);         
-    else
-        aalpha(:, t) = T * aalpha(:, t-1) + sqrt(Ssigma) * randn(Ns, 1);   
-    end
-    y(:, t) = F * aalpha(:, t) + oomega .* randn(Nn, 1);
-end
-
-% store in structure
-simdata.y = y(:, 1:Nt);
-simdata.yfore = y(:, Nt+1:end);
-simdata.aalpha = aalpha;
-simdata.params.phi = T;
-simdata.params.psi = [];
-simdata.params.lambda = F;
-simdata.params.sig_eps = oomega;
-simdata.params.sig_ups = Ssigma; 
 
 % Functions
 function Sig = uncondvar(Phi, Omeg)
