@@ -1,29 +1,36 @@
-clear;
+clear; close all; 
+% This code compares different ways of reversing a permutation
+% i) using the original permutation index p on the left-hand side 
+% ii) i) but with preallocation
+% iii) using the reverse index r(p) = 1:length(p)
 
-N = 10000;
+N = 1000; % size of matrix
+ 
+% generate sparse matrix and permutation index
 A = sprandn(N,N,0.2);
-
 p = randperm(N);
-
 r(p) = 1:N;
 
+% permute
 PAP = A(p, p); 
 
-tic
+% reverse permutation
+tic;
 Acheck_p(p, p) = PAP;
-all(Acheck_p == A, 'all')
-toc
+%all(Acheck_p == A, 'all')
+telapsed_p = toc;
 
-% with prealloc
-tic
-Acheck_p_prealloc = spalloc(N, N, nnz(PAP)); 
-Acheck_p_prealloc(p, p) = PAP;
-all(Acheck_p_prealloc == A, 'all')
-toc
-
+tic;
+Acheck_p_alloc = spalloc(N, N, nnz(PAP)); 
+Acheck_p_alloc(p, p) = PAP;
+all(Acheck_p_alloc == A, 'all')
+telapsed_p_alloc = toc;
 
 tic
 Acheck_r = PAP(r, r); 
-all(Acheck_r == A, 'all')
-toc
+%all(Acheck_r == A, 'all')
+telapsed_r= toc;
+
+disp('computing time of ii) and iii) relative to i)')
+[telapsed_p; telapsed_p_alloc; telapsed_r] ./ telapsed_p
 
