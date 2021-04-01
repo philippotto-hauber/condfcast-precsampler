@@ -6,6 +6,7 @@ Np = size(params.phi, 2) / Nr;
 Nn = size(params.lambda, 1);
 Ns = size(params.lambda, 2) / Nr - 1;
 Nj = size(params.psi, 2);
+NrNt = Nr*Nt;
 
 % Llambda
 Llambda = kron(speye(Nt), params.lambda(:, 1:Nr));
@@ -35,12 +36,15 @@ end
 
 % blocks of Q
 Q_y = H_e' * Q_eps * H_e;
-Q_f = H_f' * Q_ups * H_f + Llambda' * Q_y * Llambda; 
-Q_f_y = -Llambda' * Q_y; 
-Q = [[Q_f, Q_f_y]; [Q_f_y', Q_y]];
+Llambda_Q_y = Llambda' * Q_y;
+Q_f = H_f' * Q_ups * H_f + Llambda_Q_y * Llambda; 
+Q_f_y = -Llambda_Q_y; 
+Q = vertcat(horzcat(Q_f, Q_f_y),horzcat(Q_f_y', Q_y)); % [[Q_f, Q_f_y]; [Q_f_y', Q_y]]
 
 % permute Q
+%dimQ = size(Q, 1);
+%PQP = spalloc(dimQ, dimQ, nnz(Q));
 PQP = Q(p_z, p_z); 
-PQP_fymis = PQP(1:(Nr*Nt + Nmis), 1:(Nr*Nt + Nmis));
-PQP_fymis_yobs = PQP(1:(Nr*Nt + Nmis),Nr*Nt + Nmis + 1 : end); 
+PQP_fymis = PQP(1:(NrNt + Nmis), 1:(NrNt + Nmis));
+PQP_fymis_yobs = PQP(1:(NrNt + Nmis),NrNt + Nmis + 1 : end); 
 
