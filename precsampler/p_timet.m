@@ -1,4 +1,24 @@
-function p_z = p_timet(Yobs, Nr)
+function p = p_timet(Yobs, Nr)
+%------------------------------------------------------------------------ %
+% This function constructs time-t permutation matrix, ordering states and 
+% missing obs by time periods. 
+% If y = [f_1, f_2, ..., f_T, y_1, y_2, ..., y_T] where y_t is Nn x 1, then 
+% py = [f_1, y^m_1, f_2, y^m_2, ..., f_T, y^m_T, y^o_1, y^o_2, ..., y^o_T].
+% Input is the N x T matrix of observables (with missing entries) and the
+% number of states, Nr.
+% Output is a structure p containing the permutation index, p.p and the
+% corresponding vector of indices to reverse the permutation, p.r. 
+%---------------------
+% Example: 
+% A = randn(100);
+% PAP = A(p, p);
+% Acheck = NaN(100);
+% Acheck(r, r) = PAP;
+% all(A == Acheck, 'all')
+%---------------------
+% Note that reversing the permutation can also be achieved by
+% Acheck = PAP(p, p); 
+%------------------------------------------------------------------------ %
 
 [Nn, Nt] = size(Yobs);
 r_fac = [];
@@ -24,7 +44,7 @@ for t=1:Nt
     end
 end  
 
-r = [r_fac; r_y];
-p_z(r) = 1:length(r);
+p.r = [r_fac; r_y];
+p.p(p.r) = 1:length(p.r);
 
 

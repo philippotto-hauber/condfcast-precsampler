@@ -44,7 +44,7 @@ Q = vertcat(horzcat(Q_f, Q_f_y),horzcat(Q_f_y', Q_y)); % [[Q_f, Q_f_y]; [Q_f_y',
 % permute Q
 %dimQ = size(Q, 1);
 %PQP = spalloc(dimQ, dimQ, nnz(Q));
-PQP = Q(p_z, p_z); 
+PQP = Q(p_z.p, p_z.p); 
 PQP_fymis = PQP(1:(NrNt + Nmis), 1:(NrNt + Nmis));
 PQP_fymis_yobs = PQP(1:(NrNt + Nmis),NrNt + Nmis + 1 : end); 
 
