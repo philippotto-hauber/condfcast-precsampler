@@ -17,26 +17,26 @@ addpath('../../sim/') % path to generate_data.m
 
 rng(1234) % set random seed for reproducibility
 
-Nt = 50; % # of in-sample observations
-Nn = 10; % # of variables
-Nr = 1; % # of states
+dims.Nt = 50; % # of in-sample observations
+dims.Nn = 10; % # of variables
+dims.Ns = 40; % # of states
 Nm = 1000; % # of draws
 max_iter = 10000; % maxmimum number of candidates per parameter draw
 
 
 % type of forecast
-ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
+ftype = 'unconditional'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
 
 % forecast horizon
 if strcmp(ftype, 'none')
-    Nh = 0; 
+    dims.Nh = 0; 
 else
-    Nh = 20;
+    dims.Nh = 20;
 end
 
 
 %% simulate data, state space params
-simdata = generate_data(Nt, Nh, Nn, Nr);
+simdata = generate_data(dims, 'ssm');
 
 % observables
 Y_o = simdata.y; 
@@ -53,10 +53,10 @@ P0 = 1 * eye(size(T, 1));
 
 % construct input args Y_f, Y_l, Y_u
 if strcmp(ftype, 'none')
-    Y_f = NaN(Nn, Nh);
+    Y_f = NaN(dims.Nn, dims.Nh);
     Y_u = [];
     Y_l = [];
-    adraw = NaN(Nr, Nt, Nm);
+    adraw = NaN(dims.Ns, dims.Nt, Nm);
     tic
     for m = 1:Nm
         [adraw(:, :, m), ~] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, []);
@@ -67,13 +67,13 @@ end
 %% unconditional forecasting
 % construct input args Y_f, Y_l, Y_u
 if strcmp(ftype, 'unconditional')
-    Y_f = NaN(Nn, Nh);
+    Y_f = NaN(dims.Nn, dims.Nh);
     Y_u = [];
     Y_l = [];
     
     % CK sim smoother
-    adraw = NaN(Nr, Nt+Nh, Nm);
-    Ydraw = NaN(Nn, Nh, Nm);
+    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
 
     tic
     for m = 1:Nm
@@ -85,15 +85,15 @@ end
 %% conditional forecasting (hard)
 
 if strcmp(ftype, 'conditional (hard)')
-    Y_f = NaN(Nn, Nh);
+    Y_f = NaN(dims.Nn, dims.Nh);
     Y_f(1, :) = simdata.yfore(1, :);
-    Y_f(2, 1:Nh/2) = simdata.yfore(2, 1:Nh/2);
+    Y_f(2, 1:dims.Nh/2) = simdata.yfore(2, 1:dims.Nh/2);
     Y_u = [];
     Y_l = [];
     
     % CK sim smoother
-    adraw = NaN(Nr, Nt+Nh, Nm);
-    Ydraw = NaN(Nn, Nh, Nm);
+    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
 
     tic
     for m = 1:Nm
@@ -105,16 +105,16 @@ end
 %% conditional forecasting (soft)
 
 if strcmp(ftype, 'conditional (soft)')
-    Y_f = NaN(Nn, Nh); 
+    Y_f = NaN(dims.Nn, dims.Nh); 
     sig = sqrt(var(simdata.y, [], 2));
-    Y_l = NaN(Nn, Nh);
-    Y_l(1:Nn/10,1:Nh) = simdata.yfore(1:Nn/10,1:Nh) - repmat(3 * sig(1:Nn/10, 1), 1, Nh);
-    Y_u = NaN(Nn, Nh);
-    Y_u(1:Nn/10,:) = 0; 
+    Y_l = NaN(dims.Nn, dims.Nh);
+    Y_l(1:dims.Nn/10,1:dims.Nh) = simdata.yfore(1:dims.Nn/10,1:dims.Nh) - repmat(3 * sig(1:dims.Nn/10, 1), 1, dims.Nh);
+    Y_u = NaN(dims.Nn, dims.Nh);
+    Y_u(1:dims.Nn/10,:) = 0; 
     
     % CK sim smoother
-    adraw = NaN(Nr, Nt+Nh, Nm);
-    Ydraw = NaN(Nn, Nh, Nm);
+    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
 
     tic
     for m = 1:Nm
@@ -151,7 +151,7 @@ if ~strcmp(ftype, 'none')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
     title([ftype, ', y_{' num2str(ind_n) '}'])
     subplot(3,1,3)
-    ind_n = Nn; 
+    ind_n = dims.Nn; 
     plot([simdata.y(ind_n, :) simdata.yfore(ind_n, :)]', 'k-')
     hold on
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
