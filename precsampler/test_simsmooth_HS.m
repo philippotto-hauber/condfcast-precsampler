@@ -6,7 +6,8 @@ clear; close all; clc;
 % of forecasts are considered: unconditional as well as hard and soft
 % conditional forecasts. For the latter, two different scenarios are
 % implemented and can be activated with the switch soft_restr (see Section 
-% set-up). Note that 'y1,y2 +- 1 std. dev.' can take a while to run!
+% set-up). Note that 'y1,y2 +- 1 std. dev.' can take a while to run! Code
+% also 
 %------------------------------------------------------------------------ %
 
 %% set-up 
@@ -19,114 +20,215 @@ Nm = 1e3; % # of draws
 max_iter = 1e4; % maxmimum number of candidates per parameter draw
 soft_restr = 'y1 < 0' ; % type of soft restrictions. Options: {'y1,y2 +- 1 std. dev.', 'y1 < 0'}, 
 
+% type of forecast
+ftype = 'all forecasts'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)', 'all forecasts'} 
+
+% forecast horizon
+if strcmp(ftype, 'none')
+    dims.Nh = 0; 
+else
+    dims.Nh = 20;
+end
+
 % simulate data
-Nt = 50;
-Nh = 20; 
-Nn = 10;
-Nr = 1;
-simdata = generate_data(Nt, Nh, Nn, Nr);
-
-%% sample unconditional and conditional forecasts
-
-% unconditional forecasts
+dims.Nt = 50;
+dims.Nn = 10;
+dims.Ns = 1;
+simdata = generate_data(dims, 'ssm');
 Y_o = simdata.y;
-Y_f = NaN(Nn, Nh);
-Y_l = [];
-Y_u = [];
 
-p_z = p_timet([Y_o, Y_f], Nr);
+%% no forecasting => standard simulation smoothing
 
-store_aalpha_u = NaN(Nr, Nt+Nh, Nm);
-store_Yfore_u = NaN(Nn, Nh, Nm);
-for m = 1:Nm
-    [store_aalpha_u(:, :, m), store_Yfore_u(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+if strcmp(ftype, 'none')    
+    Y_f = [];
+    Y_l = [];
+    Y_u = [];
+
+    p_z = p_timet([Y_o, Y_f], dims.Ns);
+    
+    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
+    tic
+    for m = 1:Nm
+        [adraw(:, :, m), ~] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+    end
+    toc
 end
 
-% conditional forecasts (hard)
-Y_f = NaN(Nn, Nh);
-Y_f(1,:) = simdata.yfore(1,:);
-Y_f(2,1:Nh/2) = simdata.yfore(2,1:Nh/2);
-Y_l = [];
-Y_u = [];
-p_z = p_timet([Y_o, Y_f], Nr);
+%% unconditional forecasting
 
-store_aalpha_c_h = NaN(Nr, Nt+Nh, Nm);
-store_Yfore_c_h = NaN(Nn, Nh, Nm);
-for m = 1:Nm
-      [store_aalpha_c_h(:, :, m), store_Yfore_c_h(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+if strcmp(ftype, 'unconditional') || strcmp(ftype, 'all forecasts')
+    Y_f = NaN(dims.Nn, dims.Nh);
+    Y_l = [];
+    Y_u = [];
+
+    p_z = p_timet([Y_o, Y_f], dims.Ns);
+
+    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
+    tic
+    for m = 1:Nm
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+    end
+    toc
+    
+    % store draws on their own for plot to compare different forecast settings
+    if strcmp(ftype, 'all forecasts')
+        store_aalpha_u = adraw;
+        store_Yfore_u = Ydraw;
+    end
 end
 
-% conditional forecasts (soft)
-Y_o = simdata.y;
-Y_f = NaN(Nn, Nh); 
-sig = sqrt(var(simdata.y, [], 2));
+%% conditional forecasting (hard)
 
-% select sets of restrictions
-Y_u = NaN(Nn, Nh);
-Y_l = NaN(Nn, Nh);
-if strcmp(soft_restr, 'y1,y2 +- 1 std. dev.')    
-    Y_u(1,1:Nh) = simdata.yfore(1,1:Nh) + repmat(1 * sig(1, 1), 1, Nh);
-    Y_u(2,1:Nh/2) = simdata.yfore(2,1:Nh/2) + repmat(1 * sig(2, 1), 1, Nh/2);
-    Y_l(1:Nn/10,1:Nh/2) = simdata.yfore(1:Nn/10,1:Nh/2) - repmat(1 * sig(1:Nn/10, 1), 1, Nh/2);
-    Y_l(2,1:Nh/2) = simdata.yfore(2,1:Nh/2) - repmat(1 * sig(2, 1), 1, Nh/2);
-elseif strcmp(soft_restr, 'y1 < 0')
-    Y_u(1:Nn/10,:) = 0;
-    Y_l(1:Nn/10,1:Nh) = simdata.yfore(1:Nn/10,1:Nh) - repmat(3 * sig(1:Nn/10, 1), 1, Nh);
+if strcmp(ftype, 'conditional (hard)') || strcmp(ftype, 'all forecasts')
+
+    % conditional forecasts (hard)
+    Y_f = NaN(dims.Nn, dims.Nh);
+    Y_f(1,:) = simdata.yfore(1,:);
+    Y_f(2,1:dims.Nh/2) = simdata.yfore(2,1:dims.Nh/2);
+    Y_l = [];
+    Y_u = [];
+    p_z = p_timet([Y_o, Y_f], dims.Ns);
+
+    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
+    tic
+    for m = 1:Nm
+          [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+    end
+    toc
+    
+    % store draws on their own for plot to compare different forecast settings
+    if strcmp(ftype, 'all forecasts')
+        store_aalpha_c_h = adraw;
+        store_Yfore_c_h = Ydraw;
+    end
 end
-p_z = p_timet([Y_o, Y_f], Nr);
 
-store_aalpha_c_s = NaN(Nr, Nt+Nh, Nm);
-store_Yfore_c_s = NaN(Nn, Nh, Nm);
-for m = 1:Nm
-     [store_aalpha_c_s(:, :, m), store_Yfore_c_s(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter);
+%% conditional forecasting (soft)
+
+if strcmp(ftype, 'conditional (soft)') || strcmp(ftype, 'all forecasts')
+
+    % conditional forecasts (soft)
+    Y_o = simdata.y;
+    Y_f = NaN(dims.Nn, dims.Nh); 
+    sig = sqrt(var(simdata.y, [], 2));
+
+    % select sets of restrictions
+    Y_u = NaN(dims.Nn, dims.Nh);
+    Y_l = NaN(dims.Nn, dims.Nh);
+    if strcmp(soft_restr, 'y1,y2 +- 1 std. dev.')    
+        Y_u(1,1:dims.Nh) = simdata.yfore(1,1:dims.Nh) + repmat(1 * sig(1, 1), 1, dims.Nh);
+        Y_u(2,1:dims.Nh/2) = simdata.yfore(2,1:dims.Nh/2) + repmat(1 * sig(2, 1), 1, dims.Nh/2);
+        Y_l(1:dims.Nn/10,1:dims.Nh/2) = simdata.yfore(1:dims.Nn/10,1:dims.Nh/2) - repmat(1 * sig(1:dims.Nn/10, 1), 1, dims.Nh/2);
+        Y_l(2,1:dims.Nh/2) = simdata.yfore(2,1:dims.Nh/2) - repmat(1 * sig(2, 1), 1, dims.Nh/2);
+    elseif strcmp(soft_restr, 'y1 < 0')
+        Y_u(1:dims.Nn/10,:) = 0;
+        Y_l(1:dims.Nn/10,1:dims.Nh) = simdata.yfore(1:dims.Nn/10,1:dims.Nh) - repmat(3 * sig(1:dims.Nn/10, 1), 1, dims.Nh);
+    end
+    p_z = p_timet([Y_o, Y_f], dims.Ns);
+
+    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
+    tic
+    for m = 1:Nm
+         [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter);
+    end
+    toc
+    
+    % store draws on their own for plot to compare different forecast settings
+    if strcmp(ftype, 'all forecasts')
+        store_aalpha_c_s = adraw;
+        store_Yfore_c_s = Ydraw;
+    end
 end
 
-%% plot states and series
+%% plot 
+if not(strcmp(ftype, 'all forecasts')) || strcmp(ftype, 'none')
+    figure;
+    plot(simdata.aalpha', 'k-')
+    hold on
+    plot(quantile(adraw, 0.5, 3)', 'b-')
+    plot(quantile(adraw, 0.1, 3)', 'b:')
+    plot(quantile(adraw, 0.9, 3)', 'b:')
+    title(['states, ' ftype])
 
-% quantiles of draws
-q_u.aalpha = calc_quantiles(store_aalpha_u); 
-q_u.Yfore = calc_quantiles(store_Yfore_u); 
-q_c_h.aalpha = calc_quantiles(store_aalpha_c_h); 
-q_c_h.Yfore = calc_quantiles(store_Yfore_c_h); 
-q_c_s.aalpha = calc_quantiles(store_aalpha_c_s); 
-q_c_s.Yfore = calc_quantiles(store_Yfore_c_s); 
+    if ~strcmp(ftype, 'none')
+        figure;
+        subplot(3,1,1)
+        ind_n = 1; 
+        plot([simdata.y(ind_n, :) simdata.yfore(ind_n, :)]', 'k-')
+        hold on
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+        title([ftype, ', y_{' num2str(ind_n) '}'])
+        subplot(3,1,2)
+        ind_n = 2; 
+        plot([simdata.y(ind_n, :) simdata.yfore(ind_n, :)]', 'k-')
+        hold on
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+        title([ftype, ', y_{' num2str(ind_n) '}'])
+        subplot(3,1,3)
+        ind_n = dims.Nn; 
+        plot([simdata.y(ind_n, :) simdata.yfore(ind_n, :)]', 'k-')
+        hold on
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
+        plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+        title([ftype, ', y_{' num2str(ind_n) '}'])
+    end
+else
+ 
+    %% plot states and series
 
-% figure
-figure
-fig = gcf;
-fig.PaperOrientation = 'portrait';
-subplot(4,1,1)
-ind_n = 1;
-flag_alpha = true;
-plot_draws_actuals(simdata, q_u.aalpha, q_c_h.aalpha, q_c_s.aalpha, ind_n, Nh, '$$\alpha_{1:T+H}$$', flag_alpha)
-subplot(4,1,2)
-ind_n = 1;
-flag_alpha = false;
-plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, Nh, '$$y_{1,1:T+H}$$', flag_alpha)
-subplot(4,1,3)
-ind_n = 2;
-flag_alpha = false;
-plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, Nh, '$$y_{2,1:T+H}$$', flag_alpha)
-subplot(4,1,4)
-ind_n = 10;
-flag_alpha = false;
-plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, Nh, '$$y_{10,1:T+H}$$', flag_alpha)
+    % quantiles of draws
+    q_u.aalpha = calc_quantiles(store_aalpha_u); 
+    q_u.Yfore = calc_quantiles(store_Yfore_u); 
+    q_c_h.aalpha = calc_quantiles(store_aalpha_c_h); 
+    q_c_h.Yfore = calc_quantiles(store_Yfore_c_h); 
+    q_c_s.aalpha = calc_quantiles(store_aalpha_c_s); 
+    q_c_s.Yfore = calc_quantiles(store_Yfore_c_s); 
 
-figure; 
-ind_n = 10;
-flag_alpha = false;
-plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, Nh, '$$y_{10,1:T+H}$$', flag_alpha)
+    % figure
+    figure
+    fig = gcf;
+    fig.PaperOrientation = 'portrait';
+    subplot(4,1,1)
+    ind_n = 1;
+    flag_alpha = true;
+    plot_draws_actuals(simdata, q_u.aalpha, q_c_h.aalpha, q_c_s.aalpha, ind_n, dims.Nh, '$$\alpha_{1:T+H}$$', flag_alpha)
+    subplot(4,1,2)
+    ind_n = 1;
+    flag_alpha = false;
+    plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, dims.Nh, '$$y_{1,1:T+H}$$', flag_alpha)
+    subplot(4,1,3)
+    ind_n = 2;
+    flag_alpha = false;
+    plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, dims.Nh, '$$y_{2,1:T+H}$$', flag_alpha)
+    subplot(4,1,4)
+    ind_n = 10;
+    flag_alpha = false;
+    plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, dims.Nh, '$$y_{10,1:T+H}$$', flag_alpha)
 
-figure; 
-ind_n = 2;
-flag_alpha = false;
-plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, Nh, '$$y_{2,1:T+H}$$', flag_alpha)
+    figure; 
+    ind_n = 10;
+    flag_alpha = false;
+    plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, dims.Nh, '$$y_{10,1:T+H}$$', flag_alpha)
 
-figure; 
-ind_n = 1;
-flag_alpha = false;
-plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, Nh, '$$y_{1,1:T+H}$$', flag_alpha)
+    figure; 
+    ind_n = 2;
+    flag_alpha = false;
+    plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, dims.Nh, '$$y_{2,1:T+H}$$', flag_alpha)
 
+    figure; 
+    ind_n = 1;
+    flag_alpha = false;
+    plot_draws_actuals(simdata, q_u.Yfore, q_c_h.Yfore, q_c_s.Yfore, ind_n, dims.Nh, '$$y_{1,1:T+H}$$', flag_alpha)
+end
 
 %% functions
 
