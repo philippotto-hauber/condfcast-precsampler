@@ -95,4 +95,6 @@ fdraw = reshape(z_draw(1:NtNh*Ns, :), Ns, NtNh);
 Ydraw = reshape(z_draw(NtNh*Ns+1:end, :), Nn, NtNh);
 if ~strcmp(ftype, 'none') % only return forecasts
     Ydraw = Ydraw(:, Nt+1:NtNh);
+else
+    Ydraw = [];
 end
