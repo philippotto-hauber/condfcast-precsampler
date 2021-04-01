@@ -21,7 +21,7 @@ max_iter = 1e4; % maxmimum number of candidates per parameter draw
 soft_restr = 'y1 < 0' ; % type of soft restrictions. Options: {'y1,y2 +- 1 std. dev.', 'y1 < 0'}, 
 
 % type of forecast
-ftype = 'all forecasts'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)', 'all forecasts'} 
+ftype = 'none'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)', 'all forecasts'} 
 
 % forecast horizon
 if strcmp(ftype, 'none')
@@ -33,7 +33,7 @@ end
 % simulate data
 dims.Nt = 50;
 dims.Nn = 10;
-dims.Ns = 1;
+dims.Ns = 10;
 simdata = generate_data(dims, 'ssm');
 Y_o = simdata.y;
 
