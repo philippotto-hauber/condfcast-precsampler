@@ -62,11 +62,11 @@ b_fymis = rue_held_alg2_1(chol_PQP_fymis, -PQP_fymis_yobs * yobs);
 if strcmp(ftype, 'conditional (soft)')       
     % vectorized restrictions
     y_l = [NaN(Ns*NtNh, 1); vec([NaN(size(Y_o)), Y_l])];
-    y_l_perm = y_l(p_z.p);
+    y_l_perm = y_l(p_z);
     y_l_perm = y_l_perm(1:end-Nobs);
     ind_l = ~isnan(y_l_perm);
     y_u = [NaN(Ns*NtNh, 1); vec([NaN(size(Y_o)), Y_u])];
-    y_u_perm = y_u(p_z.p); 
+    y_u_perm = y_u(p_z); 
     y_u_perm = y_u_perm(1:end-Nobs);
     ind_u = ~isnan(y_u_perm);
     % draw proposals
@@ -90,7 +90,7 @@ else
 end
 
 % reshape draw of z and back out return args
-z_draw(p_z.p, :) = [fxmis_draw; repmat(yobs, 1)]; % reverse permutation => z = [vec(f); vec([Y_o, Y_f])]!
+z_draw(p_z, :) = [fxmis_draw; repmat(yobs, 1)]; % reverse permutation => z = [vec(f); vec([Y_o, Y_f])]!
 fdraw = reshape(z_draw(1:NtNh*Ns, :), Ns, NtNh); 
 Ydraw = reshape(z_draw(NtNh*Ns+1:end, :), Nn, NtNh);
 if ~strcmp(ftype, 'none') % only return forecasts
