@@ -6,7 +6,6 @@ function simdata = generate_data(dims, model)
 %- Inputs are model-dependent and stored in the structure dims. 
 %- Output is a structure which is also model-dependent but always includes
 %- the simulated data and forecasts as well as the parameters. 
-%- See the Matlab LiveScript XXXX for details on the models
 %-------------------------------------------------------------------------%
 
 if strcmp(model, 'ssm')
@@ -46,9 +45,34 @@ if strcmp(model, 'ssm')
 elseif strcmp(model, 'dfm')
     
 elseif strcmp(model, 'var')
+    % params
+    [B, Sigma, F, ~] = sim_var_params(dims.Nn, dims.Np);
+
+    % Cholesky of Sigma and R (needed for sampling innovations)
+    cholSigma = chol(Sigma, 'lower');
+    R = [eye(dims.Nn); zeros(size(F, 1) - dims.Nn, dims.Nn)];
     
+    % burn-in
+    Nburnin = 20; 
+    
+    % empty companion form vector to store simulated obs
+    Y = zeros(size(F, 1), Nburnin+dims.Nt+dims.Nh);
+
+    % loop over t
+    for t = 2:Nburnin+dims.Nt+dims.Nh
+        Y(:, t) = F * Y(:, t-1) + R * rue_held_alg2_3(zeros(dims.Nn, 1), cholSigma);
+    end
+
+    % store in structure
+    simdata.y = Y(1:dims.Nn, Nburnin+1:Nburnin+dims.Nt);
+    simdata.yfore = Y(1:dims.Nn, Nburnin+dims.Nt+1:Nburnin+dims.Nt+dims.Nh);
+    simdata.y0 = Y(1:dims.Nn, Nburnin-dims.Np+1:Nburnin);
+    simdata.model = model;
+    simdata.params.B = B;
+    simdata.params.Sigma = Sigma; 
 else
     error('Could not identify the model you selected. Please choose either ssm, dfm or var!')
+end
 end
 
 %-----------------------------------------------------------------------%
@@ -63,25 +87,48 @@ end
 %_ Output is a structure 
 %-----------------------------------------------------------------------%
 
+function [B, Sigma, F, Q] = sim_var_params(Nn, Np)
 
-% Functions
-function Sig = uncondvar(Phi, Omeg)
-%- This function calculates the unconditional variance of the VAR:
-%_ y_t = c + phi_1 y_t-1 + ... + phi_p y_t-p + e_t; e_t ~ N(0, Omeg).
-%_ It is given by Sig = F * Sig * F' + Q, where F and Q are the companion
-% form parameters of the VAR. See Hamilton (1994, pp. 264-265).
-% Input: Nn x Nn*Np matrix of coefficients Phi = [phi1, ..., phi_p] 
-%        Nn x Nn covariance matrix of VAR innovations
-% Output: Nn*Np x Nn*Np unconditional covariance matrix Sig
+% set-up (see Cross et al. 2020, IJoF)
+if Nn == 3
+    sig_o = sqrt(0.6); % variance of b_1_ii
+    sig_c = sqrt(0.2); % variance of b_p_ij, i \neq j
+    p_c = 0.5; % inclusion probability of b_p_ij
+elseif Nn == 25 % more shrinkage and sparsity
+    sig_o = sqrt(0.2); % variance of b_1_ii
+    sig_c = sqrt(0.05); % variance of b_p_ij, i \neq j
+    p_c = 0.2; % inclusion probability of b_p_ij
+elseif Nn == 100 % even more shrinkage and sparsity
+    sig_o = sqrt(0.05);
+    sig_c = sqrt(0.001);
+    p_c = 0.1;
+else 
+    error('Nn needs to be equal to 3, 25 or 100')
+end
 
-% back out dims
-Nn = size(Phi, 1);
-Np = size(Phi, 2) / Nn; 
+while true
+    b_1 = randn(Nn, 1) * sig_o;
+    b = [b_1, b_1 ./ repmat(2:Np, Nn, 1)];
+    B = [];
 
-% companion form
-F = [Phi zeros(Nn, (Np-1)*Nn); eye((Np-1)*Nn) zeros((Np-1)*Nn, Nn)]; 
-Q = zeros(Nn*Np); Q(1:Nn, 1:Nn) = Omeg; 
+    for p = 1:Np
+        Bp = diag(b(:, p)); 
+        for i = 1:Nn
+            for j = 1:Nn
+                if i ~= j
+                    if rand < p_c
+                        Bp(i, j) = randn * sig_c;
+                    end
+                end
+            end
+        end
+        B = [B, Bp];
+    end
 
-% solve for Sig
-A = kron(F, F); % eqn. 10.2.17
-Sig = reshape((eye((Nn*Np)^2) - A) \ Q(:), Nn*Np, Nn*Np); % eqn. 10.2.18
+    Sigma = eye(Nn); 
+    [F, Q] = var_companion(B, Sigma);
+    if max(abs(eig(F))) < 1
+        break
+    end
+end
+end
