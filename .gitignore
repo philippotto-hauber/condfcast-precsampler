@@ -9,3 +9,6 @@ figures
 
 # ignore csv files in sim folder
 /sim/*.csv
+
+# ignore .Rhistory
+.Rhistory
