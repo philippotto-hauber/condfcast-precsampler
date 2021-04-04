@@ -21,11 +21,12 @@ Nm = 1000; % # of draws
 max_iter = 10000; % maxmimum number of candidates per parameter draw
 
 model = 'var'; % type of model: ssm, var, dfm
-
+dims.Nt = 50; % # of in-sample observations
+dims.Nn = 3; % # of variables
 if strcmp(model, 'var')
-    dims.Nt = 50; % # of in-sample observations
-    dims.Nn = 3; % # of variables
-    dims.Np = 4; % # of lags
+    dims.Np = 2; % # of lags
+elseif strcmp(model, 'ssm')
+    dims.Ns = 1; % # of states
 end
 
 % type of forecast
