@@ -1,4 +1,4 @@
-function [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, max_iter)
+function [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter)
 % This code samples states and forecasts from a state space model of the
 % following form: 
 % y_t = Z s_t + e_t; e_t ~N(0, H)
@@ -49,9 +49,9 @@ stT = NaN(Ns,NtNh);
 PtT = NaN(Ns,Ns,NtNh);
 
 % forward recursions 
-eye_N = eye(Nn); % 
+eye_N = eye(Nn);  
 Y = [Y_o, Y_f]; 
-
+RQR = R * Q * R'; 
 for t = 1:NtNh
     % predict!
     if t==1

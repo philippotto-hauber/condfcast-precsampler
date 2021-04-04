@@ -17,12 +17,16 @@ addpath('../../sim/') % path to generate_data.m
 
 rng(1234) % set random seed for reproducibility
 
-dims.Nt = 50; % # of in-sample observations
-dims.Nn = 10; % # of variables
-dims.Ns = 40; % # of states
 Nm = 1000; % # of draws
 max_iter = 10000; % maxmimum number of candidates per parameter draw
 
+model = 'var'; % type of model: ssm, var, dfm
+
+if strcmp(model, 'var')
+    dims.Nt = 50; % # of in-sample observations
+    dims.Nn = 3; % # of variables
+    dims.Np = 4; % # of lags
+end
 
 % type of forecast
 ftype = 'unconditional'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
@@ -36,18 +40,19 @@ end
 
 
 %% simulate data, state space params
-simdata = generate_data(dims, 'ssm');
+simdata = generate_data(dims, 'var');
 
 % observables
 Y_o = simdata.y; 
 
 % state space params
-T = simdata.params.phi; 
-Z = simdata.params.lambda;
-H = diag(simdata.params.sig_eps);
-RQR = simdata.params.sig_ups; 
-s0 = zeros(size(T, 1), 1); 
-P0 = 1 * eye(size(T, 1));
+[T, Z, H, R, Q, s0, P0] = get_statespaceparams(simdata, model);
+% T = simdata.params.phi; 
+% Z = simdata.params.lambda;
+% H = diag(simdata.params.sig_eps);
+% RQR = simdata.params.sig_ups; 
+% s0 = zeros(size(T, 1), 1); 
+% P0 = 1 * eye(size(T, 1));
 
 %% no forecasting => standard simulation smoothing
 
@@ -56,6 +61,7 @@ if strcmp(ftype, 'none')
     Y_f = NaN(dims.Nn, dims.Nh);
     Y_u = [];
     Y_l = [];
+    
     adraw = NaN(dims.Ns, dims.Nt, Nm);
     tic
     for m = 1:Nm
@@ -72,12 +78,17 @@ if strcmp(ftype, 'unconditional')
     Y_l = [];
     
     % CK sim smoother
+    if strcmp(model, 'ssm')
     adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
     Ydraw = NaN(dims.Nn, dims.Nh, Nm);
+    elseif strcmp(model, 'var')
+    adraw = NaN(dims.Nn, dims.Nt+dims.Nh, Nm);
+    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
+    end
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, []);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, []);
     end
     toc
 end
