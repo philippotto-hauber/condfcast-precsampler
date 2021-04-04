@@ -78,8 +78,10 @@ if strcmp(ftype, 'conditional (soft)')
         if iter == max_iter
             error(['Did not obtain an acceptable draw in ' num2str(max_iter) ' attempts. Consider raising the limit or relaxing the restrictions.'])
         end
+        
         % draw candidate
         fxmis_draw = rue_held_alg2_4(chol_PQP_fymis, b_fymis);
+
         % check soft conditions
         if all(fxmis_draw(ind_l, 1) > y_l_perm(ind_l, 1)) && all(fxmis_draw(ind_u, 1) < y_u_perm(ind_u, 1))
             break; % conditions satisfied!
