@@ -1,5 +1,5 @@
 function telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model)
-max_iter = 1e4;
+max_iter = 1e5;
 
 if strcmp(sampler, 'CK')    
     tic;
