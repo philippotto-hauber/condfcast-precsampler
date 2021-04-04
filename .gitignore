@@ -12,3 +12,6 @@ figures
 
 # ignore .Rhistory
 .Rhistory
+
+# ignore files in out
+/sim/out/*
