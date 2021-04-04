@@ -1,4 +1,5 @@
 clear;
+rng(1234) % set random seed for reproducibility
 
 addpath('../precsampler/')
 addpath('CK1994/')
@@ -6,8 +7,8 @@ addpath('DK2002/')
 
 dir_dgp = './dgp/';
 dir_out = './out/'; 
-Nm = 100;
-Ng_softcond = 10;
+Nm = 1000;
+Ng_softcond = 1;
 Ng = 1;    
 
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
@@ -38,12 +39,13 @@ for d = 1:Ndims
                 Y_o  = simdata.y; 
                 if strcmp(type_fore{t}, 'cond_soft')                     
                     Y_f = NaN(dims.Nn, dims.Nh);
-                    %Y_f(1, :) = simdata.yfore(1, :);
                     sig = sqrt(var(simdata.y, [], 2));
-                    Y_u = NaN(dims.Nn, dims.Nh);
-                    Y_u(1:dims.Nn/10, :) = simdata.yfore(1:dims.Nn/10, :) + repmat(5 * sig(1:dims.Nn/10, 1), 1, dims.Nh);
+                    ind_n = 1:dims.Nn/10;
+                    ind_h = 1:dims.Nh; 
+                    Y_u = NaN(dims.Nn, dims.Nh);                    
+                    Y_u(ind_n, :) = simdata.yfore(ind_n, ind_h) + repmat(2 * sig(ind_n, 1), 1, length(ind_h));
                     Y_l = NaN(dims.Nn, dims.Nh);
-                    Y_l(1:dims.Nn/10, :) = simdata.yfore(1:dims.Nn/10, :) - repmat(5 * sig(1:dims.Nn/10, 1), 1, dims.Nh);
+                    Y_l(ind_n, :) = simdata.yfore(ind_n, ind_h) - repmat(2 * sig(ind_n, 1), 1, length(ind_h));
                 elseif strcmp(type_fore{t}, 'cond_hard')
                     % conditional forecasts
                     Y_f = NaN(dims.Nn, dims.Nh);
