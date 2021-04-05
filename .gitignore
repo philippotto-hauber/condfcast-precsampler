@@ -15,3 +15,6 @@ figures
 
 # ignore files in out
 /sim/out/*
+
+# ignore asv files
+*.asv
