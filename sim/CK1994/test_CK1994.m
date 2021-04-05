@@ -20,17 +20,18 @@ rng(1234) % set random seed for reproducibility
 Nm = 1000; % # of draws
 max_iter = 10000; % maxmimum number of candidates per parameter draw
 
-model = 'var'; % type of model: ssm, var, dfm
+model = 'ssm'; % type of model: ssm, var, dfm
 dims.Nt = 50; % # of in-sample observations
-dims.Nn = 3; % # of variables
 if strcmp(model, 'var')
+    dims.Nn = 3; % # of variables
     dims.Np = 2; % # of lags
 elseif strcmp(model, 'ssm')
+    dims.Nn = 10; % # of variables
     dims.Ns = 1; % # of states
 end
 
 % type of forecast
-ftype = 'unconditional'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
+ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)'} 
 
 % forecast horizon
 if strcmp(ftype, 'none')
@@ -41,7 +42,7 @@ end
 
 
 %% simulate data, state space params
-simdata = generate_data(dims, 'var');
+simdata = generate_data(dims, model);
 
 % observables
 Y_o = simdata.y; 
@@ -109,7 +110,7 @@ if strcmp(ftype, 'conditional (hard)')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, []);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, []);
     end
     toc
 end
@@ -130,7 +131,7 @@ if strcmp(ftype, 'conditional (soft)')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, max_iter);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
     end
     toc
 end    
