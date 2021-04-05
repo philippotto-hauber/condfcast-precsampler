@@ -14,9 +14,9 @@ elseif strcmp(model, 'var')
     [T, R, Q] = var_companion(simdata.params.B, simdata.params.Sigma);
     Z = zeros(size(Q, 1), size(T, 2));
     Z(1:size(Q, 1), 1: size(Q, 1)) = eye(size(Q, 1));
-    H = 1e-8 * eye(size(Q, 1)); % zeros(size(Q, 1))
+    H = zeros(size(Q, 1)); % 1e-8 * eye(size(Q, 1))
     s0 = zeros(size(T, 1), 1); % FIX LATER
-    P0 = 1e-8 * eye(size(T, 1)); % zeros(size(T, 1))
+    P0 = zeros(size(T, 1)); % 1e-8 * eye(size(T, 1))
 end
    
 
