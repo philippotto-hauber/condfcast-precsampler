@@ -15,7 +15,8 @@ end
 
 % back out dimensions
 Ns = size(T, 1); % # of states
-[Nn, Nt] = size(Y_o); % # of variables and observations, respectively
+Nn = size(Z, 1); % # of variables
+Nt = size(Y_o, 2); % # of observations
 Nh = size(Y_f, 2); % forecast horizon
 NtNh = Nt + Nh; % # of total periods
 ind_fore = isnan(Y_f);
@@ -52,8 +53,7 @@ if strcmp(ftype, 'conditional (soft)')
         if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
             break; % conditions satisfied
         end
-    end
-    
+    end    
 else
     % draw from joint distribution of a and Y
     [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
@@ -64,7 +64,9 @@ else
 
     % draw a and Y_f
     adraw = ahatstar + aplus ; % random draw of state vector
-    Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh);
+    %Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh); % this formula is wrong
+    Ydraw_tmp = Z * ahatstar(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh); % this one is correct
+    %Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh) - Z * aplus(:, Nt+1:NtNh); % this one is the same as above but more complicated
 end
 
 % overwrite NaN's in Y_f with draws
@@ -79,13 +81,11 @@ function [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn)
 aplus = NaN(Ns, NtNh+1);
 Yplus = NaN(Nn, NtNh);
 
-aplus(:,1) = chol(P1) * randn(Ns, 1) + a1; % initial values of state
-cholQ = chol(Q, 'lower') ;
-cholH = chol(H, 'lower') ;
+aplus(:,1) = mvnrnd(a1, P1)'; % initial values of state
 
 for t=1:NtNh
-    Yplus(:, t) = Z * aplus(:, t)+ cholH * randn(size(Z, 1), 1);
-    aplus(:, t+1) = T * aplus(:, t) + R * cholQ * randn(size(Q, 1), 1);
+    Yplus(:, t) = Z * aplus(:, t)+ mvnrnd(zeros(size(Z, 1), 1), H)';
+    aplus(:, t+1) = T * aplus(:, t) + R * mvnrnd(zeros(size(Q, 1), 1), Q)';
 end
 
 aplus(:,end) = [];
