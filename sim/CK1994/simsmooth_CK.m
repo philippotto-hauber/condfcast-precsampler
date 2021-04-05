@@ -36,9 +36,11 @@ end
 
 % back out dimensions
 Ns = size(T, 1); % # of states 
-[Nn, Nt] = size(Y_o); % # of variables and observations, respectively
+Nn = size(H, 1); % # of variables
+Nt = size(Y_o, 2); % # of observations
 Nh = size(Y_f, 2); % forecast horizon
 NtNh = Nt + Nh; % # of total periods
+ind_nonsingular_s = not(all(R == 0, 2)); % this indicates where the "non-singular" states are located => relevant for VAR's
 
 % empty matrices to store stuff
 sdraw = NaN(Ns, NtNh);
@@ -86,7 +88,7 @@ if t > Nt
     if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
     [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype, max_iter);
 else
-    sdraw(:, t) = rue_held_alg2_3(stT(:, t), chol(PtT(:, :, t), 'lower'));
+    sdraw(:, t) = mvnrnd(stT(:, t), PtT(:, :, t))'; 
 end
 
 % backward recursions 
@@ -105,8 +107,6 @@ for t=NtNh-1:-1:1
 end
 
 function [sdraw, ydraw] = draw_s_y(s, P, Z, H, y, y_u, y_l, ftype, max_iter)
-cholH = chol(H, 'lower');
-cholP = chol(P, 'lower');
 ind_o = isnan(y);
 ydraw = y; 
 if strcmp(ftype, 'conditional (soft)')
@@ -119,8 +119,8 @@ if strcmp(ftype, 'conditional (soft)')
         if iter == max_iter
             error(['Did not obtain an acceptable draw in ' num2str(max_iter) ' attempts. Consider raising the limit or relaxing the restrictions.'])
         end
-        s_tmp = rue_held_alg2_3(s, cholP);
-        ydraw_tmp = rue_held_alg2_3(Z * s_tmp, cholH);
+        s_tmp = mvnrnd(s, P)';
+        ydraw_tmp = mvnrnd(Z * s_tmp, H)';
         if all(ydraw_tmp(ind_r_l, 1) > y_l(ind_r_l, 1)) && all(ydraw_tmp(ind_r_u, 1) < y_u(ind_r_u, 1))
             sdraw = s_tmp; 
             ydraw(ind_o, 1) = ydraw_tmp(ind_o, 1); 
@@ -128,8 +128,8 @@ if strcmp(ftype, 'conditional (soft)')
         end
     end
 elseif strcmp(ftype, 'unconditional') || strcmp(ftype, 'conditional (hard)') 
-   sdraw = rue_held_alg2_3(s, cholP);
-   ydraw_tmp = rue_held_alg2_3(Z * sdraw, cholH);
+   sdraw = mvnrnd(s, P)';
+   ydraw_tmp = mvnrnd(Z * sdraw, H)';
    ydraw(ind_o, 1) = ydraw_tmp(ind_o, 1); 
 end
 
