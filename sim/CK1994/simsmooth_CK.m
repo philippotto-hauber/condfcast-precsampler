@@ -40,10 +40,12 @@ Nn = size(H, 1); % # of variables
 Nt = size(Y_o, 2); % # of observations
 Nh = size(Y_f, 2); % forecast horizon
 NtNh = Nt + Nh; % # of total periods
-ind_nonsingular_s = not(all(R == 0, 2)); % this indicates where the "non-singular" states are located => relevant for VAR's
+
+% elements in state vector corresponding to non-singular submatrix of Q (see Kim and Nelson 1999, chapter 8.2)
+Nj = sum(not(all(R == 0, 2))); % ind_j = size(Q, 1); 
 
 % empty matrices to store stuff
-sdraw = NaN(Ns, NtNh);
+sdraw = NaN(Nj, NtNh);
 Ydraw = Y_f;
 stt = NaN(Ns,NtNh);
 Ptt = NaN(Ns,Ns,NtNh);
@@ -86,23 +88,27 @@ PtT(:, :, t) = Ptt(:, :, t);
 if t > Nt
     if isempty(Y_l); y_l = [];else; y_l = Y_l(:, t-Nt);end
     if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
-    [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype, max_iter);
+    [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
 else
-    sdraw(:, t) = mvnrnd(stT(:, t), PtT(:, :, t))'; 
+    sdraw(:, t) = mvnrnd(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t))'; 
 end
 
 % backward recursions 
 for t=NtNh-1:-1:1
+    T_j = T(1:Nj, :);
+    RQR_j = RQR(1:Nj, 1:Nj); % == Q!
     % stT and PtT
-    J = Ptt(:, :, t) * T'/(T*Ptt(:,:,t)*T' + RQR);
-    stT(:,t) = stt(:,t) + J*(sdraw(:,t+1) - T*stt(:,t));
-    PtT(:,:,t) = Ptt(:,:,t) + J*(PtT(:,:,t+1) - (T*Ptt(:,:,end)*T' + RQR))*J';  
+    %J = Ptt(:, :, t) * T'/(T*Ptt(:,:,t)*T' + RQR);
+    J = Ptt(:, :, t) * T_j' / (T_j * Ptt(:, :, t) * T_j' + RQR_j);
+    stT(:,t) = stt(:,t) + J *(sdraw(:, t+1) - T_j * stt(:,t));
+    %PtT(:,:,t) = Ptt(:,:,t) + J * (PtT(:,:,t+1) - (T_j * Ptt(:,:,t+1) * T_j' + RQR_j)) * J';  
+    PtT(:, :, t) = Ptt(:,:,t) - J * T_j * Ptt(:, :, t);
     if t > Nt
         if isempty(Y_l); y_l = [];else; y_l = Y_l(:, t-Nt);end
         if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
-        [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(:, t), PtT(:, :, t), Z, H, Y(:, t), y_u, y_l, ftype, max_iter);
+        [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
     else
-        sdraw(:, t) = rue_held_alg2_3(stT(:, t), chol(PtT(:, :, t), 'lower'));
+        sdraw(:, t) = mvnrnd(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t))'; 
     end
 end
 
