@@ -1,4 +1,4 @@
-function [fdraw, Ydraw] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, params, p_z, max_iter)
+function [fdraw, Ydraw] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, params, p_z, max_iter, model)
 % ----------------------------------------------------------------------- %
 % - This functions draws states and forecasts from a state space model of 
 % - the form 
@@ -45,16 +45,20 @@ end
 [Nn, Nt] = size(Y_o); % # of observations
 Nh = size(Y_f, 2); % forecast horizon
 NtNh = Nt + Nh; % # of total periods
-Ns = size(params.phi, 1); % # of states
+if strcmp(model, 'var')
+    Ns = 0;
+else
+    Ns = size(params.phi, 1); % # of states
+end
 
 % vectorized yobs, removing missings
 y = vec([Y_o, Y_f]); 
 yobs = y(~isnan(y),1); 
-Nmis = sum(isnan(y));
-Nobs = sum(~isnan(y));
+Nmis = sum(isnan(y)); % length(y) - Nobs;
+Nobs = sum(~isnan(y));% length(yobs)
 
 % precision matrix Q
-[PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, NtNh, Nmis, p_z);
+[PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, NtNh, Nmis, p_z, model);
 
 % joint draw of f, ymis
 chol_PQP_fymis = chol(PQP_fymis, 'lower'); 
@@ -93,8 +97,14 @@ end
 
 % reshape draw of z and back out return args
 z_draw(p_z, :) = [fxmis_draw; repmat(yobs, 1)]; % reverse permutation => z = [vec(f); vec([Y_o, Y_f])]!
-fdraw = reshape(z_draw(1:NtNh*Ns, :), Ns, NtNh); 
-Ydraw = reshape(z_draw(NtNh*Ns+1:end, :), Nn, NtNh);
+if strcmp(model, 'var')
+    fdraw = [];
+    Ydraw = reshape(z_draw, Nn, NtNh);
+else
+    fdraw = reshape(z_draw(1:NtNh*Ns, :), Ns, NtNh); 
+    Ydraw = reshape(z_draw(NtNh*Ns+1:end, :), Nn, NtNh);
+end
+
 if ~strcmp(ftype, 'none') % only return forecasts
     Ydraw = Ydraw(:, Nt+1:NtNh);
 else

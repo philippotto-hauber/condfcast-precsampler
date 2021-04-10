@@ -1,5 +1,6 @@
-function [PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, Nt, Nmis, p_z)
+function [PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, Nt, Nmis, p_z, model)
 
+if strcmp(model, 'ssm')
 % back out dims
 Nr = size(params.phi, 1);
 Np = size(params.phi, 2) / Nr;
@@ -48,3 +49,24 @@ PQP = Q(p_z, p_z);
 PQP_fymis = PQP(1:(NrNt + Nmis), 1:(NrNt + Nmis));
 PQP_fymis_yobs = PQP(1:(NrNt + Nmis),NrNt + Nmis + 1 : end); 
 
+elseif strcmp(model, 'var')
+    % back out dims
+    Nn = size(params.B, 1);
+    Np = size(params.B, 2) / Nn;
+    
+    % H and Q
+    H = speye(Nt*Nn);
+    for p = 1:Np
+        tmp = spdiags(ones(Nt,1), -p, Nt, Nt);
+        H = H + kron(tmp, -params.B(:, (p-1)*Nn+1:p*Nn));
+    end
+    
+    Q = H' * kron(speye(Nt), params.Sigma \ eye(Nn)) * H; 
+    
+    % permute Q
+    PQP = Q(p_z, p_z); 
+    PQP_fymis = PQP(1:Nmis, 1:Nmis);
+    PQP_fymis_yobs = PQP(1:Nmis, Nmis + 1 : end);     
+else
+    error('model needs to be either ssm or var!')
+end
