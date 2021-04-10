@@ -6,10 +6,10 @@ library(dplyr, tidyr)
 
 dir_in <- "./out/"
 
-dims = c("Nt_100_Nh_20_Nn_100_Ns_2",
-         "Nt_100_Nh_20_Nn_20_Ns_2",
-         "Nt_100_Nh_20_Nn_100_Ns_20",
-         "Nt_100_Nh_20_Nn_20_Ns_25")
+dims = c("Nt_100_Nh_5_Nn_100_Ns_2",
+         "Nt_100_Nh_5_Nn_20_Ns_2",
+         "Nt_100_Nh_5_Nn_100_Ns_20",
+         "Nt_100_Nh_5_Nn_20_Ns_25")
 
 ftypes = c("uncond", "cond_hard", "cond_soft")
 
