@@ -6,6 +6,13 @@
 \usepackage{cleveref}
 \newcommand{\crefrangeconjunction}{--} % dash instead of "to" in range
 \usepackage{amsfonts} 
+% % font used in Korobilis and Schumacher (2014)
+%\usepackage[sc]{mathpazo}
+%\linespread{1.05}         % Palladio needs more leading (space between lines)
+%\usepackage[T1]{fontenc}
+% % alternative I found on the web
+%\usepackage{tgpagella}
+%\usepackage[T1]{fontenc}
 \usepackage{xfrac}
 \DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
@@ -209,7 +216,7 @@ In addition to a draw of the state vector conditional on the data, macroeconomic
 From a Bayesian perspective, the aim is to sample from the predictive density 
 
 $$
-p(\mathbf{y^{\sf{f}}}|\mathcal{I}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathcal{I}, \mathbf{\alpha},\Theta) p(\mathbf{\alpha}|\mathcal{I}, \Theta) p(\Theta|\mathcal{I})\, \text{d}\Theta
+p(\mathbf{y^{\sf{f}}}|\mathcal{I}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathcal{I}, \boldsymbol{\alpha},\Theta) p(\boldsymbol{\alpha}|\mathcal{I}, \Theta) p(\Theta|\mathcal{I})\, \text{d}\Theta
 $$
 
 where $\mathcal{I}$ denotes the relevant conditioning information and $p(\Theta|\mathcal{I})$ the posterior distribution of the parameters. 
