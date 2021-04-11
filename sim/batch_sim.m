@@ -7,47 +7,47 @@ addpath('DK2002/')
 
 dir_dgp = './dgp/';
 dir_out = './out/'; 
-Nm = 1000;
-Ng_softcond = 1;
-Ng = 1;    
+Nm = 10;
+Ng = 2;    
 
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 samplers = {'CK', 'DK', 'HS'}; % {'HS', 'CK', 'DK'}
-model = 'ssm';
-Ndims = 4; 
-for d = 1:Ndims
-    [dims, dims_str] = get_dims(d);
+
+Ndims = 3; 
+for d = Ndims
+    [dims, model, dims_str] = get_dims(d);
+    disp('-------------------------------')
+    disp([model, ' ' dims_str])
     % simulate Ng dgps
-    for g = 1:max(Ng_softcond, Ng)
+    for g = 1:Ng
         simdata = generate_data(dims, model);
         save([dir_dgp, 'dgp_', num2str(g)], 'simdata');
     end
     for s = 1:length(samplers)
         sampler = samplers{s};
         for t = 1:length(type_fore)
-            if strcmp(type_fore{t}, 'cond_soft')
-                Ng_tmp = Ng_softcond;
-            else
-                Ng_tmp = Ng; 
-            end
-            telapsed = NaN(Ng_tmp, 1); 
-            for g = 1:Ng_tmp
+            telapsed = NaN(Ng, 1); 
+            for g = 1:Ng
                 % clear vars
                 Y_f = []; Y_l = []; Y_u = [];
                 % load data
                 load([dir_dgp, 'dgp_' num2str(g)]);
-                Y_o  = simdata.y; 
+                if strcmp(model, 'var')
+                    Y_o = []; 
+                else
+                    Y_o  = simdata.y; 
+                end
                 if strcmp(type_fore{t}, 'cond_soft')                     
                     Y_f = NaN(dims.Nn, dims.Nh);
                     sig = sqrt(var(simdata.y, [], 2));
                     Y_u = NaN(dims.Nn, dims.Nh);                    
-                    Y_u(dims.ind_n, :) = simdata.yfore(dims.ind_n, dims.ind_h) + repmat(2 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
+                    Y_u(dims.ind_n, dims.ind_h) = simdata.yfore(dims.ind_n, dims.ind_h) + repmat(2 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
                     Y_l = NaN(dims.Nn, dims.Nh);
-                    Y_l(dims.ind_n, :) = simdata.yfore(dims.ind_n, dims.ind_h) - repmat(2 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
+                    Y_l(dims.ind_n, dims.ind_h) = simdata.yfore(dims.ind_n, dims.ind_h) - repmat(2 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
                 elseif strcmp(type_fore{t}, 'cond_hard')
                     % conditional forecasts
                     Y_f = NaN(dims.Nn, dims.Nh);
-                    Y_f(1:dims.Nn/10,1:dims.Nh) = simdata.yfore(1:dims.Nn/10,1:dims.Nh);
+                    Y_f(dims.ind_n,:) = simdata.yfore(dims.ind_n,:);
                 elseif strcmp(type_fore{t}, 'uncond')
                     % unconditional forecasts
                     Y_f = NaN(dims.Nn, dims.Nh);
