@@ -94,7 +94,7 @@ if Nn == 3
     sig_o = sqrt(0.6); % variance of b_1_ii
     sig_c = sqrt(0.2); % variance of b_p_ij, i \neq j
     p_c = 0.5; % inclusion probability of b_p_ij
-elseif Nn == 25 % more shrinkage and sparsity
+elseif Nn == 20 % more shrinkage and sparsity
     sig_o = sqrt(0.2); % variance of b_1_ii
     sig_c = sqrt(0.05); % variance of b_p_ij, i \neq j
     p_c = 0.2; % inclusion probability of b_p_ij
@@ -103,7 +103,7 @@ elseif Nn == 100 % even more shrinkage and sparsity
     sig_c = sqrt(0.001);
     p_c = 0.1;
 else 
-    error('Nn needs to be equal to 3, 25 or 100')
+    error('Nn needs to be equal to 3, 20 or 100')
 end
 
 while true
