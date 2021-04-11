@@ -18,7 +18,7 @@ switch(n)
    case 2 % large factor model
         dims.Nn = 100;
         dims.Ns = 2;   
-        dims.ind_n = 1:dims.Nn/10;
+        dims.ind_n = 1:2;
         dims.ind_h = 1; 
         model = 'ssm'; % actually a dfm but called ssm in the functions
         dims_str = ['Nt_', num2str(dims.Nt), ...
@@ -28,7 +28,7 @@ switch(n)
   case 3 % large N, T factor model
         dims.Nn = 100;
         dims.Ns = 10;  
-        dims.ind_n = 1:dims.Nn/10;
+        dims.ind_n = 1:2;
         dims.ind_h = 1; 
         model = 'ssm'; % actually a dfm but called ssm in the functions
         dims_str = ['Nt_', num2str(dims.Nt), ...
