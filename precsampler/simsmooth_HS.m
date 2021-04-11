@@ -30,7 +30,7 @@ function [fdraw, Ydraw] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, params, p_z, max_iter
 % -                 Ydraw, Nn x Nt+Nh matrix of forecasts (empty if  Nh = 0)
 % ----------------------------------------------------------------------- %
 
-% check args, infer forecast type
+% infer forecast type
 if isempty(Y_f) && isempty(Y_u) && isempty(Y_l)
     ftype = 'none';
 elseif all(isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
@@ -39,12 +39,19 @@ elseif any(~isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
     ftype = 'conditional (hard)';
 elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
     ftype = 'conditional (soft)';
+else
+    error('Check input args Y_o, Y_f, Y_u, Y_l')
 end
 
-% back out dims
-Nn = size(Y_f, 1); % # of variables
-Nt = size(Y_o, 2); % # of in-sample periods
-Nh = size(Y_f, 2); % forecast horizon
+% back out number of vars, periods and forecast horizon
+if isempty(Y_o)
+    [Nn, Nh] = size(Y_f);
+    Nt = 0;
+else
+    [Nn, Nt] = size(Y_o);
+    Nh = size(Y_f, 2);
+end
+
 NtNh = Nt + Nh; % # of total periods
 if strcmp(model, 'var')
     Ns = 0;
@@ -56,7 +63,7 @@ end
 y = vec([Y_o, Y_f]); 
 yobs = y(~isnan(y),1); 
 Nmis = sum(isnan(y)); % length(y) - Nobs;
-Nobs = sum(~isnan(y));% length(yobs)
+Nobs = sum(~isnan(y)); % length(yobs)
 
 % precision matrix Q
 [PQP_fymis, PQP_fymis_yobs] = construct_PQP(params, NtNh, Nmis, p_z, model);
@@ -93,7 +100,7 @@ if strcmp(ftype, 'conditional (soft)')
         end
     end
 else
-    fxmis_draw = rue_held_alg2_4(chol_PQP_fymis, b_fymis); % draw joint     
+    fxmis_draw = rue_held_alg2_4(chol_PQP_fymis, b_fymis); % draw f, xmis jointly     
 end
 
 % reshape draw of z and back out return args
@@ -106,8 +113,9 @@ else
     Ydraw = reshape(z_draw(NtNh*Ns+1:end, :), Nn, NtNh);
 end
 
-if ~strcmp(ftype, 'none') % only return forecasts
-    Ydraw = Ydraw(:, Nt+1:NtNh);
+
+if ~strcmp(ftype, 'none')     
+    Ydraw = Ydraw(:, Nt+1:NtNh); % only return forecasts, not entire Y!
 else
     Ydraw = [];
 end
