@@ -11,9 +11,9 @@ Nm = 10;
 Ng = 2;    
 
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
-samplers = {'CK', 'DK', 'HS'}; % {'HS', 'CK', 'DK'}
+samplers = {'CK', 'DK', 'HS',}; % {'CK', 'DK', 'HS'}
 
-Ndims = 3; 
+Ndims = 1:6; 
 for d = Ndims
     [dims, model, dims_str] = get_dims(d);
     disp('-------------------------------')
