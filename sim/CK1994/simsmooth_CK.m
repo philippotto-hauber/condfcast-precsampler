@@ -83,14 +83,14 @@ for t = 1:NtNh
 end
 
 % sample states and obs in t = Nobs
-stT(:, t) = stt(:, t);
-PtT(:, :, t) = Ptt(:, :, t);
+stT = stt(:, t);
+PtT = Ptt(:, :, t);
 if t > Nt
     if isempty(Y_l); y_l = [];else; y_l = Y_l(:, t-Nt);end
     if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
-    [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
+    [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
 else
-    sdraw(:, t) = mvnrnd(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t))'; 
+    sdraw(:, t) = mvnrnd(stT(1:Nj, 1), PtT(1:Nj, 1:Nj))'; 
 end
 
 % backward recursions 
@@ -100,15 +100,16 @@ for t=NtNh-1:-1:1
     % stT and PtT
     %J = Ptt(:, :, t) * T'/(T*Ptt(:,:,t)*T' + RQR);
     J = Ptt(:, :, t) * T_j' / (T_j * Ptt(:, :, t) * T_j' + RQR_j);
-    stT(:,t) = stt(:,t) + J *(sdraw(:, t+1) - T_j * stt(:,t));
+    stT = stt(:,t) + J *(sdraw(:, t+1) - T_j * stt(:,t));
     %PtT(:,:,t) = Ptt(:,:,t) + J * (PtT(:,:,t+1) - (T_j * Ptt(:,:,t+1) * T_j' + RQR_j)) * J';  
-    PtT(:, :, t) = Ptt(:,:,t) - J * T_j * Ptt(:, :, t);
+    PtT = Ptt(:,:,t) - J * T_j * Ptt(:, :, t);
     if t > Nt
         if isempty(Y_l); y_l = [];else; y_l = Y_l(:, t-Nt);end
         if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
-        [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
+        [sdraw(:, t), Ydraw(:, t-Nt)] = draw_s_y(stT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
     else
-        sdraw(:, t) = mvnrnd(stT(1:Nj, t), PtT(1:Nj, 1:Nj, t))'; 
+        %sdraw(:, t) = mvnrnd(stT(1:Nj, 1), )'; 
+        sdraw(:, t) = rue_held_alg2_3(stT(1:Nj, 1), chol(PtT(1:Nj, 1:Nj), 'lower'));
     end
 end
 
