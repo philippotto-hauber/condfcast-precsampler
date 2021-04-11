@@ -1,4 +1,4 @@
-function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter)
+function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter)
 % This code samples states and forecasts from a state space model of the
 % following form: 
 
@@ -22,11 +22,18 @@ NtNh = Nt + Nh; % # of total periods
 ind_fore = isnan(Y_f);
 Y = [Y_o, Y_f]; 
 
+% calculate a1 and P1
+
 % case distinction
 if strcmp(ftype, 'conditional (soft)')
-    % ind
+    % ind upper and lower bound of restrictions
     ind_y_l = not(isnan(Y_l));
     ind_y_u = not(isnan(Y_u));
+    
+    % initial values for Kalman smoother
+    a1 = T * s0; % s0 = [y_T, y_T-1, ..., y_T-P+1]
+    P1 = R*Q*R'; 
+    
     % run Kalman smoother on data
     ahat = kalmansmoother(Y, T, Z, H, R, Q, a1, P1);
     
@@ -47,7 +54,8 @@ if strcmp(ftype, 'conditional (soft)')
 
         % draw of a and Y_f
         adraw = ahat - aplushat + aplus ; % random draw of state vector
-        Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh);
+        % CHECK FORMULA!!!!
+        Ydraw_tmp = Z * (adraw(:, Nt+1:NtNh) - aplus(:, Nt+1:NtNh)) + Yplus(:, Nt+1:NtNh); % random draw of obs
 
         % check conditions
         if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
@@ -56,10 +64,14 @@ if strcmp(ftype, 'conditional (soft)')
     end    
 else
     % draw from joint distribution of a and Y
+    a1 = T * s0; % s0 = [y_T, y_T-1, ..., y_T-P+1]
+    P1 = R*Q*R'; 
     [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
     Ystar = Y-Yplus;
 
     % run Kalman smoother
+    a1 = zeros(size(s0));
+    P1 = R*Q*R'; 
     ahatstar = kalmansmoother(Ystar, T, Z, H, R, Q, a1, P1);
 
     % draw a and Y_f
