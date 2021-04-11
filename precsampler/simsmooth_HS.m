@@ -42,7 +42,8 @@ elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
 end
 
 % back out dims
-[Nn, Nt] = size(Y_o); % # of observations
+Nn = size(Y_f, 1); % # of variables
+Nt = size(Y_o, 2); % # of in-sample periods
 Nh = size(Y_f, 2); % forecast horizon
 NtNh = Nt + Nh; % # of total periods
 if strcmp(model, 'var')
