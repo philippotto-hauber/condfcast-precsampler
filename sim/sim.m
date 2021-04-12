@@ -1,12 +1,14 @@
 function batch_sim()
 rng(1234) % set random seed for reproducibility
 
-addpath('../precsampler/')
+if not(isdeployed) % compile with mcc -m batch_sim.m -a ./CK1994 -a ./DK2002 - a ./../precsampler
+addpath('./../precsampler/')
 addpath('CK1994/')
 addpath('DK2002/')
+end
 
-dir_dgp = '../../sim-prec-sampler/dgp/';
-dir_out = '../../sim-prec-sampler/out/'; 
+dir_dgp = './../../sim-precsampler/dgp/';
+dir_out = './../../sim-precsampler/out/'; 
 Nm = 10;
 Ng = 2;    
 
