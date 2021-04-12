@@ -13,7 +13,7 @@ clear; close all;
 
 %% set-up
 
-addpath('../../sim/') % path to generate_data.m
+addpath('./../../sim/') % path to generate_data.m
 
 rng(1234) % set random seed for reproducibility
 
@@ -48,7 +48,7 @@ simdata = generate_data(dims, model);
 Y_o = simdata.y; 
 
 % state space params
-[T, Z, H, R, Q, s0, P0] = get_statespaceparams(simdata, model);
+[T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, [], model);
 % T = simdata.params.phi; 
 % Z = simdata.params.lambda;
 % H = diag(simdata.params.sig_eps);
@@ -67,7 +67,7 @@ if strcmp(ftype, 'none')
     adraw = NaN(dims.Ns, dims.Nt, Nm);
     tic
     for m = 1:Nm
-        [adraw(:, :, m), ~] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, RQR, s0, P0, []);
+        [adraw(:, :, m), ~] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, []);
     end
     toc
 end
@@ -90,7 +90,7 @@ if strcmp(ftype, 'unconditional')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, []);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, []);
     end
     toc
 end
@@ -110,7 +110,7 @@ if strcmp(ftype, 'conditional (hard)')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, []);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, []);
     end
     toc
 end
@@ -131,7 +131,7 @@ if strcmp(ftype, 'conditional (soft)')
 
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
     end
     toc
 end    
@@ -154,6 +154,10 @@ if ~strcmp(ftype, 'none')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+    if strcmp(ftype, 'conditional (soft)')
+    plot([NaN(1, dims.Nt), Y_l(ind_n, :)], 'k:', 'LineWidth', 2)
+    plot([NaN(1, dims.Nt), Y_u(ind_n, :)], 'k:', 'LineWidth', 2)
+    end
     title([ftype, ', y_{' num2str(ind_n) '}'])
     subplot(3,1,2)
     ind_n = 2; 
@@ -162,6 +166,10 @@ if ~strcmp(ftype, 'none')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+    if strcmp(ftype, 'conditional (soft)')
+    plot([NaN(1, dims.Nt), Y_l(ind_n, :)], 'k:', 'LineWidth', 2)
+    plot([NaN(1, dims.Nt), Y_u(ind_n, :)], 'k:', 'LineWidth', 2)
+    end
     title([ftype, ', y_{' num2str(ind_n) '}'])
     subplot(3,1,3)
     ind_n = dims.Nn; 
@@ -170,5 +178,9 @@ if ~strcmp(ftype, 'none')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.5, 3)], 'b-')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.1, 3)], 'b:')
     plot([simdata.y(ind_n, :), quantile(Ydraw(ind_n, :, :), 0.9, 3)], 'b:')
+    if strcmp(ftype, 'conditional (soft)')
+    plot([NaN(1, dims.Nt), Y_l(ind_n, :)], 'k:', 'LineWidth', 2)
+    plot([NaN(1, dims.Nt), Y_u(ind_n, :)], 'k:', 'LineWidth', 2)
+    end
     title([ftype, ', y_{' num2str(ind_n) '}'])
 end
