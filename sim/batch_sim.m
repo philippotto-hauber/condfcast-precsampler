@@ -1,12 +1,12 @@
-clear;
+function batch_sim()
 rng(1234) % set random seed for reproducibility
 
 addpath('../precsampler/')
 addpath('CK1994/')
 addpath('DK2002/')
 
-dir_dgp = './dgp/';
-dir_out = './out/'; 
+dir_dgp = '../../sim-prec-sampler/dgp/';
+dir_out = '../../sim-prec-sampler/out/'; 
 Nm = 10;
 Ng = 2;    
 
