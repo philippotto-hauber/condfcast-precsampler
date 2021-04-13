@@ -1,4 +1,4 @@
-function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter)
+function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter)
 % This code samples states and forecasts from a state space model of the
 % following form: 
 
@@ -30,10 +30,6 @@ if strcmp(ftype, 'conditional (soft)')
     ind_y_l = not(isnan(Y_l));
     ind_y_u = not(isnan(Y_u));
     
-    % initial values for Kalman smoother
-    a1 = T * s0; % s0 = [y_T, y_T-1, ..., y_T-P+1]
-    P1 = R*Q*R'; 
-    
     % run Kalman smoother on data
     ahat = kalmansmoother(Y, T, Z, H, R, Q, a1, P1);
     
@@ -64,14 +60,11 @@ if strcmp(ftype, 'conditional (soft)')
     end    
 else
     % draw from joint distribution of a and Y
-    a1 = T * s0; % s0 = [y_T, y_T-1, ..., y_T-P+1]
-    P1 = R*Q*R'; 
     [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
     Ystar = Y-Yplus;
 
     % run Kalman smoother
-    a1 = zeros(size(s0));
-    P1 = R*Q*R'; 
+    a1 = zeros(size(a1)); % set E[alpha_1|Ystar_0] to 0. See Jarocinski (2015)
     ahatstar = kalmansmoother(Ystar, T, Z, H, R, Q, a1, P1);
 
     % draw a and Y_f
