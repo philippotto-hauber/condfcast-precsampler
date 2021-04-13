@@ -1,6 +1,8 @@
 function [adraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter)
 % This code samples states and forecasts from a state space model of the
 % following form: 
+% y_t = Z alpha_t + e_t; e_t ~ N(0, H)
+% alpha_t = T alpha_t-1 + R u_t; u_T ~ N(0, Q)
 
 % check args, infer forecast type
 if isempty(Y_f) && isempty(Y_u) && isempty(Y_l)
@@ -48,10 +50,14 @@ if strcmp(ftype, 'conditional (soft)')
         % run Kalman smoother on simulated data
         aplushat = kalmansmoother(Yplus, T, Z, H, R, Q, a1, P1);
 
-        % draw of a and Y_f
+        % draw of a 
         adraw = ahat - aplushat + aplus ; % random draw of state vector
-        % CHECK FORMULA!!!!
-        Ydraw_tmp = Z * (adraw(:, Nt+1:NtNh) - aplus(:, Nt+1:NtNh)) + Yplus(:, Nt+1:NtNh); % random draw of obs
+        % draw of Y_f given a
+        % Y = Y^ - Yplus^ + Yplus
+        %   = Za^ - Z aplus^ + Yplus
+        %   = Z(a^ - aplus^) + Zaplus + e
+        %   = Zadraw + eps
+        Ydraw_tmp = Z * (ahat(:, Nt+1:NtNh) - aplushat(:, Nt+1:NtNh)) + Yplus(:, Nt+1:NtNh); % random draw of obs
 
         % check conditions
         if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
