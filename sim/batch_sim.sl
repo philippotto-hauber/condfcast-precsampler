@@ -1,19 +1,20 @@
 #!/bin/bash
-#SBATCH --job-name=sim
+#SBATCH --job-name=simul
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2000
 #SBATCH --time=03:00:00
-#SBATCH --output=sim.out
-#SBATCH --error=sim.err
+#SBATCH --output=simul.out
+#SBATCH --error=simul.err
 #SBATCH --partition=cluster
-
-export OMP_NUM_THREADS=1
 
 rm ./../../sim-precsampler/dgp/*
 rm ./../../sim-precsampler/out/*
 
 module load matlab/2020b
+mcc -m simul.m -a ./CK1994 -a ./DK2002 -a ./../precsampler -a ./../functions
 
-./batch_sim
+export OMP_NUM_THREADS=1
+
+./simul
