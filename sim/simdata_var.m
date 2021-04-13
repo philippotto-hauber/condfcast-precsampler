@@ -4,6 +4,7 @@ clear; close all;
 addpath('./CK1994')
 addpath('./DK2002')
 addpath('../precsampler')
+addpath('../functions')
 rng(1234) % set random seed for reproducibility
 model = 'var'; 
 
