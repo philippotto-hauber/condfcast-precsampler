@@ -2,7 +2,7 @@ function [adraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1
 % This code samples states and forecasts from a state space model of the
 % following form: 
 % y_t = Z alpha_t + e_t; e_t ~ N(0, H)
-% s_t = T alpha_t-1 + R u_t; u_T ~ N(0, Q)
+% alpha_t = T alpha_t-1 + R u_t; u_T ~ N(0, Q)
 % using the Carter and Kohn (1994, Biometrika) algorithm. 
 % See Kim and Nelson (1998) for a textbook treatment.
 % Compared to standard implementations, this code can be applied for both
@@ -102,7 +102,7 @@ for t=NtNh-1:-1:1
         if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
         [adraw(:, t), Ydraw(:, t-Nt)] = draw_a_y(atT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
     else
-        adraw(:, t) = rue_held_alg2_3(atT(1:Nj, 1), chol(PtT(1:Nj, 1:Nj), 'lower'));
+        adraw(:, t) = mvnrnd(atT(1:Nj, 1), PtT(1:Nj, 1:Nj))';
     end
 end
 
