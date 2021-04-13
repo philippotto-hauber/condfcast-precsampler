@@ -40,7 +40,7 @@ This paper proposes precision-based sampling algorithms for conditional forecast
 
 \subsection{Precision-based sampling}
 
-Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $R \times 1$ vector of unobserved states. Consider the following state space model which $\forall \: t = 1:T$ 
+Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $S \times 1$ vector of unobserved states. Consider the following state space model which $\forall \: t = 1:T$ 
 
 \begin{subequations}
     \label{eqn:statespacesys}
@@ -63,26 +63,26 @@ $$
 \end{bmatrix}
 )
 $$
-and $\Omega = \text{diag}(\omega^2_{1}, \dots, \omega^2_{N})$. The recursions are initialized with $\boldsymbol{\alpha_1} \sim \mathcal{N}(\mathbf{c_1}, \Sigma_0)$.
+and $\Omega = \text{\sf{diag}}(\omega^2_{1}, \dots, \omega^2_{N})$. The recursions are initialized with $\boldsymbol{\alpha_1} \sim \mathcal{N}(\mathbf{c_1}, \Sigma_0)$.
 
-Bayesian estimation of \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans} requires a draw from the distribution of the state vector conditional on the observations $\mathbf{y}_{1:T}$ and parameters $\Theta$, $p(\mathbf{\alpha}_{1:T}|\mathbf{y}_{1:T}, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature.
+Bayesian estimation of \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_trans} requires a draw from the distribution of the state vector conditional on the observations and parameters $\Theta$, $p(\boldsymbol{\alpha}_1, \dots, \boldsymbol{\alpha}_T | \mathbf{y}_1, \dots, \mathbf{y}_T, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature.
 
-Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods. To derive the sampler, we stack the observations over time $\mathbf{y} = \transpose{[\transpose{\mathbf{y}}_1, \dots, \transpose{\mathbf{y}}_T]}$ which yields the following measurement equation
+Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods. To derive the sampler, we stack observations and states over time - $\mathbf{y} = \transpose{[\transpose{\mathbf{y}}_1, \dots, \transpose{\mathbf{y}}_T]}$, $\boldsymbol{\alpha} = \transpose{[\transpose{\boldsymbol{\alpha}}_1, \dots, \transpose{\boldsymbol{\alpha}}_T]}$ - yielding the following measurement equation
 
 \begin{equation}
 \mathbf{y} = \mathbf{d} + \mathbf{M} \, \boldsymbol{\alpha} + \boldsymbol{\varepsilon}
 \end{equation} 
 
-where $ \mathbf{M} = I_T \otimes \mathbf{F}$ and $\boldsymbol{\varepsilon} \sim \mathcal{N}(0, \mathbf{V}_{\varepsilon})$ with $\mathbf{V}_{\varepsilon} = I_T \otimes \Omega$. The transition equation of the states can be written compactly as $\mathbf{H}\, \boldsymbol{\alpha} = \mathbf{c} + \upsilon$ using the differencing matrix 
+where $ \mathbf{M} = I_T \otimes \mathbf{F}$ and $\boldsymbol{\varepsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{V}_{\varepsilon})$ with $\mathbf{V}_{\varepsilon} = I_T \otimes \Omega$. The transition equation of the states can be written compactly as $\mathbf{H}\, \boldsymbol{\alpha} = \mathbf{c} + \upsilon$ using the differencing matrix 
 $$
 \mathbf{H}
 =
 \begin{bmatrix}
     I_R & 0_R & \dots \\
-    \shortminus T & I_R & \ddots \\
-    0_R & \shortminus T & I_R & \ddots \\
+    \shortminus \mathbf{T} & I_R & \ddots \\
+    0_R & \shortminus \mathbf{T} & I_R & \ddots \\
     \vdots & \ddots & \ddots & \ddots \\
-    & & & \shortminus T & I_R
+    & & & \shortminus \mathbf{T} & I_R
 \end{bmatrix}.
 $$
 
@@ -135,7 +135,7 @@ The joint distribution of states and observables is Normal with mean $\boldsymbo
     &= 
     \bm{V}^{-1}_z \\
     &= 
-    Var\left(
+    \text{\sf{Var}}\left(
     \begin{bmatrix}
         \boldsymbol{\alpha} \\
         \mathbf{y}
@@ -207,7 +207,7 @@ with \citep[see also][eqn. 6-8]{chanjeliazkov_2009}:
     \boldsymbol\mu_{\alpha} &= \mathbf{Q}_{\alpha}^{-1} \left(\mathbf{Q}_{\alpha} \tilde{\mathbf{c}}+ \transpose{\mathbf{M}} \bm{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
 \end{align*}
 
-Draws from this distribution can be obtained efficiently since the $T\cdot R \times R$ matrix $\mathbf{Q}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 2.1]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot R \times 1$ matrix of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{Q}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{Q}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{Q}^{-1}_{\alpha})$ to which the mean $\mathbf{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 2.4]{rueheld_2005}.
+Draws from this distribution can be obtained efficiently since the $T\cdot S \times S$ matrix $\mathbf{Q}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 2.1]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot S \times 1$ vector of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{Q}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{Q}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{Q}^{-1}_{\alpha})$ to which the mean $\boldsymbol{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 2.4]{rueheld_2005}.
 
 \subsection{Forecasting}
 
