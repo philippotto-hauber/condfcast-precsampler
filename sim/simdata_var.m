@@ -8,7 +8,7 @@ rng(1234) % set random seed for reproducibility
 model = 'var'; 
 
 dims.Nt = 50; % # of in-sample observations
-dims.Nn = 25; % # of variables
+dims.Nn = 20; % # of variables
 dims.Np = 4; % # 
 dims.Nh = 10; 
 
@@ -21,7 +21,7 @@ Y_l = [];
 % CK
 [T, Z, H, R, Q, s0, P0] = get_statespaceparams(simdata.params, simdata.y, model);
 
-max_iter = 1e10;
+max_iter = 1e3;
 [sdrawCK, YdrawCK] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
 
 % DK
