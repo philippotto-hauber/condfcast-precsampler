@@ -4,15 +4,15 @@ max_iter = 1e3;
 if strcmp(sampler, 'CK')    
     tic;
     for m = 1:Nm
-        [T, Z, H, R, Q, s0, P0] = get_statespaceparams(simdata.params, simdata.y, model);
-        [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
+        [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
+        [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
     end
     telapsed = toc; 
 elseif strcmp(sampler, 'DK')
     tic;
     for m = 1:Nm
-        [T, Z, H, R, Q, s0, P0] = get_statespaceparams(simdata.params, simdata.y, model);
-        [sdraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
+        [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
+        [sdraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
     end
     telapsed = toc; 
 elseif strcmp(sampler, 'HS')
