@@ -4,7 +4,7 @@ setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/sim")
 library(ggplot2)
 library(dplyr, tidyr)
 
-dir_in <- "./out/"
+dir_in <- "./../../../Dissertation/condfcast-precsampler/sim/out test/"
 
 dims = c("Nt_100_Nh_5_Nn_20_Ns_2",
          "Nt_100_Nh_5_Nn_100_Ns_2",
