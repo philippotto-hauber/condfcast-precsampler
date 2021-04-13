@@ -45,16 +45,16 @@ Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ 
 \begin{subequations}
     \label{eqn:statespacesys}
     \begin{align}
-        \mathbf{y_t} &= \mathbf{d_t} + \mathbf{F} \boldsymbol{\alpha_t} + \epsilon_t \label{eqn:statespacesys_meas}\\
-        \boldsymbol{\alpha_t} &= \mathbf{c_t} + \mathbf{T} \, \boldsymbol{\alpha_{t-1}} + \upsilon_t \label{eqn:statespacesys_trans}
+        \mathbf{y}_t &= \mathbf{d}_t + \mathbf{F} \,\boldsymbol{\alpha}_t + \boldsymbol{\varepsilon}_t \label{eqn:statespacesys_meas}\\
+        \boldsymbol{\alpha_t} &= \mathbf{c}_t + \mathbf{T} \, \boldsymbol{\alpha}_{t-1} + \boldsymbol{\upsilon}_t \label{eqn:statespacesys_trans}
     \end{align}
 \end{subequations}
 
 where 
 $$
 \begin{bmatrix}
-    \epsilon_t \\
-    \upsilon_t
+    \boldsymbol{\varepsilon}_t \\
+    \boldsymbol{\upsilon}_t
 \end{bmatrix}
 \sim \mathcal{N}(0,
 \begin{bmatrix}
@@ -70,10 +70,10 @@ Bayesian estimation of \Crefrange{eqn:statespacesys_meas}{eqn:statespacesys_tran
 Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods. To derive the sampler, we stack the observations over time $\mathbf{y} = \transpose{[\transpose{\mathbf{y}}_1, \dots, \transpose{\mathbf{y}}_T]}$ which yields the following measurement equation
 
 \begin{equation}
-\mathbf{y} = \mathbf{d} + \mathbf{M} \, \boldsymbol{\alpha} + \epsilon
+\mathbf{y} = \mathbf{d} + \mathbf{M} \, \boldsymbol{\alpha} + \boldsymbol{\varepsilon}
 \end{equation} 
 
-where $ \mathbf{M} = I_T \otimes \mathbf{F}$ and $\epsilon \sim \mathcal{N}(0, \mathbf{V}_{\epsilon})$ with $\mathbf{V}_{\epsilon} = I_T \otimes \Omega$. The transition equation of the states can be written compactly as $\mathbf{H}\, \boldsymbol{\alpha} = \mathbf{c} + \upsilon$ using the differencing matrix 
+where $ \mathbf{M} = I_T \otimes \mathbf{F}$ and $\boldsymbol{\varepsilon} \sim \mathcal{N}(0, \mathbf{V}_{\varepsilon})$ with $\mathbf{V}_{\varepsilon} = I_T \otimes \Omega$. The transition equation of the states can be written compactly as $\mathbf{H}\, \boldsymbol{\alpha} = \mathbf{c} + \upsilon$ using the differencing matrix 
 $$
 \mathbf{H}
 =
@@ -124,7 +124,7 @@ The joint distribution of states and observables is Normal with mean $\boldsymbo
     \end{bmatrix}
     \begin{bmatrix}
         \boldsymbol{\alpha}\\
-        \mathbf{\epsilon}
+        \boldsymbol{\varepsilon}
     \end{bmatrix} 
 \end{equation}
 
@@ -149,7 +149,7 @@ The joint distribution of states and observables is Normal with mean $\boldsymbo
     \end{bmatrix}
     \begin{bmatrix}
         \mathbf{H}^{-1} \bm{V}_{\upsilon} \transpose{\mathbf{H}^{-1}} & 0 \\
-        0 & \bm{V}_{\epsilon}
+        0 & \bm{V}_{\varepsilon}
     \end{bmatrix} 
     \begin{bmatrix}
         I & \transpose{\mathbf{M}} \\
@@ -163,7 +163,7 @@ The joint distribution of states and observables is Normal with mean $\boldsymbo
     \end{bmatrix}
     \begin{bmatrix}
         \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} & 0 \\
-        0 & \bm{V}^{-1}_{\epsilon}
+        0 & \bm{V}^{-1}_{\varepsilon}
     \end{bmatrix} 
     \begin{bmatrix}
         I & 0 \\
@@ -171,8 +171,8 @@ The joint distribution of states and observables is Normal with mean $\boldsymbo
     \end{bmatrix} \\
     &=
     \begin{bmatrix}
-         \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + \transpose{\mathbf{M}}\bm{V}_{\epsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \bm{V}^{-1}_{\epsilon} \\
-         \bm{V}^{-1}_{\epsilon} \mathbf{M} & \bm{V}^{-1}_{\epsilon}
+         \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + \transpose{\mathbf{M}}\bm{V}_{\epsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \bm{V}^{-1}_{\varepsilon} \\
+         \bm{V}^{-1}_{\epsilon} \mathbf{M} & \bm{V}^{-1}_{\varepsilon}
     \end{bmatrix} \\
     &= 
     \begin{bmatrix}
@@ -358,79 +358,46 @@ $$
      \mathbf{y}^{c\sf{T}}]}
 $$
 
-As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and forecasts can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{Q}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$. 
+As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and forecasts can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{Q}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$.
 
-\subsection{Simulation}
+\subsection{Sequential sampling}
 
-To illustrate the sampler and demonstrate its usefulness in applications, I simulate data from the model in with $T=50, H=20, R = 1, N=10$. Morever, the parameters are set to the following values: 
-\begin{align*}
-\mathbf{T} &= 0.7 \\
-\mathbf{F} &\sim N(0.5, 0.1 \mathbf{I}), \\
-\Omega &= 1.
-\end{align*}
-The variance of the measurement error for variable $i$ is chosen such that the common component - $\mathbf{F}_i \alpha_t$ - explains \sfrac{2}{3} of the variation in $\mathbf{y}_{i,1:T}$. 
+\section{Models}
 
-Taking the parameters as given, we obtain 1000 draws from both the unconditional and conditional predictive density. For the latter, the values of the first series over the entire projection horizon are taken as given, while for the second series we only condition on the first H/2 observations. That is to say 
-
-$$\mathbf{y}^c = \transpose{[y_{1,T+1}, y_{2,T+1}, \dots, y_{1,T+\frac{H}{2}}, y_{2,T+\frac{H}{2}}, y_{1,T+11}, \dots, y_{1,T+H}]}
-$$
-
-The impact that the permutation of $z$ has on the precision matrix can be seen in Figure \ref{fig_Pperm}. By placing the conditioning information at the end and ordering states and forecasts by time periods, the bandwidth of $\mathbf{Q}_{z_{\mathcal{P}'}}$ - the upper left $T\!\cdot\!N + H\!\cdot\!N - N^c$ block highlighted in the right panel - is kept small (in the example, it is equal to 10), allowing for efficient sampling. 
-
-
-\begin{figure}[htbp] \centering
-    \caption{Precision matrix of $z$ and $z_{\mathcal{P}'}$\label{fig_Pperm}}
-    \footnotesize
-    \begin{tabular}{p{16cm}}
-    \includegraphics*[scale=0.5,clip,trim=10 60 10 60]{../figures/fig_P_perm.pdf} \\
-    \footnotesize \textbf{Note:} The left panel shows the original precision matrix of $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$. The right panel shows the permuted precision matrix, placing the conditioning information at the end and ordering states and forecasts by time periods. The highlighted block corresponds to the precision matrix $P_{\alpha\mathbf{y}^{\sf{f}}}$. Its bandwidth is 10.
-    \end{tabular}
-    \newline
-    \normalsize
-\end{figure}
-
-\begin{figure}[htbp] \centering
-    \caption{Unconditional and conditional forecasts - simulation results\label{fig_simfore}}
-    \footnotesize
-    \begin{tabular}{p{16cm}}
-    \includegraphics*[scale=0.7,clip,trim=10 60 10 60]{../figures/fig_fore.pdf} \\
-    \footnotesize \textbf{Note:} The figure shows draws of the latent states as well as unconditonal (blue lines) and conditional (red lines) forecasts for three series. The dashed lines correspond to the 5\textsuperscript{th} and 95\textsuperscript{th} percentile of the posterior distribution. For details on the simulation design see the main text.
-    \end{tabular}
-    \newline
-    \normalsize
-\end{figure}
-
-As Figure \ref{fig_simfore} demonstrates, the estimates of $\mathbf{\alpha}$ are virtually identical for $t \leq T$, as the same observations are used to estimate the states. However, out-of-sample the state tracks the actual values much closer when additional conditioning information is used. The impact of conditioning on the paths of $y_2$ and $y_{10}$ can also be seen clearly.  
-
-\section{Empirical application}
-
-\subsection{Models}
-
-\subsubsection{Dynamic factor models}
+\subsection{Dynamic factor models}
 
 \begin{subequations}
     \label{eqn:factormodel}
     \begin{align}
-        \mathbf{y_t} &= \Lambda \, \mathbf{f_t} + \mathbf{e}_t \\
-        \mathbf{f_t} &= \Phi \, \mathbf{f_{t-1}} + \upsilon_t \\
-        \mathbf{e_t} &= \Psi \mathbf{e_{t-1}} + \epsilon_t 
+        \mathbf{y}_t &= \sum_{k=0}^K \lambda_k \, \mathbf{f}_{t-k} + \mathbf{e}_t \\
+        \mathbf{f}_t &= \sum_{p=1}^P \phi_p \, \mathbf{f}_{t-p} + \boldsymbol{\upsilon}_t \\
+        \mathbf{e}_t &= \sum_{j=0}^J \psi_j \, \mathbf{e}_{t-j} + \boldsymbol{\epsilon}_t 
     \end{align}
 \end{subequations}
 
-\subsubsection{Vector autoregressions}
+\subsection{Vector autoregressions}
 
-\subsection{Estimation}
+\begin{equation}
+    \mathbf{y}_t = \mathbf{b} + \sum_{p=1}^P \mathbf{B}_p \mathbf{y}_{t-p} + \boldsymbol{\varepsilon}_t
+\end{equation}
+
+where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots, \mathbf{B}_P$ are the $N \times N$ coefficient matrices and $\boldsymbol{\varepsilon}_t \sim \mathcal{N}(0, \Sigma)$.
+
+\subsection{Simulations}
+
+\subsubsection{Data-generating processes}
+
+\subsubsection{Results}
+
+\section{Empirical application}
 
 \subsection{Data}
 
-\section{Results}
+\subsection{Estimation}
 
-\subsection{Analyzing structural stability}
-
-\subsection{Real-time forecast evaluation}
+\subsection{Results}
 
 \section{Conclusion}
-
 
 \bibliographystyle{aernobold}
 \bibliography{papers}
