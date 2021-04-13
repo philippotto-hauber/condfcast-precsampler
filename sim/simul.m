@@ -14,8 +14,8 @@ dir_out = './../../../Dissertation/condfcast-precsampler/sim/out test/';
 end
 
  
-Nm = 10;
-Ng = 2;    
+Nm = 1000;
+Ng = 10;    
 
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 samplers = {'CK', 'DK', 'HS',}; % {'CK', 'DK', 'HS'}
