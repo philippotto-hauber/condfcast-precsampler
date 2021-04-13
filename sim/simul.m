@@ -1,14 +1,19 @@
-function batch_sim()
+function simul()
 rng(1234) % set random seed for reproducibility
 
-if not(isdeployed) % compile with mcc -m batch_sim.m -a ./CK1994 -a ./DK2002 - a ./../precsampler
+dir_dgp = './../../sim-precsampler/dgp/';
+dir_out = './../../sim-precsampler/out/';
+
+if not(isdeployed) % compile with mcc -m batch_sim.m -a ./CK1994 -a ./DK2002 -a ./../precsampler -a ./../functions
 addpath('./../precsampler/')
 addpath('CK1994/')
 addpath('DK2002/')
+addpath('./../functions/')
+dir_dgp = './../../../Dissertation/condfcast-precsampler/sim/dgp test/';
+dir_out = './../../../Dissertation/condfcast-precsampler/sim/out test/';
 end
 
-dir_dgp = './../../sim-precsampler/dgp/';
-dir_out = './../../sim-precsampler/out/'; 
+ 
 Nm = 10;
 Ng = 2;    
 
