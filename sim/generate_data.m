@@ -1,4 +1,4 @@
-function simdata = generate_data(Ng, Ndims, dir_out)
+function generate_data(Ng, Ndims, dir_out)
 %simdata = generate_data(10, 6, 'C:/Users/Philipp/Documents/Dissertation/condfcast-precsampler/sim/dgp/')
 
 addpath('./../functions')
