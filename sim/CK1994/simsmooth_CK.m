@@ -102,7 +102,8 @@ for t=NtNh-1:-1:1
         if isempty(Y_u); y_u = [];else; y_u = Y_u(:, t-Nt);end
         [adraw(:, t), Ydraw(:, t-Nt)] = draw_a_y(atT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
     else
-        adraw(:, t) = mvnrnd(atT(1:Nj, 1), PtT(1:Nj, 1:Nj))';
+        %adraw(:, t) = mvnrnd(atT(1:Nj, 1), PtT(1:Nj, 1:Nj))'; % this returns an error!
+        adraw(:, t) = rue_held_alg2_3(atT(1:Nj, 1), chol(PtT(1:Nj, 1:Nj), 'lower'));
     end
 end
 
