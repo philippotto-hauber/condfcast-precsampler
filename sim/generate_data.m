@@ -1,12 +1,5 @@
 function simdata = generate_data(Ng, Ndims, dir_out)
-%-------------------------------------------------------------------------%
-%- This code simulates data from a state space model, a dynamic factor
-%- model or a vector autoregression, depending on the input argument model
-%- model = {'ssm', 'dfm', 'var'}.
-%- Inputs are model-dependent and stored in the structure dims. 
-%- Output is a structure which is also model-dependent but always includes
-%- the simulated data and forecasts as well as the parameters. 
-%-------------------------------------------------------------------------%
+%simdata = generate_data(10, 6, 'C:/Users/Philipp/Documents/Dissertation/condfcast-precsampler/sim/dgp/')
 
 addpath('./../functions')
 rng(1234) % set random seed for reproducibility
