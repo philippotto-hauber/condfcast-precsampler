@@ -8,10 +8,10 @@ type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 Ndims = 1:6;
 
 if isdeployed 
-    %maxnumcompthread
+    maxNumCompThreads(1);
     dir_in = './../../sim-precsampler/dgp/';
     dir_out = './../../sim-precsampler/out/';
-    n = str2int(n);
+    n = str2double(n);
 else
     addpath('./../precsampler/')
     addpath('CK1994/')
