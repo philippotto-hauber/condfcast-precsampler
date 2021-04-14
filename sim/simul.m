@@ -2,8 +2,8 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Ng = 2; 
-Nm = 1;
+Ng = 10; 
+Nm = 1000;
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 Ndims = 1:6;
 
