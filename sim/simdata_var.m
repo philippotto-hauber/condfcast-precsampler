@@ -6,27 +6,34 @@ addpath('./DK2002')
 addpath('../precsampler')
 addpath('../functions')
 rng(1234) % set random seed for reproducibility
-model = 'var'; 
 
-dims.Nt = 50; % # of in-sample observations
-dims.Nn = 20; % # of variables
-dims.Np = 4; % # 
-dims.Nh = 10; 
+% set dims, model and load dgp
+dir_in = 'C:/Users/Philipp/Documents/Dissertation/condfcast-precsampler/sim/dgp/';
+n = 4;
+g = 1;
+[dims, model, dims_str] = get_dims(n);
+load([dir_in, model, '_', dims_str, '_g_' num2str(g) '.mat']);
 
-simdata = generate_data(dims, model);
+% test soft and hard conditions
+max_iter = 1e3;
+ind_n_soft = 2:5; 
+sig = sqrt(var(simdata.y, [], 2));
 Y_o = [];
 Y_f = NaN(dims.Nn, dims.Nh);
-Y_u = [];
+Y_f(1, :) = simdata.yfore(1,:);
+Y_u = []; 
+%Y_u = NaN(dims.Nn, dims.Nh);                    
+%Y_u(ind_n_soft, dims.ind_h) = simdata.yfore(ind_n_soft, dims.ind_h) + repmat(1 * sig(ind_n_soft, 1), 1, length(dims.ind_h));
 Y_l = []; 
+%Y_l = NaN(dims.Nn, dims.Nh);
+%Y_l(ind_n_soft, dims.ind_h) = simdata.yfore(ind_n_soft, dims.ind_h) - repmat(1 * sig(ind_n_soft, 1), 1, length(dims.ind_h));
 
-% CK
-[T, Z, H, R, Q, s0, P0] = get_statespaceparams(simdata.params, simdata.y, model);
+% CK & DK
+[T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
 
-max_iter = 1e3;
-[sdrawCK, YdrawCK] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
+%[sdrawCK, YdrawCK] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
 
-% DK
-[sdrawDK, YdrawDK] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
+[sdrawDK, YdrawDK] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
 
 % HS
 Y_o = simdata.y(:, end-dims.Np+1:end); 
