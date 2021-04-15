@@ -49,11 +49,14 @@ for d = Ndims
         Y_f = []; Y_u = []; Y_l = [];
         if strcmp(type_fore{t}, 'cond_soft')                     
             Y_f = NaN(dims.Nn, dims.Nh);
+            Y_f(1, dims.ind_h) = simdata.yfore(1, dims.ind_h) % hard condition on first variable
             sig = sqrt(var(simdata.y, [], 2));
             Y_u = NaN(dims.Nn, dims.Nh);                    
             Y_u(dims.ind_n, dims.ind_h) = simdata.yfore(dims.ind_n, dims.ind_h) + repmat(3 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
             Y_l = NaN(dims.Nn, dims.Nh);
             Y_l(dims.ind_n, dims.ind_h) = simdata.yfore(dims.ind_n, dims.ind_h) - repmat(3 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
+            Y_u(1, dims.ind_h) = NaN;
+            Y_l(1, dims.ind_h) = NaN; 
         elseif strcmp(type_fore{t}, 'cond_hard')
             % conditional forecasts
             Y_f = NaN(dims.Nn, dims.Nh);
