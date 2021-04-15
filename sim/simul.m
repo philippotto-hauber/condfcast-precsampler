@@ -3,9 +3,11 @@ rng(1234) % set random seed for reproducibility
 
 % set-up
 Ng = 10; 
-Nm = 1000;
+Nm = 10;
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 Ndims = 1:6;
+Ndims = 4; 
+max_iter = 1e5;
 
 if isdeployed 
     maxNumCompThreads(1);
@@ -37,8 +39,7 @@ end
 for d = Ndims
     [dims, model, dims_str] = get_dims(d);
     disp('-------------------------------')
-    disp([model, ' ' dims_str])
-    
+    disp([model, ' ' dims_str])    
     load([dir_in, model, '_', dims_str, '_g_', num2str(g)]);
     if strcmp(model, 'var')
         Y_o = []; 
@@ -47,16 +48,15 @@ for d = Ndims
     end
     for t = 1:length(type_fore)
         Y_f = []; Y_u = []; Y_l = [];
-        if strcmp(type_fore{t}, 'cond_soft')                     
+        if strcmp(type_fore{t}, 'cond_soft')         
+            % overwrite dims.ind_n
+            ind_n_soft = 1; 
             Y_f = NaN(dims.Nn, dims.Nh);
-            Y_f(1, dims.ind_h) = simdata.yfore(1, dims.ind_h) % hard condition on first variable
             sig = sqrt(var(simdata.y, [], 2));
             Y_u = NaN(dims.Nn, dims.Nh);                    
-            Y_u(dims.ind_n, dims.ind_h) = simdata.yfore(dims.ind_n, dims.ind_h) + repmat(3 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
+            Y_u(ind_n_soft, dims.ind_h) = simdata.yfore(ind_n_soft, dims.ind_h) + repmat(1 * sig(ind_n_soft, 1), 1, length(dims.ind_h));
             Y_l = NaN(dims.Nn, dims.Nh);
-            Y_l(dims.ind_n, dims.ind_h) = simdata.yfore(dims.ind_n, dims.ind_h) - repmat(3 * sig(dims.ind_n, 1), 1, length(dims.ind_h));
-            Y_u(1, dims.ind_h) = NaN;
-            Y_l(1, dims.ind_h) = NaN; 
+            Y_l(ind_n_soft, dims.ind_h) = simdata.yfore(ind_n_soft, dims.ind_h) - repmat(1 * sig(ind_n_soft, 1), 1, length(dims.ind_h));
         elseif strcmp(type_fore{t}, 'cond_hard')
             % conditional forecasts
             Y_f = NaN(dims.Nn, dims.Nh);
@@ -65,10 +65,41 @@ for d = Ndims
             % unconditional forecasts
             Y_f = NaN(dims.Nn, dims.Nh);
         end                        
-        telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model);
+        telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model, max_iter);
         writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore{t} '_' model '_' dims_str '_g_' num2str(g) '.csv'])
     end
 end
+
+function telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model, max_iter)
+
+if strcmp(sampler, 'CK')    
+    tic;
+    for m = 1:Nm
+        [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
+        [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
+    end
+    telapsed = toc; 
+elseif strcmp(sampler, 'DK')
+    tic;
+    for m = 1:Nm
+        [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
+        [sdraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
+    end
+    telapsed = toc; 
+elseif strcmp(sampler, 'HS')
+    tic;
+    if strcmp(model, 'var') % no states!
+        p_z = p_timet([Y_o, Y_f], 0);
+    else % account for states when permuting by time-t
+        p_z = p_timet([Y_o, Y_f], size(simdata.aalpha, 1));
+    end
+    for m = 1:Nm
+        [sdraw, Ydraw] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter, model);
+    end
+    telapsed = toc; 
+end
+
+
 
 
                     
