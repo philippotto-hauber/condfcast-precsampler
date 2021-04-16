@@ -97,7 +97,6 @@ if strcmp(ftype, 'conditional (soft)')
        
         % check conditions
         if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
-            iter
             break; % conditions satisfied
         end
     end    
