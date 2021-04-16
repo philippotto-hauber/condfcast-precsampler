@@ -11,7 +11,8 @@ elseif all(isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
     ftype = 'unconditional';
 elseif any(~isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
     ftype = 'conditional (hard)';
-elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
+%elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
+elseif ~isempty(Y_u) && ~isempty(Y_l) % combine hard+soft conditions
     ftype = 'conditional (soft)';
 end
 
@@ -24,17 +25,53 @@ NtNh = Nt + Nh; % # of total periods
 ind_fore = isnan(Y_f);
 Y = [Y_o, Y_f]; 
 
-% calculate a1 and P1
-
 % case distinction
+% Drawing a using the formula a = ahat - ahatplus + aplus does not produce
+% a valid draw but just returns the mean!?
+% if strcmp(ftype, 'conditional (soft)')
+%     % ind upper and lower bound of restrictions
+%     ind_y_l = not(isnan(Y_l));
+%     ind_y_u = not(isnan(Y_u));
+% 
+%     % run Kalman smoother on data
+%     ahat = kalmansmoother(Y, T, Z, H, R, Q, a1, P1);
+% 
+%     % draw until conditions are satisfied
+%     iter = 0;
+%     store_adraw = NaN(Nn, NtNh, max_iter);
+%     while true
+%         % update iter and check limit
+%         iter = iter + 1;
+%         if iter == max_iter
+%             error(['Did not obtain an acceptable draw in ' num2str(max_iter) ' attempts. Consider raising the limit or relaxing the restrictions.'])
+%         end
+% 
+%         % draw from joint distribution of a and Y
+%         [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
+% 
+%         % run Kalman smoother on simulated data
+%         aplushat = kalmansmoother(Yplus, T, Z, H, R, Q, a1, P1);
+% 
+%         % draw of a
+%         adraw = ahat - aplushat + aplus ; % random draw of state vector
+%         store_adraw(:, :, iter) = adraw(1:Nn, :); 
+%         % draw of Y_f given a
+%         % Y = Y^ - Yplus^ + Yplus
+%         %   = Za^ - Z aplus^ + Yplus
+%         %   = Z(a^ - aplus^) + Zaplus + e
+%         %   = Zadraw + eps
+%         Ydraw_tmp = Z * (ahat(:, Nt+1:NtNh) - aplushat(:, Nt+1:NtNh)) + Yplus(:, Nt+1:NtNh); % random draw of obs
+% 
+%         % check conditions
+%         if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
+%             break; % conditions satisfied
+%         end
+%     end
 if strcmp(ftype, 'conditional (soft)')
     % ind upper and lower bound of restrictions
     ind_y_l = not(isnan(Y_l));
     ind_y_u = not(isnan(Y_u));
-    
-    % run Kalman smoother on data
-    ahat = kalmansmoother(Y, T, Z, H, R, Q, a1, P1);
-    
+
     % draw until conditions are satisfied 
     iter = 0; 
     while true 
@@ -46,21 +83,21 @@ if strcmp(ftype, 'conditional (soft)')
         
         % draw from joint distribution of a and Y
         [aplus, Yplus] = gen_aplusYplus(T, Z, H, R, Q, a1, P1, NtNh, Ns, Nn);
-
-        % run Kalman smoother on simulated data
-        aplushat = kalmansmoother(Yplus, T, Z, H, R, Q, a1, P1);
+        Ystar = Y-Yplus;
+        
+        % run Kalman smoother => use a DIFFERENT smoother here that stores matrices for smoothing that do NOT change with yplus! 
+        a1 = zeros(size(a1)); % set E[alpha_1|Ystar_0] to 0. See Jarocinski (2015)
+        ahatstar = kalmansmoother(Ystar, T, Z, H, R, Q, a1, P1);
 
         % draw of a 
-        adraw = ahat - aplushat + aplus ; % random draw of state vector
+        adraw = ahatstar + aplus ; % random draw of state vector
+        
         % draw of Y_f given a
-        % Y = Y^ - Yplus^ + Yplus
-        %   = Za^ - Z aplus^ + Yplus
-        %   = Z(a^ - aplus^) + Zaplus + e
-        %   = Zadraw + eps
-        Ydraw_tmp = Z * (ahat(:, Nt+1:NtNh) - aplushat(:, Nt+1:NtNh)) + Yplus(:, Nt+1:NtNh); % random draw of obs
-
+        Ydraw_tmp = Z * ahatstar(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh); % this one is correct
+       
         % check conditions
         if all(Ydraw_tmp(ind_y_l) > Y_l(ind_y_l)) && all(Ydraw_tmp(ind_y_u) < Y_u(ind_y_u))
+            iter
             break; % conditions satisfied
         end
     end    
@@ -75,8 +112,8 @@ else
 
     % draw a and Y_f
     adraw = ahatstar + aplus ; % random draw of state vector
-    %Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh); % this formula is wrong
     Ydraw_tmp = Z * ahatstar(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh); % this one is correct
+    %Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh); % this formula is wrong
     %Ydraw_tmp = Z * adraw(:, Nt+1:NtNh) + Yplus(:, Nt+1:NtNh) - Z * aplus(:, Nt+1:NtNh); % this one is the same as above but more complicated
 end
 
