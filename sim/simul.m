@@ -3,11 +3,10 @@ rng(1234) % set random seed for reproducibility
 
 % set-up
 Ng = 10; 
-Nm = 10;
+Nm = 1000;
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 Ndims = 1:6;
-Ndims = 4; 
-max_iter = 1e5;
+max_iter = 1e4;
 
 if isdeployed 
     maxNumCompThreads(1);
@@ -49,18 +48,17 @@ for d = Ndims
     for t = 1:length(type_fore)
         Y_f = []; Y_u = []; Y_l = [];
         if strcmp(type_fore{t}, 'cond_soft')         
-            % overwrite dims.ind_n
-            ind_n_soft = 1; 
             Y_f = NaN(dims.Nn, dims.Nh);
+            Y_f(dims.ind_n_hard, dims.ind_h) = simdata.yfore(dims.ind_n_hard, dims.ind_h);
             sig = sqrt(var(simdata.y, [], 2));
             Y_u = NaN(dims.Nn, dims.Nh);                    
-            Y_u(ind_n_soft, dims.ind_h) = simdata.yfore(ind_n_soft, dims.ind_h) + repmat(1 * sig(ind_n_soft, 1), 1, length(dims.ind_h));
+            Y_u(dims.ind_n_soft, dims.ind_h) = simdata.yfore(dims.ind_n_soft, dims.ind_h) + repmat(1 * sig(dims.ind_n_soft, 1), 1, length(dims.ind_h));
             Y_l = NaN(dims.Nn, dims.Nh);
-            Y_l(ind_n_soft, dims.ind_h) = simdata.yfore(ind_n_soft, dims.ind_h) - repmat(1 * sig(ind_n_soft, 1), 1, length(dims.ind_h));
+            Y_l(dims.ind_n_soft, dims.ind_h) = simdata.yfore(dims.ind_n_soft, dims.ind_h) - repmat(1 * sig(dims.ind_n_soft, 1), 1, length(dims.ind_h));
         elseif strcmp(type_fore{t}, 'cond_hard')
             % conditional forecasts
             Y_f = NaN(dims.Nn, dims.Nh);
-            Y_f(dims.ind_n,:) = simdata.yfore(dims.ind_n,:);
+            Y_f(dims.ind_n_hard,:) = simdata.yfore(dims.ind_n_hard,:);
         elseif strcmp(type_fore{t}, 'uncond')
             % unconditional forecasts
             Y_f = NaN(dims.Nn, dims.Nh);
