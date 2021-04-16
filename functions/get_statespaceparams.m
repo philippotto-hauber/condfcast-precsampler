@@ -14,7 +14,7 @@ elseif strcmp(model, 'var')
     [T, R, Q] = var_companion(params.B, params.Sigma);
     Z = zeros(size(Q, 1), size(T, 2));
     Z(1:size(Q, 1), 1: size(Q, 1)) = eye(size(Q, 1));
-    H = 1e-8 * eye(size(Q, 1)); % zeros(size(Q, 1))
+    H = zeros(size(Q, 1)); %  1e-8 * eye(size(Q, 1))
     
     % a1 and P1
     Np = size(params.B, 2) / size(params.B, 1);
