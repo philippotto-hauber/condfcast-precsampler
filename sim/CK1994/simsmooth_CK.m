@@ -30,7 +30,7 @@ elseif all(isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
     ftype = 'unconditional';
 elseif any(~isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
     ftype = 'conditional (hard)';
-elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
+elseif ~isempty(Y_u) && ~isempty(Y_l) % allows both soft and hard conditions
     ftype = 'conditional (soft)';
 end
 

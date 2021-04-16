@@ -37,7 +37,7 @@ elseif all(isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
     ftype = 'unconditional';
 elseif any(~isnan(Y_f), 'all') && isempty(Y_u) && isempty(Y_l)
     ftype = 'conditional (hard)';
-elseif all(isnan(Y_f), 'all') && ~isempty(Y_u) && ~isempty(Y_l)
+elseif ~isempty(Y_u) && ~isempty(Y_l) % allow both soft and hard conditions
     ftype = 'conditional (soft)';
 else
     error('Check input args Y_o, Y_f, Y_u, Y_l')
