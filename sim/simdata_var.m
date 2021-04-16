@@ -16,7 +16,7 @@ load([dir_in, model, '_', dims_str, '_g_' num2str(g) '.mat']);
 
 % test soft and hard conditions
 max_iter = 1e3;
-ind_n_soft = 2:5; 
+ind_n_soft = 2; 
 sig = sqrt(var(simdata.y, [], 2));
 Y_o = [];
 Y_f = NaN(dims.Nn, dims.Nh);
@@ -33,7 +33,12 @@ Y_l = [];
 
 %[sdrawCK, YdrawCK] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, s0, P0, max_iter);
 
+Nm = 100; 
+for m = 1:Nm
 [sdrawDK, YdrawDK] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
+store_a(:,:,m) = sdrawDK;
+store_y(:,:,m) = YdrawDK; 
+end
 
 % HS
 Y_o = simdata.y(:, end-dims.Np+1:end); 
