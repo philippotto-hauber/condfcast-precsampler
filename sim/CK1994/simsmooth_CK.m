@@ -129,7 +129,8 @@ if strcmp(ftype, 'conditional (soft)')
         end
     end
 elseif strcmp(ftype, 'unconditional') || strcmp(ftype, 'conditional (hard)') 
-   adraw = mvnrnd(a, P)';
+   %adraw = mvnrnd(a, P)'; % throws an error sometimes even though chol(P) can be computed!
+   adraw = rue_held_alg2_3(a, chol(P, 'lower'));
    ydraw_tmp = mvnrnd(Z * adraw, H)';
    ydraw(ind_o, 1) = ydraw_tmp(ind_o, 1); 
 end
