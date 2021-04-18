@@ -6,7 +6,7 @@ Ng = 10;
 Nm = 1000;
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 Ndims = 1:6;
-max_iter = 1e4;
+max_iter = 1e2;
 
 if isdeployed 
     maxNumCompThreads(1);
@@ -62,8 +62,12 @@ for d = Ndims
         elseif strcmp(type_fore{t}, 'uncond')
             % unconditional forecasts
             Y_f = NaN(dims.Nn, dims.Nh);
-        end                        
-        telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model, max_iter);
+        end   
+        if strcmp(type_fore{t}, 'cond (soft)')
+            telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model);
+        else
+            telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model, max_iter);
+        end
         writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore{t} '_' model '_' dims_str '_g_' num2str(g) '.csv'])
     end
 end
@@ -85,15 +89,38 @@ elseif strcmp(sampler, 'DK')
     end
     telapsed = toc; 
 elseif strcmp(sampler, 'HS')
-    tic;
     if strcmp(model, 'var') % no states!
         p_z = p_timet([Y_o, Y_f], 0);
     else % account for states when permuting by time-t
         p_z = p_timet([Y_o, Y_f], size(simdata.aalpha, 1));
     end
+    tic; 
     for m = 1:Nm
         [sdraw, Ydraw] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter, model);
     end
+    telapsed = toc; 
+end
+
+function telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model)
+
+if strcmp(sampler, 'CK')    
+    tic;
+    [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
+    store_Ydraw = simsmooth_CK_oversample(Y_o, Y_f, T, Z, H, R, Q, a1, P1, Ndraws);
+    telapsed = toc; 
+elseif strcmp(sampler, 'DK')
+    tic;
+    [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
+    store_Ydraw = simsmooth_DK_oversample(Y_o, Y_f, T, Z, H, R, Q, a1, P1, Nm);
+    telapsed = toc; 
+elseif strcmp(sampler, 'HS')
+    if strcmp(model, 'var') % no states!
+        p_z = p_timet([Y_o, Y_f], 0);
+    else % account for states when permuting by time-t
+        p_z = p_timet([Y_o, Y_f], size(simdata.aalpha, 1));
+    end
+    tic;
+    store_Ydraw = simsmooth_HS_oversample(Y_o, Y_f, params, p_z, Ndraws, model);
     telapsed = toc; 
 end
 
