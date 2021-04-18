@@ -50,27 +50,31 @@ for m = 1:Ndraws
     atT = att(:, t);
     PtT = Ptt(:, :, t);
     % sample states and obs in t = Nobs
-    [adraw, Ydraw] = draw_a_y(atT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
-    store_Ydraw(:, :, m) = Ydraw;
+    [adraw, Ydraw] = draw_a_y(atT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t));
+    store_Ydraw(:, Nh - (NtNh-t), m) = Ydraw;
     
     % backward recursions 
-    for t=NtNh-1:-1:Nt
+    for t=NtNh-1:-1:(Nt+1)
         T_j = T(1:Nj, :); % F*, Kim and Nelson (1999, p. 196)
         RQR_j = RQR(1:Nj, 1:Nj); % == Q! Q* in Kim and Kim and Nelson (1999, p. 196)!
         % stT and PtT
         K_j = Ptt(:, :, t) * T_j' / (T_j * Ptt(:, :, t) * T_j' + RQR_j);  
         atT = att(:,t) + K_j *(adraw - T_j * att(:,t)); % \beta_{t|t,\beta^*_{t+1}}, see Kim and Nelson (1999, eqn. 8.16')
         PtT = Ptt(:,:,t) - K_j * T_j * Ptt(:, :, t); % P_{t|t,\beta^*_{t+1}}, see Kim and Nelson (1999, eqn. 8.16')
-        [adraw, Ydraw] = draw_a_y(atT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t), y_u, y_l, ftype, max_iter);
-        store_Ydraw(:, :, m) = Ydraw;
+        [adraw, Ydraw] = draw_a_y(atT(1:Nj, 1), PtT(1:Nj, 1:Nj), Z(:, 1:Nj), H, Y(:, t));   
+        store_Ydraw(:, Nh - (NtNh-t), m) = Ydraw;
     end
 end
 
 function [adraw, ydraw] = draw_a_y(a, P, Z, H, y)
 ind_o = isnan(y);
 ydraw = y; 
-cholP = chol(P, 'lower');
-adraw = rue_held_alg2_3(a, cholP);
+try
+    adraw = mvnrnd(a, P)';
+catch
+    %warning('Problem with mvnrnd. Use Rue&Held Algorithm 2_3 instead!');
+    adraw = rue_held_alg2_3(a, chol(P, 'lower'));
+end    
 ydraw_tmp = mvnrnd(Z * adraw, H)';
 ydraw(ind_o, 1) = ydraw_tmp(ind_o, 1); 
 
