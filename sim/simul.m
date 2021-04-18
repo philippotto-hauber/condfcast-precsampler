@@ -63,7 +63,7 @@ for d = Ndims
             % unconditional forecasts
             Y_f = NaN(dims.Nn, dims.Nh);
         end   
-        if strcmp(type_fore{t}, 'cond (soft)')
+        if strcmp(type_fore{t}, 'cond_soft')
             telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model);
         else
             telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model, max_iter);
@@ -106,7 +106,7 @@ function telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model)
 if strcmp(sampler, 'CK')    
     tic;
     [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
-    store_Ydraw = simsmooth_CK_oversample(Y_o, Y_f, T, Z, H, R, Q, a1, P1, Ndraws);
+    store_Ydraw = simsmooth_CK_oversample(Y_o, Y_f, T, Z, H, R, Q, a1, P1, Nm);
     telapsed = toc; 
 elseif strcmp(sampler, 'DK')
     tic;
@@ -120,7 +120,7 @@ elseif strcmp(sampler, 'HS')
         p_z = p_timet([Y_o, Y_f], size(simdata.aalpha, 1));
     end
     tic;
-    store_Ydraw = simsmooth_HS_oversample(Y_o, Y_f, params, p_z, Ndraws, model);
+    store_Ydraw = simsmooth_HS_oversample(Y_o, Y_f, simdata.params, p_z, Nm, model);
     telapsed = toc; 
 end
 
