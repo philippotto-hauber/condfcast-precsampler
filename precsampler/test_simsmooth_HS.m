@@ -13,6 +13,7 @@ clear; close all; clc;
 %% set-up 
 
 addpath('../sim/') % path to generate_data.m
+addpath('../functions/') % path to p_timet.m
 
 rng(1234) % set random seed
 
@@ -21,21 +22,20 @@ max_iter = 1e4; % maxmimum number of candidates per parameter draw
 soft_restr = 'y1 < 0' ; % type of soft restrictions. Options: {'y1,y2 +- 1 std. dev.', 'y1 < 0'}, 
 
 % type of forecast
-ftype = 'none'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)', 'all forecasts'} 
+ftype = 'conditional (soft)'; % {'none', 'unconditional', 'conditional (hard)', 'conditional (soft)', 'all forecasts'} 
+
+% set dims, model and load dgp
+dir_in = 'C:/Users/Philipp/Documents/Dissertation/condfcast-precsampler/sim/dgp/';
+n = 2;
+g = 1;
+[dims, model, dims_str] = get_dims(n);
+load([dir_in, model, '_', dims_str, '_g_' num2str(g) '.mat']);
+Y_o = simdata.y;
 
 % forecast horizon
 if strcmp(ftype, 'none')
     dims.Nh = 0; 
-else
-    dims.Nh = 20;
 end
-
-% simulate data
-dims.Nt = 50;
-dims.Nn = 10;
-dims.Ns = 10;
-simdata = generate_data(dims, 'ssm');
-Y_o = simdata.y;
 
 %% no forecasting => standard simulation smoothing
 
@@ -50,7 +50,7 @@ if strcmp(ftype, 'none')
     Ydraw = NaN(dims.Nn, dims.Nh, Nm);
     tic
     for m = 1:Nm
-        [adraw(:, :, m), ~] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+        [adraw(:, :, m), ~] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter, model);
     end
     toc
 end
@@ -68,7 +68,7 @@ if strcmp(ftype, 'unconditional') || strcmp(ftype, 'all forecasts')
     Ydraw = NaN(dims.Nn, dims.Nh, Nm);
     tic
     for m = 1:Nm
-        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+        [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, [], model);
     end
     toc
     
@@ -95,7 +95,7 @@ if strcmp(ftype, 'conditional (hard)') || strcmp(ftype, 'all forecasts')
     Ydraw = NaN(dims.Nn, dims.Nh, Nm);
     tic
     for m = 1:Nm
-          [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, []);
+          [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, [], model);
     end
     toc
     
@@ -108,40 +108,50 @@ end
 
 %% conditional forecasting (soft)
 
+% if strcmp(ftype, 'conditional (soft)') || strcmp(ftype, 'all forecasts')
+% 
+%     % conditional forecasts (soft)
+%     Y_o = simdata.y;
+%     Y_f = NaN(dims.Nn, dims.Nh); 
+%     sig = sqrt(var(simdata.y, [], 2));
+% 
+%     % select sets of restrictions
+%     Y_u = NaN(dims.Nn, dims.Nh);
+%     Y_l = NaN(dims.Nn, dims.Nh);
+%     if strcmp(soft_restr, 'y1,y2 +- 1 std. dev.')    
+%         Y_u(1,1:dims.Nh) = simdata.yfore(1,1:dims.Nh) + repmat(1 * sig(1, 1), 1, dims.Nh);
+%         Y_u(2,1:dims.Nh/2) = simdata.yfore(2,1:dims.Nh/2) + repmat(1 * sig(2, 1), 1, dims.Nh/2);
+%         Y_l(1:dims.Nn/10,1:dims.Nh/2) = simdata.yfore(1:dims.Nn/10,1:dims.Nh/2) - repmat(1 * sig(1:dims.Nn/10, 1), 1, dims.Nh/2);
+%         Y_l(2,1:dims.Nh/2) = simdata.yfore(2,1:dims.Nh/2) - repmat(1 * sig(2, 1), 1, dims.Nh/2);
+%     elseif strcmp(soft_restr, 'y1 < 0')
+%         Y_u(1:dims.Nn/10,:) = 0;
+%         Y_l(1:dims.Nn/10,1:dims.Nh) = simdata.yfore(1:dims.Nn/10,1:dims.Nh) - repmat(3 * sig(1:dims.Nn/10, 1), 1, dims.Nh);
+%     end
+%     p_z = p_timet([Y_o, Y_f], dims.Ns);
+% 
+%     adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
+%     Ydraw = NaN(dims.Nn, dims.Nh, Nm);
+%     tic
+%     for m = 1:Nm
+%          [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter);
+%     end
+%     toc
+%     
+%     % store draws on their own for plot to compare different forecast settings
+%     if strcmp(ftype, 'all forecasts')
+%         store_aalpha_c_s = adraw;
+%         store_Yfore_c_s = Ydraw;
+%     end
+% end
+
+%% test oversampling
 if strcmp(ftype, 'conditional (soft)') || strcmp(ftype, 'all forecasts')
-
-    % conditional forecasts (soft)
-    Y_o = simdata.y;
-    Y_f = NaN(dims.Nn, dims.Nh); 
-    sig = sqrt(var(simdata.y, [], 2));
-
-    % select sets of restrictions
-    Y_u = NaN(dims.Nn, dims.Nh);
-    Y_l = NaN(dims.Nn, dims.Nh);
-    if strcmp(soft_restr, 'y1,y2 +- 1 std. dev.')    
-        Y_u(1,1:dims.Nh) = simdata.yfore(1,1:dims.Nh) + repmat(1 * sig(1, 1), 1, dims.Nh);
-        Y_u(2,1:dims.Nh/2) = simdata.yfore(2,1:dims.Nh/2) + repmat(1 * sig(2, 1), 1, dims.Nh/2);
-        Y_l(1:dims.Nn/10,1:dims.Nh/2) = simdata.yfore(1:dims.Nn/10,1:dims.Nh/2) - repmat(1 * sig(1:dims.Nn/10, 1), 1, dims.Nh/2);
-        Y_l(2,1:dims.Nh/2) = simdata.yfore(2,1:dims.Nh/2) - repmat(1 * sig(2, 1), 1, dims.Nh/2);
-    elseif strcmp(soft_restr, 'y1 < 0')
-        Y_u(1:dims.Nn/10,:) = 0;
-        Y_l(1:dims.Nn/10,1:dims.Nh) = simdata.yfore(1:dims.Nn/10,1:dims.Nh) - repmat(3 * sig(1:dims.Nn/10, 1), 1, dims.Nh);
-    end
+    Y_f = NaN(dims.Nn, dims.Nh);
+    Y_f(1,:) = simdata.yfore(1,:);
     p_z = p_timet([Y_o, Y_f], dims.Ns);
-
-    adraw = NaN(dims.Ns, dims.Nt+dims.Nh, Nm);
-    Ydraw = NaN(dims.Nn, dims.Nh, Nm);
     tic
-    for m = 1:Nm
-         [adraw(:, :, m), Ydraw(:, :, m)] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, simdata.params, p_z, max_iter);
-    end
+    store_Ydraw = simsmooth_HS_oversample(Y_o, Y_f, simdata.params, p_z, Nm, model);
     toc
-    
-    % store draws on their own for plot to compare different forecast settings
-    if strcmp(ftype, 'all forecasts')
-        store_aalpha_c_s = adraw;
-        store_Yfore_c_s = Ydraw;
-    end
 end
 
 %% plot 
