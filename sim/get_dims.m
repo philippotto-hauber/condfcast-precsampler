@@ -6,17 +6,17 @@ switch(n_model)
     case 1 % small factor model
         dims.Nn = 20;
         dims.Ns = 2;
-        dims.Ncond = dims.Nn * Ncond;
+        dims.Ncond = dims.Nn * Ncond/100;
         model = 'ssm'; % actually a dfm but called ssm in the functions        
     case 2 % large factor model
         dims.Nn = 100;
         dims.Ns = 2;   
-        dims.Ncond = dims.Nn * Ncond;
+        dims.Ncond = dims.Nn * Ncond/100;
         model = 'ssm'; % actually a dfm but called ssm in the functions
     case 3 % large N, T factor model
         dims.Nn = 100;
         dims.Ns = 10;  
-        dims.Ncond = dims.Nn * Ncond;
+        dims.Ncond = dims.Nn * Ncond/100;
         model = 'ssm'; % actually a dfm but called ssm in the functions
     case 4
         dims.Nn = 3;
@@ -26,12 +26,12 @@ switch(n_model)
     case 5
         dims.Nn = 20;
         dims.Np = 4;
-        dims.Ncond = dims.Nn * Ncond;
+        dims.Ncond = dims.Nn * Ncond/100;
         model = 'var'; 
    case 6
         dims.Nn = 100;
         dims.Np = 4;
-        dims.Ncond = dims.Nn * Ncond;      
+        dims.Ncond = dims.Nn * Ncond/100;      
         model = 'var';      
 end
 

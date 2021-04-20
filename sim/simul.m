@@ -3,11 +3,11 @@ rng(1234) % set random seed for reproducibility
 
 % set-up
 Ng = 10; 
-Nm = 10;
+Nm = 100;
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
-Nconds = [0.1 0.5, 0.75];
+Nconds = [10, 50, 75];
 max_iter = 1e2;
 
 if isdeployed 
@@ -42,7 +42,7 @@ for Nh = Nhs
         for m = Nmodels
             [dims, flag_modelclass, dims_str] = get_dims(m, Nh, Ncond);
             disp('-------------------------------')
-            disp([flag_modelclass, ' ' dims_str, '_Ncond_' dims.Ncond])    
+            disp([flag_modelclass, ' ' dims_str, '_Ncond_' num2str(Ncond)])    
             load([dir_in, flag_modelclass, '_', dims_str, '_g_', num2str(g)]);
             if strcmp(flag_modelclass, 'var')
                 Y_o = []; 
@@ -63,7 +63,7 @@ for Nh = Nhs
                 else
                     telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, flag_modelclass, max_iter);
                 end
-                writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore{t} '_' flag_modelclass '_' dims_str '_Ncond_' num2str(dims.Ncond) '_g_' num2str(g) '.csv'])
+                writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore{t} '_' flag_modelclass '_' dims_str '_Ncond_' num2str(Ncond) '_g_' num2str(g) '.csv'])
             end
         end
     end
