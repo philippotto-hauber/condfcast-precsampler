@@ -3,9 +3,11 @@ rng(1234) % set random seed for reproducibility
 
 % set-up
 Ng = 10; 
-Nm = 1000;
+Nm = 10;
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
-Ndims = 1:6;
+Nmodels = 1:6;
+Nhs = [5, 20, 50];
+Nconds = [0.1 0.5, 0.75];
 max_iter = 1e2;
 
 if isdeployed 
@@ -35,40 +37,35 @@ elseif n <= Ng * 3
 end
   
 % loop over dims and ftypes
-for d = Ndims
-    [dims, model, dims_str] = get_dims(d);
-    disp('-------------------------------')
-    disp([model, ' ' dims_str])    
-    load([dir_in, model, '_', dims_str, '_g_', num2str(g)]);
-    if strcmp(model, 'var')
-        Y_o = []; 
-    else
-        Y_o  = simdata.y; 
-    end
-    for t = 1:length(type_fore)
-        Y_f = []; Y_u = []; Y_l = [];
-        if strcmp(type_fore{t}, 'cond_soft')         
-            Y_f = NaN(dims.Nn, dims.Nh);
-            Y_f(dims.ind_n_hard, dims.ind_h) = simdata.yfore(dims.ind_n_hard, dims.ind_h);
-            sig = sqrt(var(simdata.y, [], 2));
-            Y_u = NaN(dims.Nn, dims.Nh);                    
-            Y_u(dims.ind_n_soft, dims.ind_h) = simdata.yfore(dims.ind_n_soft, dims.ind_h) + repmat(1 * sig(dims.ind_n_soft, 1), 1, length(dims.ind_h));
-            Y_l = NaN(dims.Nn, dims.Nh);
-            Y_l(dims.ind_n_soft, dims.ind_h) = simdata.yfore(dims.ind_n_soft, dims.ind_h) - repmat(1 * sig(dims.ind_n_soft, 1), 1, length(dims.ind_h));
-        elseif strcmp(type_fore{t}, 'cond_hard')
-            % conditional forecasts
-            Y_f = NaN(dims.Nn, dims.Nh);
-            Y_f(dims.ind_n_hard,:) = simdata.yfore(dims.ind_n_hard,:);
-        elseif strcmp(type_fore{t}, 'uncond')
-            % unconditional forecasts
-            Y_f = NaN(dims.Nn, dims.Nh);
-        end   
-        if strcmp(type_fore{t}, 'cond_soft')
-            telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model);
-        else
-            telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model, max_iter);
+for Nh = Nhs
+    for Ncond = Nconds        
+        for m = Nmodels
+            [dims, flag_modelclass, dims_str] = get_dims(m, Nh, Ncond);
+            disp('-------------------------------')
+            disp([flag_modelclass, ' ' dims_str, '_Ncond_' dims.Ncond])    
+            load([dir_in, flag_modelclass, '_', dims_str, '_g_', num2str(g)]);
+            if strcmp(flag_modelclass, 'var')
+                Y_o = []; 
+            else
+                Y_o  = simdata.y; 
+            end
+            for t = 1:length(type_fore)
+                Y_f = []; Y_u = []; Y_l = [];
+                if strcmp(type_fore{t}, 'cond_soft') || strcmp(type_fore{t}, 'cond_hard')       
+                    Y_f = NaN(dims.Nn, dims.Nh);
+                    Y_f(1:dims.Ncond,:) = simdata.yfore(1:dims.Ncond,:);
+                elseif strcmp(type_fore{t}, 'uncond')
+                    % unconditional forecasts
+                    Y_f = NaN(dims.Nn, dims.Nh);
+                end   
+                if strcmp(type_fore{t}, 'cond_soft')
+                    telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, flag_modelclass);
+                else
+                    telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, flag_modelclass, max_iter);
+                end
+                writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore{t} '_' flag_modelclass '_' dims_str '_Ncond_' num2str(dims.Ncond) '_g_' num2str(g) '.csv'])
+            end
         end
-        writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore{t} '_' model '_' dims_str '_g_' num2str(g) '.csv'])
     end
 end
 
