@@ -10,18 +10,8 @@
 #SBATCH --partition=cluster
 
 rm ./../../sim-precsampler/out/*
-rm ./../../sim-precsampler/dgp/*
 
 module load matlab/2020b
-mcc -m generate_data.m -a ./../functions
-
-for i in `seq 1 10`
-do
-	./generate_data $i &
-done
-wait
-
-rm generate_data mccExcludedFiles.log requiredMCRProducts.txt readme.txt run_generate_data.sh
 
 mcc -m simul.m -a ./CK1994 -a ./DK2002 -a ./../precsampler -a ./../functions
 
