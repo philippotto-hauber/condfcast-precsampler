@@ -2,6 +2,7 @@ function generate_data(Ng)
 
 if isdeployed
     Ng = str2double(Ng);
+    dir_out = './../../sim-precsampler/dgp/';
 else
     dir_out = 'C:/Users/Philipp/Documents/Dissertation/condfcast-precsampler/sim/dgp/';
     addpath('./../functions')
