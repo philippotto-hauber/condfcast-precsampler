@@ -5,7 +5,12 @@
 \usepackage{mathtools}
 \usepackage{cleveref}
 \newcommand{\crefrangeconjunction}{--} % dash instead of "to" in range
-\usepackage{amsfonts} 
+%\usepackage{amsfonts} 
+%\DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
+\usepackage[bitstream-charter]{mathdesign}
+\usepackage[T1]{fontenc}
+\mathchardef\shortminus="2D
+%\newcommand{\shortminus}{-}
 % % font used in Korobilis and Schumacher (2014)
 %\usepackage[sc]{mathpazo}
 %\linespread{1.05}         % Palladio needs more leading (space between lines)
@@ -14,7 +19,7 @@
 %\usepackage{tgpagella}
 %\usepackage[T1]{fontenc}
 \usepackage{xfrac}
-\DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
+
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
 
 \begin{document}
