@@ -1,0 +1,178 @@
+---
+title: "Simulation results"
+output: html_notebook
+---
+
+
+# Clear workspace, load packages
+
+```{r}
+rm(list = ls())
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/sim")
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+```
+
+
+# Set-up
+
+```{r}
+dir_in <- "./../../../Dissertation/condfcast-precsampler/sim/out/"
+file_prefix <- "runtime"
+Ng <- 10
+models <- c(rep("ssm", 3), rep("var", 3))
+
+Nhs <- c(5, 20, 50)
+Nconds <- c(10, 50, 75)
+
+dims = c("Nn_20_Ns_2",
+         "Nn_100_Ns_2",
+         "Nn_100_Ns_10",
+         "Nn_3_Np_4",
+         "Nn_20_Np_4",
+         "Nn_100_Np_4")
+
+ftypes = c("uncond", "cond_hard", "cond_soft")
+
+samplers <- c("CK", "DK", "HS")
+```
+
+Names for factor levels
+
+```{r}
+names_samplers <- c("Carter&Kohn (1994)", "Durbin&Koopman (2002)", "precision-sampler")
+names_ftypes <- c("unconditional forecasts", "conditional forecasts (hard)", "conditional forecasts (soft)")
+names_dims = c("small factor model",
+               "large factor model",
+               "large N,T factor model",
+               "small-sized VAR",
+               "medium-sized VAR",
+               "large-sized VAR")
+```
+
+
+# Load simulation output
+
+```{r}
+dat_raw <- data.frame() # initialize empty data frame
+
+for (g in seq(1, Ng)){
+  for (s in samplers){
+    for (f in ftypes){
+      for (h in Nhs){
+        for (ncond in Nconds){
+          for (d in seq(1, length(dims))){
+            filename <- paste(file_prefix, s, f, 
+                              models[d], dims[d], 
+                              "Nh", h, "Ncond", ncond, "g", g, sep = "_")
+            tmp <- read.csv(paste0(dir_in, filename, ".csv"), header = FALSE)
+            dat_raw <- rbind(dat_raw, data.frame(value = tmp[, 1], sim = g,
+                                         sampler = s, ftype = f, mod = dims[d],
+                                         Nh = paste(h), Ncond = paste(ncond/100)
+                                         )
+                         )
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+# Transform output
+
+Calculate relative run time (precision-sampler = 1)
+
+```{r}
+dat_raw %>% 
+pivot_wider(names_from = sampler, values_from = value) %>%
+  mutate(HS = HS / HS,
+         CK = CK / HS,
+         DK = DK / HS) %>%
+  pivot_longer(cols = -c(sim, ftype, mod, Nh, Ncond), names_to = "sampler", values_to = "value") -> dat
+```
+
+Merge `Nh` and `Ncond` variables
+```{r}
+dat %>% unite("NhNcond", Nh, Ncond) -> dat
+```
+
+Convert strings to factors
+
+```{r}
+# convert strings to factors----
+dat$mod <- factor(dat$mod, levels = dims, labels = names_dims)
+dat$ftype <- factor(dat$ftype, levels = ftypes, labels = names_ftypes)
+dat$sampler <- factor(dat$sampler, levels = samplers, labels = names_samplers)
+```
+
+
+# Analyze output
+
+
+## Box plots
+```{r, fig.width = 10, fig.height=8}
+select_NhNcond <- c("5_0.1", "20_0.5", "50_0.75")
+dat %>% 
+  filter(NhNcond %in% select_NhNcond) %>%
+  ggplot(aes(x = mod, y = value, color = sampler))+
+  geom_boxplot()+
+  facet_grid(NhNcond~ftype)+
+  labs(title = "Relative run time",
+        subtitle = "Different settings")+
+  theme(text = element_text(size=9),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="top",
+        axis.title.x = element_blank(), axis.title.y = element_blank(),
+        plot.title = ,
+        plot.subtitle = )
+```
+
+
+# $g=1$
+
+
+```{r}
+dat %>% 
+  filter(sim == 1) %>%
+  ggplot(aes(x = spec, y = value, color = sampler))+
+  geom_point()+
+  facet_grid(NhNcond~ftype, ncol = 1, scales = "free_y")+
+  theme(text = element_text(size=9),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="top")
+```
+
+
+
+# Plots for paper
+
+```{r}
+dat %>% 
+  filter(sim == 1,
+         !(sampler == "precision-sampler"),
+         !(ftype == "unconditional forecasts"),
+         !(spec %in% c("large factor model", "small-sized VAR"))) %>%
+  ggplot(aes(x = spec, y = value, shape = sampler))+
+  geom_point()+
+  scale_shape(solid = FALSE)+
+  scale_y_continuous(trans='log10', breaks = c(0.5, 1, 5, 10, 30))+
+  #scale_y_log10(breaks = c(1, 5, 10, 30))+
+  #scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x))+
+                  #labels = trans_format("log10", math_format(10^.x)))+
+  facet_wrap(~ftype, ncol = 1)+
+  theme_bw()+
+  theme(text = element_text(size=9),
+        legend.position="top", legend.title = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(angle=60, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) 
+```
+
+
