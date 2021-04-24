@@ -3,7 +3,7 @@ rng(1234) % set random seed for reproducibility
 
 % set-up
 Ng = 10; 
-Nm = 1000;
+Nm = 100;
 type_fore = {'uncond', 'cond_hard', 'cond_soft'};
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
