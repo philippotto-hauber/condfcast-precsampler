@@ -130,7 +130,7 @@ for t=2:NtNh
     ahatstar(:,t) = T*ahatstar(:,t-1) + RQR*r(:,t-1);
 end
 
-function [ahatstar, K, L, invF] = kalmansmoother(Y, T, Z, K, L, invF, R, Q, a1, P1)
+function ahatstar = kalmansmoother(Y, T, Z, K, L, invF, R, Q, a1, P1)
 
 [Nn, NtNh] = size(Y);
 Ns = size(T, 1); 
