@@ -7,7 +7,8 @@
 \newcommand{\crefrangeconjunction}{--} % dash instead of "to" in range
 %\usepackage{amsfonts} 
 %\DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
-\usepackage[bitstream-charter]{mathdesign}
+%\usepackage[bitstream-charter]{mathdesign}
+\usepackage[charter, cal = cmcal]{mathdesign}
 \usepackage[T1]{fontenc}
 \mathchardef\shortminus="2D
 %\newcommand{\shortminus}{-}
@@ -21,6 +22,9 @@
 \usepackage{xfrac}
 
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
+
+\linespread{1.2}
+\setlength\parindent{0pt}
 
 \begin{document}
 \title{Precision-based algorithms for conditional forecasting and scenario analysis in large state space models}
@@ -41,7 +45,7 @@ Precision-based sampling algorithms have been proposed in the literature as an a
 
 This paper proposes precision-based sampling algorithms for conditional forecasting and scenario analysis as an alternative to Kalman-filter based approaches. In an empirical application involving large Bayesian dynamic factor models and vector autoregressions I demonstrate its usefulness. 
 
-\section{Precision-based sampling algorithms for conditional forecasting}
+\section{Precision-based sampling algorithms for conditional forecasting}\label{sec:precsampler}
 
 \subsection{Precision-based sampling}
 
@@ -176,7 +180,7 @@ The joint distribution of states and observables is Normal with mean $\boldsymbo
     \end{bmatrix} \\
     &=
     \begin{bmatrix}
-         \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + \transpose{\mathbf{M}}\bm{V}_{\epsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \bm{V}^{-1}_{\varepsilon} \\
+         \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + \transpose{\mathbf{M}}\bm{V}_{\varepsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \bm{V}^{-1}_{\varepsilon} \\
          \bm{V}^{-1}_{\epsilon} \mathbf{M} & \bm{V}^{-1}_{\varepsilon}
     \end{bmatrix} \\
     &= 
@@ -367,9 +371,13 @@ As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and f
 
 \subsection{Sequential sampling}
 
-\section{Models}
+\section{Models}\label{sec:models}
 
-\subsection{Dynamic factor models}
+\subsection{Dynamic factor models}\label{sec:dfm}
+
+Factor models feature prominently in the macroeconomic literature. By exploiting the cross-correlation in typical macroeconomic datasets, they can effectively handle large cross-sections without suffering from the "curse of dimensionality". Moreover, they are naturally represented as state space models, facilitating Frequentist and Bayesian estimation as well as the analysis of missing observations and mixed frequencies. For an overview of the methodological developments of factor models and their applications, see \citet{stockwatson2016_hbmacro}. Precision-based sampling applications include \citet{chanjeliazkov_2009,mccausland_factor2015,kaufmannschumacher_jae2017,kaufmannschumacher_jectrcs2019}\\
+
+A \textit{dynamic factor model} is defined as
 
 \begin{subequations}
     \label{eqn:factormodel}
@@ -380,7 +388,90 @@ As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and f
     \end{align}
 \end{subequations}
 
-\subsection{Vector autoregressions}
+where $\mathbf{f}_t$ denotes an $R \times 1$ vector of unobserved factors which summarizes the co-movement of the observables $\mathbf{y}_t$. The dynamics of the factors are modelled as a vector autoregression of order $P$. The idiosyncratic components, $\mathbf{e}_t$ are modeled as independent autoregressive processes of order $J$, i.e. $\psi_1, \dots, \psi_J$ are diagonal matrices. The $N \times R$ loadings matrices $\mathbf{\lambda}_k$ capture the dynamic relationships between observables and factors. Setting $K=0$, so that the variables only load contemporaneously on the factors, yields a \textit{static factor model}. The innovations $\epsilon_t$, $\upsilon_t$ are Normal, uncorrelated at all leads and lags and their covariance matrices given by $\Omega$ and $\Sigma$, respectively. \\
+
+To apply the precision-based sampling algorithms outlined in Section \ref{sec:precsampler} for the general state space model, requires the dynamic loadings structure and the autocorrelation in the idiosyncratic components are taken into account when constructing the system matrices. As above, stacking the observables, factors and idiosyncratic components over $t$ yields 
+
+\begin{equation}
+    \mathbf{y} = \mathbf{M} \, \mathbf{f} + \mathbf{e}
+\end{equation} 
+
+\noindent where 
+
+$$
+\mathbf{M}
+=
+\begin{bmatrix}
+    \boldsymbol{\lambda_0} &   \\
+    \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0}   \\
+    \boldsymbol{\lambda_2} & \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0} \\
+     & \ddots & \ddots & \ddots \\
+     & \boldsymbol{\lambda_K} &\dots & \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0}
+     &  \\
+     & & \ddots & \ddots & \ddots & \ddots \\
+    & & & \boldsymbol{\lambda_K} &\dots & \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0}
+\end{bmatrix}.
+$$
+
+The vector of idiosyncratic components can be written as $\mathbf{H}_e\, \mathbf{e} = \boldsymbol{\varepsilon}$ with 
+
+$$
+\mathbf{H}_e
+=
+\begin{bmatrix}
+    I_N &  \\
+    \shortminus \psi_1 & I_N &  \\
+    \shortminus \psi_2 & \shortminus \psi_1 & I_N &  \\
+     &  &  &  &  & \\
+    \shortminus \psi_J & \dots & \dots & \shortminus \psi_1 & I_N \\
+     &  &  &  &  & \\
+    & & \shortminus \psi_J & \dots & \dots & \shortminus \psi_1 & I_N
+\end{bmatrix}
+$$
+
+\noindent and $\boldsymbol{\varepsilon} \sim \mathcal{N}(0_{NT}, I_T \otimes \boldsymbol{\Omega})$. It follows that $\mathbf{e}$ is Normal, with mean $0$ and covariance matrix $\bm{V}_{e} = (\transpose{\mathbf{H}}_{e} (I_T \otimes \boldsymbol{\Omega}^{-1}) \mathbf{H}_e)^{-1}$. \\
+
+In a similar fashion, the vector of factors is distributed as 
+
+$$
+\mathbf{f} \sim \mathcal{N}\left(0, (\transpose{\mathbf{H}}_{\sf{f}} (I_T \otimes \boldsymbol{\Sigma^{-1}}) \mathbf{H}_{\sf{f}})^{-1}\right)
+$$
+
+with 
+
+$$
+\mathbf{H}_{\sf{f}}
+=
+\begin{bmatrix}
+    I_N &  \\
+    \shortminus \phi_1 & I_N &  \\
+    \shortminus \phi_2 & \shortminus \phi_1 & I_N &  \\
+     &  &  &  &  & \\
+    \shortminus \phi_P & \dots & \dots & \shortminus \phi_1 & I_N \\
+     &  &  &  &  & \\
+    & & \shortminus \phi_P & \dots & \dots & \shortminus \phi_1 & I_N
+\end{bmatrix}.
+$$
+
+As above, the precision matrix of the joint vector $\mathbf{z} = \transpose{[\transpose{\mathbf{f}}, \transpose{\mathbf{y}}]}$ is then given by 
+
+\begin{align*}
+    \mathbf{Q}_z 
+    &= 
+    \begin{bmatrix}
+         \transpose{\mathbf{H}_{\sf{f}}} \bm{V}^{-1}_{\upsilon} \mathbf{H}_{\sf{f}} + \transpose{\mathbf{M}}\bm{V}_{e}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \bm{V}^{-1}_{e} \\
+         \shortminus \bm{V}^{-1}_{e} \mathbf{M} & \bm{V}^{-1}_{e}
+    \end{bmatrix} \\
+    &= 
+    \begin{bmatrix}
+        \mathbf{Q}_{\sf{f}} & \mathbf{Q}_{\sf{f}\text{y}} \\
+        \transpose{\mathbf{Q}}_{\sf{f} \text{y}} & \mathbf{Q}_{\text{y}}  
+    \end{bmatrix}
+\end{align*}
+
+which allows to efficiently sample from $p(\mathbf{y}^{\sf{f}}\,|\, I, \Theta)$ using Algorithms 1 and 2. 
+
+\subsection{Vector autoregressions}\label{sec:var}
 
 \begin{equation}
     \mathbf{y}_t = \mathbf{b} + \sum_{p=1}^P \mathbf{B}_p \mathbf{y}_{t-p} + \boldsymbol{\varepsilon}_t
@@ -390,9 +481,24 @@ where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots
 
 \subsection{Simulations}
 
-\subsubsection{Data-generating processes}
+To compare the performance of the precision sampler with Kalman-filter based simulation smoothers, I run simulations for different variants of the models. More concretely, I consider both small ($N=20,\,R=2$) and large factor models ($N=100\,,R=10$) as well as a medium- and large-sized vector autoregression with $N=20$ and $N=100$, respectively; the lag length equals $P=4$ in both vector autoregressions. I evaluate the runtime of obtaining $100$ draws from the predictive density given a sample size $T=100$ and forecast horizons $H = \{5, 20, 50\}$ conditional on a share $\kappa = 0.1$ of the observables (\textit{hard conditioning}).\footnote{The size of the conditioning set does not have a large impact on the relative runtime and in the interest of space I do not report results for $\kappa = \{0.5, 0.75\}$. They are available upon request.} Furthermore, I consider the marginal costs of producing additional draws given the parameters as would be the case when on top of the conditioning set $$\mathbf{y}^{c} = [y_{1, T+1}, \dots, y_{\kappa \cdot N, T+1}, \dots, y_{1,T+H}, \dots, y_{\kappa \cdot N, T+H}]$$ restrictions are imposed on the remainining observables to lie within a prespecified range (\textit{soft conditioning}). Details on the data-generating processes as well as on the implementation of the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers are provided in Appendix \ref{app:simulation}.\\
 
-\subsubsection{Results}
+The results of the simulations can be seen in Figure \ref{figsimulation}. With the expection of the medium-sized VAR, the precision-sampler performs better than Kalman-filter based alternatives in terms of hard conditioning and the gains generally increase in the size of the cross-section $N$ and the forecast horizon $H$. For example, given a long forecast horizon $H=50$, draws from the predictive density of the large-sized VAR can be generated at close to or even less than \sfrac{1}{50} of the computational cost of the other samplers. For the large factor model, the relative gains are not as substantial but the precision-sampler still clearly outperforms the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers. Turning to soft conditioning where the computational cost of producing a marginal draw given the parameters is evaluated, these results continue to hold in the majority of cases. However, for the large factor model the \citet{carterkohn1994_biomtr} sampler performs best. Given that the computational advantage decreases in $\frac{H}{T}$ , a reasonable explanation is that these benefits are due to the recursive nature of this sampler so that only the states and observations in the forecast period are actually sampled. In contrast, the other samplers always produce a draw of the entire history of states from $t=1, \dots, T+H$.\\
+
+Overall, the results suggest that precision-samplers are a viable alternative to Kalman-filter based simulation smoothers and can offer sizeable reductions in computational costs for models with a large cross-section. Nevertheless, the findings should merely be interpreted as indicative of the potential gains, as in practical applications the computational efficiency will not only depend on the algorithms used but also on how they are implemented. For example, I do not consider implementations in low level languages such as C or Fortran. The available hardware and parallelization infrastructure can also have an impact on the overall computing time.\footnote{The simulations in this paper were run on the HPC servers of the University of Kiel. TECHNICAL DETAILS.}
+
+\begin{figure}[htbp] \centering
+    \caption{Simulation results: relative runtime \label{figsimulation}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+    \multicolumn{1}{c}{\includegraphics*[scale = 0.8]{../figures/fig_simulations_Ncond_10.pdf}} \\
+    {
+    \footnotesize \textbf{Note:} The figure shows the relative runtime of the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to a precision sampler over 100 draws. The conditioning set consists of the first $0.1 \cdot N$ variables. The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices. In the case of soft conditioning, the runtime of repeated draws given parameters is reported. For details, see the main text and Appendix X.
+    }
+    \end{tabular}
+    \newline
+    \normalsize
+    \end{figure}
 
 \section{Empirical application}
 
@@ -406,5 +512,55 @@ where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots
 
 \bibliographystyle{aernobold}
 \bibliography{papers}
+
+\appendix
+
+\section{Appendix: Simulations}\label{app:simulation}
+
+This appendix provides details on the data-generating processes and the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers that are used in the simulations in Section \ref{sec:models}
+
+\subsection{Data-generating processes}
+
+In the case of the dynamic factor model outlined in Section \ref{sec:dfm} the factor dynamics are given by a VAR(1) with parameters $\phi_1 = 0.7 \cdot I_R$ and $\Sigma = I_R$. The elements of the loadings on the contemporaneous factors $\lambda_0$ are drawn from independent Normal distributions with mean $0.5$ and variance $0.1$; all remaining loadings are set to 0, i.e. $K=0$. Setting $J=0$, the idiosyncratic components are i.i.d and $\omega_i$ is chosen such that the common component - $\boldsymbol{\lambda}_{0,i\cdot} \mathbf{f}_t$ - explains \sfrac{2}{3} of the total variation in the i-th variable. \\
+
+To generate data from a vector autoregression as discussed in Section \ref{sec:var}, I closely follow the set-up outlined in \citet{CHP2020_ijf}. Let $b_{p, ij}$ denote the element of $B_p$ in row i and column j. The diagonal elements are set to
+
+\begin{subequations}
+    \begin{align}
+        b_{1, ii} = \mathcal{N}(0, \sigma^2_o), \: \forall i = 1, \dots, N \\
+b_{p, ii} = \frac{b_{1,ii}}{p}, \: \forall p = 2, \dots, P
+    \end{align}    
+\end{subequations}
+
+\noindent while each off-diagonal element is non-zero with probability $p_c$ and drawn from $\mathcal{N}(0, \sigma^2_c)$.The lag length $P$ equals 4 and for the medium-sized VAR with $N=20$ variables $\sigma^2_o = 0.2 $, $\sigma^2_c = 0.05$ and $p_c = 0.2$. To ensure a stationary VAR when the cross-section is large, i.e. $N=100$, the values are adjusted to $\sigma^2_o = 0.05 $, $\sigma^2_c = 0.001$ and $p_c = 0.1$.
+
+\subsection{Kalman-filter based simulation smoothers}
+
+In this section we highlight how we implement the Kalman-filter based simulation smoothers and show how to obtain draws from the predictive densities. Although both the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers rely on the Kalman filter and smoother to produce a draw from the conditional distribution of the states, there are important conceptual differences between the two. \\
+
+Let $a_{t|s} = E[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ and $P_{t|s} = Var[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ denote the conditional mean and variance of the state at time $t$ conditional on information up to time $s$ which can be obtainted from the Kalman filter or smoother. In addition, let $a_t$ denote a draw from the conditional distribution $p(\alpha_t | \mathbf{y}_1, \dots, \mathbf{y}_{T+H})$. Given the parameters of the state space model $\Theta$ and  $a_{t|t}, P_{t|t} \: \forall t = 1, \dots, T+H$, the algorithm in \citet{carterkohn1994_biomtr} generates $a_{T+H}$ from 
+
+$$
+p(\alpha_{T+H}|\mathbf{y}_1, \dots, \mathbf{y}_{T+H})
+$$
+
+\noindent with
+
+\begin{align*}
+    E[\alpha_{T+H}|\mathbf{y}_1, \dots, \mathbf{y}_{T+H}] = a_{T|T} \\
+    Var[\alpha_{T+H}|\mathbf{y}_1, \dots, \mathbf{y}_{T+H}] = P_{T|T}.
+\end{align*}
+
+ For $t=T+H-1, \dots, 1$ $a_t$ is sampled from $p(\alpha_{t}|\mathbf{y}_t, a_{t+1})$. For details on how to derive the moments of the conditional distributions given the output of the Kalman filter, see the original paper as well as the textbook treatment in \citet{KimNelson1999mit}.\\
+
+The \citet{durbinkoopman2002_biomtr} simulation smoother produces a draw from the conditional distribution of the states by first simulating the state space model in Equation \ref{eqn:statespacesys}, producing a draw from the \textit{joint} distribution of states and observables
+
+$$p(\alpha_{1}, \dots, \alpha_{T+H}, \mathbf{y}_1, \dots, \mathbf{y}_{T+H}).$$
+
+Denote this joint draw by $a^+_1, \dots, a^+_{T+H}, y^+_1, \dots, y^+_{T+H}$. Running the Kalman smoother recursions yields $a_{t|T+H}, \: a^+_{t|T+H}$ where $a^+_{t|T+H} = E[\alpha^+_t|y^+_1, \dots, y^+_{T+H}]$. By setting $a_t = a_{t|T+H} - a^+_{t|T+H} + a^+$ adjusts the mean of $a^+_t$ to yield a draw from the desired conditional distribution. In practice, it is more efficient to first construct $y^* = y-y^+$ and run the Kalman smoother only once, yielding $a^*_{t|T+H} = E[a^*_t|y^*]$. A draw from $p(\alpha_{1}, \dots, \alpha_{T+H}|\mathbf{y}_1, \dots, \mathbf{y}_{T+H})$ is then obtainted by setting $a_t = a^*_{t|T+H} + a^+_t$.\\ 
+
+Under the common assumption of uncorrelated measurement errors, draws from the predictive density $p(y^f_t|a_t, y^o, y^c, \Theta)$ can  be obtained by sampling the measurement errors independently from $\mathcal{N}(0, \omega_i) \: \forall i s.t. y_{i,t} \notin y_{c,t}$ and adding them to the draw of the state vector \citep[see][for the general case of a full covariance matrix $\Omega$]{bgl_2015ijf}. For the \citet{durbinkoopman2002_biomtr} simulation smoother the generated artifical observations $y^+$ can be re-used, since $F a^*_{t|T+H} + y^+_t$ is a draw of the observations conditional on the sampled states. In the case of a VAR, there is no measurement error so that $y^f_t$ can be set equal to the corresponding elements of $a_t$. \\
+
+For both simulation smoothers, the Kalman filter needs to be initialized. In the case of a dynamic factor model, this can be done by setting $a_{1|0}$ and $P_{1|0}$ equal to the unconditional mean and variance, respectively, of the factor VAR. Vector autoregression applications only require the simulation smoother to run over the sample with missing observations, i.e. $t\geq T+1$. The recursions are therefore initialized with $a_{T+1|T} = \mathbf{T} \, \transpose{[\transpose{\mathbf{y}}_T, \dots, \transpose{\mathbf{y}}_{T-P+1}]}$ and $P_{T+1|T} = \Sigma$, unless the more efficient one-step algorithm in \citet{durbinkoopman2002_biomtr} is employed, in which case $a_{T+1|T} = 0$ is required \citep[see][]{jarocinski2015csda}.
 
 \end{document}
