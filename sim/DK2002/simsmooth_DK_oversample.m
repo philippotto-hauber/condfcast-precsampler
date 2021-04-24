@@ -62,13 +62,18 @@ else
     aplus(:,1) = mvnrnd(a1, P1)'; % initial values of state
 end
 
-cholH = chol(H, 'lower');
 cholQ = chol(Q, 'lower');
-for t=1:NtNh
-    %Yplus(:, t) = Z * aplus(:, t)+ mvnrnd(zeros(size(Z, 1), 1), H)';
-    Yplus(:, t) = Z * aplus(:, t)+ rue_held_alg2_3(zeros(size(Z, 1), 1), cholH);
-    %aplus(:, t+1) = T * aplus(:, t) + R * mvnrnd(zeros(size(Q, 1), 1), Q)';
-    aplus(:, t+1) = T * aplus(:, t) + R * rue_held_alg2_3(zeros(size(Q, 1), 1), cholQ);
+if rcond(H) == 0 % no measurement error
+    for t=1:NtNh
+        aplus(:, t+1) = T * aplus(:, t) + R * rue_held_alg2_3(zeros(size(Q, 1), 1), cholQ);
+        Yplus(:, t) = Z * aplus(:, t);
+    end
+else
+    cholH = chol(H, 'lower');
+    for t=1:NtNh
+        Yplus(:, t) = Z * aplus(:, t)+ rue_held_alg2_3(zeros(size(Z, 1), 1), cholH);
+        aplus(:, t+1) = T * aplus(:, t) + R * rue_held_alg2_3(zeros(size(Q, 1), 1), cholQ);
+    end
 end
 
 aplus(:,end) = [];
