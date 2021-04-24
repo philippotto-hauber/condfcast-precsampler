@@ -1,0 +1,176 @@
+---
+title: "Simulation results"
+output: html_notebook
+---
+
+
+# Clear workspace, load packages
+
+```{r}
+rm(list = ls())
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/sim")
+dir_fig <- "C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/figures/"
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+```
+
+
+# Set-up
+
+```{r}
+dir_in <- "./../../../Dissertation/condfcast-precsampler/sim/out/"
+file_prefix <- "runtime"
+Ng <- 10
+models <- c(rep("ssm", 3), rep("var", 3))
+
+Nhs <- c(5, 20, 50)
+Nconds <- c(10, 50, 75)
+
+dims = c("Nn_20_Ns_2",
+         "Nn_100_Ns_2",
+         "Nn_100_Ns_10",
+         "Nn_3_Np_4",
+         "Nn_20_Np_4",
+         "Nn_100_Np_4")
+
+ftypes = c("uncond", "cond_hard", "cond_soft")
+
+samplers <- c("CK", "DK", "HS")
+```
+
+Names for factor levels
+
+```{r}
+names_samplers <- c("Carter&Kohn (1994)", "Durbin&Koopman (2002)", "precision-sampler")
+names_ftypes <- c("unconditional forecasts", "hard conditioning", "soft conditioning")
+names_dims = c("small factor model",
+               "large N factor model",
+               "large factor model",
+               "small-sized VAR",
+               "medium-sized VAR",
+               "large-sized VAR")
+```
+
+
+# Load simulation output
+
+```{r}
+dat_raw <- data.frame() # initialize empty data frame
+
+for (g in seq(1, Ng)){
+  for (s in samplers){
+    for (f in ftypes){
+      for (h in Nhs){
+        for (ncond in Nconds){
+          for (d in seq(1, length(dims))){
+            filename <- paste(file_prefix, s, f, 
+                              models[d], dims[d], 
+                              "Nh", h, "Ncond", ncond, "g", g, sep = "_")
+            tmp <- read.csv(paste0(dir_in, filename, ".csv"), header = FALSE)
+            dat_raw <- rbind(dat_raw, data.frame(value = tmp[, 1], sim = g,
+                                         sampler = s, ftype = f, mod = dims[d],
+                                         Nh = paste(h), Ncond = paste(ncond/100)
+                                         )
+                         )
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+# Transform output
+
+```{r}
+# Calculate relative run time (precision-sampler = 1)
+dat_raw %>% 
+pivot_wider(names_from = sampler, values_from = value) %>%
+  mutate(HS = HS / HS,
+         CK = CK / HS,
+         DK = DK / HS) %>%
+  pivot_longer(cols = -c(sim, ftype, mod, Nh, Ncond), names_to = "sampler", values_to = "value") -> dat
+
+# convert strings to factors----
+dat$mod <- factor(dat$mod, levels = dims, labels = names_dims)
+dat$ftype <- factor(dat$ftype, levels = ftypes, labels = names_ftypes)
+dat$sampler <- factor(dat$sampler, levels = samplers, labels = names_samplers)
+dat$Nh <- factor(dat$Nh, levels = Nhs, labels = paste0("H=", Nhs))
+dat$Ncond <- factor(dat$Ncond, levels = paste0(Nconds/100), labels = paste0("N_c =", Nconds/100))
+
+```
+
+# Analyze output
+
+
+```{r, fig.width = 10, fig.height=8}
+dat %>% 
+  ggplot(aes(x = mod, y = value, color = sampler, linetype = ftype))+
+  geom_boxplot()+
+  facet_grid(Ncond~Nh)+
+  scale_y_continuous(trans='log10', breaks = c(0.5, 1, 10, 50))+
+  labs(title = "Relative run time",
+        subtitle = "Different settings")+
+  theme(text = element_text(size=9),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="top",
+        axis.title.x = element_blank(), axis.title.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),)
+```
+
+## $g=1$
+
+```{r, fig.width = 10, fig.height=8}
+dat %>% 
+  filter(sim == 1) %>%
+  ggplot(aes(x = mod, y = value, color = sampler, shape = ftype))+
+  geom_point()+
+  facet_grid(Ncond~Nh)+
+  scale_y_continuous(trans='log10', breaks = c(0.5, 1, 10, 50))+
+  labs(title = "Relative run time",
+        subtitle = "Different settings")+
+  theme(text = element_text(size=9),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="top",
+        axis.title.x = element_blank(), axis.title.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),)
+```
+
+
+# Tidy up plot for paper
+
+```{r}
+dat %>% 
+  filter(sim == 1,
+         !(sampler == "precision-sampler"),
+         !(ftype == "unconditional forecasts"),
+         !(mod %in% c("large N factor model", "small-sized VAR")),
+         Ncond == "N_c =0.1") %>%
+  ggplot(aes(x = mod, y = value, color = sampler, shape = ftype))+
+  geom_point()+
+  geom_hline(yintercept = 1)+
+  scale_shape(solid = FALSE)+
+  scale_y_continuous(trans='log10', breaks = c(0.2, 1, 10, 50))+
+  facet_wrap(~Nh, ncol = 1)+
+  theme_bw()+
+  theme(text = element_text(size=9),
+        legend.position="top", legend.title = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(angle=30, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) 
+```
+
+```{r}
+ggsave(paste0(dir_fig, "fig_simulations_Ncond_10.pdf"), width = 15, height = 20, units = "cm")
+```
+
+

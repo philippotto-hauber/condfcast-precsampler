@@ -4,6 +4,9 @@ function x = rue_held_alg2_1(L, b)
 % Input:            L - NxN matrix, lower Cholesky factor of A, i.e. L = chol(A, 'lower')
 %                   b - Nx1 vector
 % Output:           x - Nx1 vector, solution to the system of equations Ax = b
+if ~istril(L)
+    error('L needs to be the lower Cholesky factor!')
+end
 v = L \ b;
 x = L' \ v;
 end

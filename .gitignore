@@ -6,3 +6,15 @@ latex/condfcast_precsampler.*
 
 # ignore all files in figures folder
 figures
+
+# ignore csv files in sim folder
+/sim/*.csv
+
+# ignore .Rhistory
+.Rhistory
+
+# ignore files in out
+/sim/out/*
+
+# ignore asv files
+*.asv
