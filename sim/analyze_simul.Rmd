@@ -14,6 +14,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(scales)
+library(ggsci)
 ```
 
 
@@ -43,7 +44,7 @@ samplers <- c("CK", "DK", "HS")
 Names for factor levels
 
 ```{r}
-names_samplers <- c("Carter&Kohn (1994)", "Durbin&Koopman (2002)", "precision-sampler")
+names_samplers <- c("Carter and Kohn (1994)", "Durbin and Koopman (2002)", "precision-sampler")
 names_ftypes <- c("unconditional forecasts", "hard conditioning", "soft conditioning")
 names_dims = c("small factor model",
                "large N factor model",
@@ -87,18 +88,21 @@ for (g in seq(1, Ng)){
 ```{r}
 # Calculate relative run time (precision-sampler = 1)
 dat_raw %>% 
-pivot_wider(names_from = sampler, values_from = value) %>%
-  mutate(HS = HS / HS,
-         CK = CK / HS,
-         DK = DK / HS) %>%
-  pivot_longer(cols = -c(sim, ftype, mod, Nh, Ncond), names_to = "sampler", values_to = "value") -> dat
+pivot_wider(names_from = sampler, 
+            values_from = value) %>%
+  mutate(CK = CK / HS,
+         DK = DK / HS,
+         HS = HS / HS) %>%
+  pivot_longer(cols = -c(sim, ftype, mod, Nh, Ncond), names_to = "sampler", values_to = "value_rel") -> dat
+
+dat <- merge(dat, dat_raw, by = intersect(names(dat), names(dat_raw)))
 
 # convert strings to factors----
 dat$mod <- factor(dat$mod, levels = dims, labels = names_dims)
 dat$ftype <- factor(dat$ftype, levels = ftypes, labels = names_ftypes)
 dat$sampler <- factor(dat$sampler, levels = samplers, labels = names_samplers)
 dat$Nh <- factor(dat$Nh, levels = Nhs, labels = paste0("H=", Nhs))
-dat$Ncond <- factor(dat$Ncond, levels = paste0(Nconds/100), labels = paste0("N_c =", Nconds/100))
+dat$Ncond <- factor(dat$Ncond, levels = paste0(Nconds/100), labels = paste0("N_c=", Nconds/100))
 
 ```
 
@@ -106,9 +110,17 @@ dat$Ncond <- factor(dat$Ncond, levels = paste0(Nconds/100), labels = paste0("N_c
 
 
 ```{r, fig.width = 10, fig.height=8}
-dat %>% 
+dat %>% group_by(mod, sampler, ftype) %>%
+  mutate(upper = max(value),
+         lower = min(value)) %>%
+  ungroup() %>%
   ggplot(aes(x = mod, y = value, color = sampler, linetype = ftype))+
-  geom_boxplot()+
+  geom_linerange(aes(ymin = lower, ymax = upper), 
+                 position = position_dodge(width = 0.9, 
+                                           preserve = c("total")
+                                           )
+                 )+
+  
   facet_grid(Ncond~Nh)+
   scale_y_continuous(trans='log10', breaks = c(0.5, 1, 10, 50))+
   labs(title = "Relative run time",
@@ -124,15 +136,16 @@ dat %>%
 
 ## $g=1$
 
-```{r, fig.width = 10, fig.height=8}
+```{r, fig.width = 10, fig.height=10}
 dat %>% 
   filter(sim == 1) %>%
   ggplot(aes(x = mod, y = value, color = sampler, shape = ftype))+
-  geom_point()+
-  facet_grid(Ncond~Nh)+
-  scale_y_continuous(trans='log10', breaks = c(0.5, 1, 10, 50))+
-  labs(title = "Relative run time",
-        subtitle = "Different settings")+
+  geom_point(position = position_dodge(width = 0.9, 
+                                       preserve = c("total")
+                                       ))+
+  facet_grid(Nh~Ncond, scales = "free_y")+
+  scale_y_continuous(trans='log10')+
+  scale_shape(solid = FALSE)+
   theme(text = element_text(size=9),
         axis.text.x = element_text(angle=90, hjust = 1),
         legend.position="top",
@@ -145,21 +158,27 @@ dat %>%
 
 # Tidy up plot for paper
 
-```{r}
+```{r,fig.width = 10, fig.height=10}
 dat %>% 
   filter(sim == 1,
          !(sampler == "precision-sampler"),
          !(ftype == "unconditional forecasts"),
          !(mod %in% c("large N factor model", "small-sized VAR")),
-         Ncond == "N_c =0.1") %>%
-  ggplot(aes(x = mod, y = value, color = sampler, shape = ftype))+
-  geom_point()+
+         Ncond == "N_c=0.1") %>%
+  ggplot(aes(x = mod, y = value_rel, 
+             color = sampler, shape = ftype, group = ftype))+
+  geom_point(size = 4, stroke = 2, position = position_dodge(width = 0.3, 
+                                              preserve = c("total")
+                                              ))+
   geom_hline(yintercept = 1)+
+  guides(color = guide_legend(order = 1), 
+         shape = guide_legend(order = 2))+
   scale_shape(solid = FALSE)+
-  scale_y_continuous(trans='log10', breaks = c(0.2, 1, 10, 50))+
+  scale_color_jco()+
+  scale_y_continuous(trans='log10', breaks = c(0.2, 1, 2, 10, 50))+
   facet_wrap(~Nh, ncol = 1)+
   theme_bw()+
-  theme(text = element_text(size=9),
+  theme(text = element_text(size=15),
         legend.position="top", legend.title = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -170,7 +189,7 @@ dat %>%
 ```
 
 ```{r}
-ggsave(paste0(dir_fig, "fig_simulations_Ncond_10.pdf"), width = 15, height = 20, units = "cm")
+ggsave(paste0(dir_fig, "fig_simulations_Ncond_10.pdf"), width = 10, height = 10, units = "in")
 ```
 
 
