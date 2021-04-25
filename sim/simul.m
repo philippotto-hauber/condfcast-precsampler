@@ -2,9 +2,7 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Ng = 10; 
-Nm = 1000;
-type_fore = {'uncond', 'cond_hard', 'cond_soft'};
+Nm = 10;
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
 Nconds = [10, 50, 75];
@@ -24,17 +22,8 @@ else
     dir_out = './../../../Dissertation/condfcast-precsampler/sim/out test/';
 end
 
-% back out g and sampler from input arg
-if n <= Ng
-    g = n;
-    sampler = 'CK'; 
-elseif n <= Ng * 2
-    g = n - Ng;
-    sampler = 'DK';
-elseif n <= Ng * 3
-    g = n - 2 * Ng;
-    sampler = 'HS'; 
-end
+% back out g, sampler and type_fore
+[g, sampler, type_fore] = get_g_sampler_typefore(n);
   
 % loop over dims and ftypes
 for Nh = Nhs
@@ -49,22 +38,19 @@ for Nh = Nhs
             else
                 Y_o  = simdata.y; 
             end
-            for t = 1:length(type_fore)
-                Y_f = []; Y_u = []; Y_l = [];
-                if strcmp(type_fore{t}, 'cond_soft') || strcmp(type_fore{t}, 'cond_hard')       
-                    Y_f = NaN(dims.Nn, dims.Nh);
-                    Y_f(1:dims.Ncond,:) = simdata.yfore(1:dims.Ncond,:);
-                elseif strcmp(type_fore{t}, 'uncond')
-                    % unconditional forecasts
-                    Y_f = NaN(dims.Nn, dims.Nh);
-                end   
-                if strcmp(type_fore{t}, 'cond_soft')
-                    telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, flag_modelclass);
-                else
-                    telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, flag_modelclass, max_iter);
-                end
-                writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore{t} '_' flag_modelclass '_' dims_str '_Ncond_' num2str(Ncond) '_g_' num2str(g) '.csv'])
+            if strcmp(type_fore, 'cond_soft') || strcmp(type_fore, 'cond_hard')       
+                Y_f = NaN(dims.Nn, dims.Nh);
+                Y_f(1:dims.Ncond,:) = simdata.yfore(1:dims.Ncond,:);
+            elseif strcmp(type_fore, 'uncond')
+                % unconditional forecasts
+                Y_f = NaN(dims.Nn, dims.Nh);
+            end   
+            if strcmp(type_fore, 'cond_soft')
+                telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, flag_modelclass);
+            else
+                telapsed = timesamplers(Y_o, Y_f, [], [], simdata, Nm, sampler, flag_modelclass, max_iter);
             end
+            writematrix(telapsed,[dir_out, 'runtime_' sampler '_' type_fore '_' flag_modelclass '_' dims_str '_Ncond_' num2str(Ncond) '_g_' num2str(g) '.csv'])
         end
     end
 end
