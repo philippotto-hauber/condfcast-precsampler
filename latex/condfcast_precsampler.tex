@@ -473,11 +473,23 @@ which allows to efficiently sample from $p(\mathbf{y}^{\sf{f}}\,|\, I, \Theta)$ 
 
 \subsection{Vector autoregressions}\label{sec:var}
 
+Vector autoregressions (VAR) are another class of popular macroeconometric models. Given their flexibility, large VAR are heavily overparametrized and the estimation typically relies on Bayesian shrinkage (). 
+
 \begin{equation}
     \mathbf{y}_t = \mathbf{b} + \sum_{p=1}^P \mathbf{B}_p \mathbf{y}_{t-p} + \boldsymbol{\varepsilon}_t
 \end{equation}
 
 where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots, \mathbf{B}_P$ are the $N \times N$ coefficient matrices and $\boldsymbol{\varepsilon}_t \sim \mathcal{N}(0, \Sigma)$.
+
+A VAR is easily cast into state space form, as the observables are the states and the measurement equation is simply an identity matrix without measurement error. In terms of the stacked model, considered in Section \ref{sec:precsampler}, this implies that $M = I_{TN}$ and $V_{\varepsilon} = 0$. That is to say, the model can rewritten as
+
+$$
+H y = \upsilon
+$$
+
+
+
+Given $y=[y^o, y^f]$, unconditional forecasts are easily produced by conditioning on the observables. B
 
 \subsection{Simulations}
 
