@@ -18,8 +18,9 @@ mcc -m simul.m -a ./CK1994 -a ./DK2002 -a ./../precsampler -a ./../functions
 Nsampler = 3
 Ng=10
 Nftype = 3
+Nsim = Nsampler * Ng * Nftype
 
-for i in `seq 1 Nsampler*Ng*Nfytpe`
+for i in `seq 1 90`
 do
 	./simul $i &
 done
