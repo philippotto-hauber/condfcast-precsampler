@@ -2,7 +2,7 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Nm = 10;
+Nm = 1000;
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
 Nconds = [10, 50, 75];
