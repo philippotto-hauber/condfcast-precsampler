@@ -15,12 +15,8 @@ module load matlab/2020b
 
 mcc -m simul.m -a ./CK1994 -a ./DK2002 -a ./../precsampler -a ./../functions
 
-Nsampler = 3
-Ng=3
-Nftype = 3
-Nsim = Nsampler * Ng * Nftype
-
-for i in `seq 1 27`
+# DK 2002 smoother
+for i in `seq 31 60`
 do
 	./simul $i &
 done
