@@ -2,6 +2,8 @@
 \usepackage[authoryear]{natbib}
 \usepackage{amsmath}
 \usepackage{bm}
+\usepackage{geometry}
+\geometry{left=2.5cm,right=2.5cm,top=2.25cm,bottom=2.25cm,nohead}
 \usepackage{mathtools}
 \usepackage{cleveref}
 \newcommand{\crefrangeconjunction}{--} % dash instead of "to" in range
@@ -47,7 +49,7 @@ This paper proposes precision-based sampling algorithms for conditional forecast
 
 \section{Precision-based sampling algorithms for conditional forecasting}\label{sec:precsampler}
 
-\subsection{Precision-based sampling}
+\subsection{Precision-based sampling}\label{subsec:precsampler}
 
 Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $S \times 1$ vector of unobserved states. Consider the following state space model which $\forall \: t = 1:T$ 
 
@@ -228,42 +230,35 @@ $$
 p(\mathbf{y^{\sf{f}}}|\mathcal{I}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathcal{I}, \boldsymbol{\alpha},\Theta) p(\boldsymbol{\alpha}|\mathcal{I}, \Theta) p(\Theta|\mathcal{I})\, \text{d}\Theta
 $$
 
-where $\mathcal{I}$ denotes the relevant conditioning information and $p(\Theta|\mathcal{I})$ the posterior distribution of the parameters. 
+where $\mathcal{I}$ denotes the relevant conditioning information and $p(\Theta|\mathcal{I})$ the posterior distribution of the parameters.\\
 
-Draws from this density can be obtained by applying the insights in Hauber and Schumacher (2021). They generalize the precision sampler outlined above to applications with missing data and propose to  sample i) either from the joint distribution of states and missing observations, or ii) sequentially from the respective conditional distributions. Since future values of the variables can simply be considered as missing, draws from the joint distribution of states and forecasts conditional on the data (and possibly the future paths of a subset of the variables) can be sampled efficiently. 
+Draws from this density can be obtained by applying the insights in Hauber and Schumacher (2021) who generalize the precision sampler outlined above to applications with missing data. Since future values of the variables can simply be considered as missing, draws from the joint distribution of states and forecasts conditional on the data (and possibly the future paths of a subset of the variables) can be sampled efficiently.\\
 
-In what follows, I will not be concerned with the estimation of $\Theta$ and therefore simply assume that random draws from $p(\Theta|\mathcal{I})$ are readily available. Note,however, Hauber and Schumacher (2021) 
+To illustrate the approach, I focus on unconditional forecasts first (Section \ref{sec:uncondfcast}). In Section \ref{sec:condfcast} I consider forecasts conditional on a subset of the observations in the forecast period. In this case, different permutations and an additional step is required when the impact of the conditioning values on the posterior distribution is taken into account of the parameters is taken into account. Moreover, I show how the algorithms can be used to produce conditional forecasts if the restrictions take the form of a pre-specified interval rather than a specific value (soft conditioning).\\
 
-Also, for the sake of exposition, I assume that between periods $t=1$ and $t=T$ all observations are available. Situations where this is not the case, e.g. because some series start at a later date in the sample or because outlying observations have been removed by setting them to missing, can naturally be accommodated. Moreover, I assume that the intercepts $c_{T+1:T+H}$ and $d_{T+1:T+H}$ are known at $t=T$. This assumption is reasonable to the extent that these reflect (time-invariant) constant terms, deterministic trends or seasonal and calendar components. 
-
-To illustrate the approach, I focus on unconditional forecasts first (Section \ref{sec:uncondfcast}). In Section \ref{sec:condfcast} I consider forecasts which in principle simply involves a larger conditioning set. However, additional steps are required when the impact of the conditioning values on the posterior of the parameters is taken into account or if the researcher conditions on a range of values rather than a specific value. 
+In what follows, I will not be concerned with the estimation of model parameters and assume that random draws from $p(\Theta|\mathcal{I})$ are readily available. Also, for the sake of exposition, I assume that between periods $t=1$ and $t=T$ all observations are available. Situations where this is not the case, e.g. because some series start at a later date in the sample or because outlying observations have been removed by setting them to missing, can naturally be accommodated. Moreover, I assume that the intercepts $\mathbf{c}_{T+1}, \dots, \mathbf{c}_{T+H}$ and $\mathbf{d}_{T+1}, \dots, \mathbf{d}_{T+H}$ are known at $t=T$. This assumption is reasonable to the extent that these reflect (time-invariant) constant terms, deterministic trends or seasonal and calendar components. 
 
 \subsubsection{Unconditional forecasts}\label{sec:uncondfcast}
 
-Let $h = 1:H$ denote the forecast horizons and $\mathbf{y}^{\sf{f}} = \transpose{[\mathbf{y}^{\sf{T}}_{T+1}, \dots, \mathbf{y}^{\sf{T}}_{T+H}]}$. In contrast, the observations throught $T$ are denoted as $\mathbf{y}^{\sf{o}} = \transpose{[\mathbf{y}^{\sf{T}}_{1}, \dots, \mathbf{y}^{\sf{T}}_{T}]}$. 
+Let $h = 1:H$ denote the forecast horizons and $\mathbf{y}^{\sf{f}} = \transpose{[\mathbf{y}^{\sf{T}}_{T+1}, \dots, \mathbf{y}^{\sf{T}}_{T+H}]}$. In contrast, the observations through $T$ are denoted as $\mathbf{y}^{\sf{o}} = \transpose{[\mathbf{y}^{\sf{T}}_{1}, \dots, \mathbf{y}^{\sf{T}}_{T}]}$. The predictive density is given by
 
-Let $\mathbf{y}^{\sf{o}} = \transpose{[\mathbf{y}^{\sf{T}}_{1}, \dots, \mathbf{y}^{\sf{T}}_{T}]}$ denote the observations through $T$.
-
-Draws from the predictive density 
-
-$$
+\begin{equation}\label{eqn:preddens_uncond}
 p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}})\, \text{d}\Theta
-$$
+\end{equation}
 
-can then be obtained by stacking states and observables  $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$ 
-
-with 
+To evaluate Equation \ref{eqn:preddens_uncond}, derive the joint distribution of states and (actually observed and missing) observations: 
 
 \begin{align*}
+    \mathbf{z} &= \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]} \\
     \mathbf{y} &= \transpose{[\transpose{\mathbf{y}^{\sf{o}}}, \transpose{\mathbf{y}^{\sf{f}}}]} \\
     \boldsymbol{\alpha} &= [\boldsymbol{\alpha}_1, \dots, \boldsymbol{\alpha}_{T+H}].
 \end{align*}
 
-The distribution of $\mathbf{z}$ is Normal with mean $\boldsymbol{\mu}_{z_\mathcal{P}}$ and precision matrix $\mathbf{Q}_{z_\mathcal{P}}$. An expression for the conditional distribution $p\left(\mathbf{y}^{\sf{f}}, \boldsymbol{\alpha} \mid \mathbf{y}^{\sf{o}}, \Theta \right)$ from which draws can be obtained efficiently, requires a reordering or permutation of $\mathbf{z}$. To this end, define the permutation matrix $\mathcal{P}$ that reorders $\mathbf{z}$ such that the states and elements of $\mathbf{y^f}$ - ordered by time period $t$ - are placed first. That is to say,
+It follows that the distribution of $\mathbf{z}$ is Normal with mean $\boldsymbol{\mu}_{z}$ and precision matrix $\mathbf{Q}_{z}$ as in Section \ref{subsec:precsampler}. To sample efficiently from the conditional distribution $p\left(\mathbf{y}^{\sf{f}}, \boldsymbol{\alpha} \mid \mathbf{y}^{\sf{o}}, \Theta \right)$  requires a reordering or permutation of $\mathbf{z}$. To this end, define the permutation matrix $\mathcal{P}$ that reorders $\mathbf{z}$ such that the states and elements of $\mathbf{y^f}$ - ordered by time period $t$ - are placed first. That is to say,
 
-\begin{equation*}
+\begin{align*}
 \mathbf{z_{\mathcal{P}}} \coloneqq \mathcal{P} \mathbf{z} 
-=
+&=
  \transpose{[
      \alpha^{\sf{T}}_1, 
      \dots, 
@@ -275,18 +270,17 @@ The distribution of $\mathbf{z}$ is Normal with mean $\boldsymbol{\mu}_{z_\mathc
      \mathbf{y}^{\sf{T}}_{T+H},
      \mathbf{y}^{\sf{T}}_1,
      \dots,
-     \mathbf{y}^{\sf{T}}_T}]
-\end{equation*}
+     \mathbf{y}^{\sf{T}}_T]}\\
+&= \transpose{[\mathbf{z}^{\sf{T}}_{\alpha\! y^{\sf{f}}}, \mathbf{y}^{\sf{o}}]}
+\end{align*}
 
-The permuted vector of states and observations is also Normal with (permuted) moments given by 
+Note that the conditioning argument $\mathbf{y}^{\sf{o}}$ is now ordered last. Moreover, by placing those components of $\mathbf{z}$ which are conditionally dependent close to each other, the bandwidth of $\mathbf{Q}_{z_{\mathcal{P}}}$ is kept small. The permuted vector of states and observations is also Normal with (permuted) moments given by 
 
 \begin{equation*}
     \mathbf{z_{\mathcal{P}}} \sim \mathcal{N}\left(\mathcal{P}\boldsymbol{\mu}_z, \left(\mathcal{P} \mathbf{Q}_z \transpose{\mathcal{P}}\right)^{-1}\right)
 \end{equation*}
 
-where we have made use of the fact that the inverse of a permutation matrix is equal to its transpose. 
-
-The precision matrix of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as follows: 
+where we have made use of the fact that the inverse of a permutation matrix is equal to its transpose.  The precision matrix of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as follows: 
 
 \begin{align*}
     \mathbf{Q}_{z_{\mathcal{P}}} &\coloneqq  \mathcal{P} \mathbf{Q}_z \transpose{\mathcal{P}} \\
@@ -307,49 +301,89 @@ $$
 \end{bmatrix}
 $$
 
-A draw from the desired distribution - $p(\mathbf{y}^{\sf{f}},\boldsymbol{\alpha} | \mathbf{y}^{\sf{o}},\Theta)$ - is obtained from the following conditional 
+Denote by $\mathbf{z}^*$ a draw from the conditional distribution 
 
 \begin{equation*}
-    \mathbf{z}_{\alpha\! y^{\sf{f}}} \sim 
+    \mathbf{z}_{\alpha\! y^{\sf{f}}} | \mathbf{y}^{o} \sim 
     \mathcal{N}\left(
         \mathbf{Q}^{-1}_{\alpha\! y^{\sf{f}}}\left( \mathbf{Q}_{\alpha\! y^{\sf{f}}}\boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} - \mathbf{Q}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}\left(\mathbf{y}^o-\boldsymbol{\mu}_{y^{\sf{o}}}\right)\right)
     ,
     \mathbf{Q}_{\alpha\! y^{\sf{f}}}
-    \right)
+    \right).
 \end{equation*}
-and then reversing the permutation, i.e 
+
+Then by reversing the permutation, i.e 
+
 $$
 \begin{bmatrix}
     \boldsymbol{\alpha} \\
+    \mathbf{y^{o}} \\
     \mathbf{y^{\sf{f}}}
 \end{bmatrix}
 = 
-\mathcal{P}^{-1} \mathbf{z}_{\alpha\! y^{\sf{f}}}
-$$.
+\mathcal{P}^{-1} 
+\begin{bmatrix}
+    \mathbf{z}^*\\
+    \mathbf{y^{o}}
+\end{bmatrix}
+$$
 
-The following algorithm summarizes the required steps to generate $G$ independent draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o)$:\\
+we can back out the draws of $\boldsymbol{\alpha}$ and $\mathbf{y}^{\sf{f}}$ from the original conditional density - $p(\mathbf{y}^{\sf{f}},\boldsymbol{\alpha} | \mathbf{y}^{o},\Theta)$.\\
 
- \noindent\textbf{Algorithm 1: draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o)$}\\
+The following algorithm summarizes the required steps to generate $G$ independent draws from the predictive density in Equation \ref{eqn:preddens_uncond}:\\
+
+ \noindent\textbf{Algorithm 1: Draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o)$}
 
 \begin{enumerate}
     \item Draw $\Theta^{(m)}$ from $p(\Theta | y^o)$
-    \item Construct the system matrices $\mathbf{H}, \mathbf{M}, \dots$
-    \item Compute the mean and precision matrix of the joint distribution of $\mathbf{z} = [\boldsymbol{\alpha}, \mathbf{y}]$  
-    \item Permute 
-    \item Compute the conditional mean
-    \item Obtain a draw of from using Rue and Held
-    \item repeat steps 1.-5. $G$ times
+    \item Construct the system matrices $\mathbf{H}, \mathbf{M}, \mathbf{V}_{\!\varepsilon}, \mathbf{V}_{\!\upsilon}, \tilde{\mathbf{c}}, \mathbf{d}$
+    \item Compute the mean $\boldsymbol{\mu}_{z}$ and precision matrix $\mathbf{Q}_{z}$ of the joint distribution of $\mathbf{z} = [\boldsymbol{\alpha}, \mathbf{y}]$  
+    \item Permute $\mathbf{z}$, yielding $\mathbf{z}_{\mathcal{P}} \sim \mathcal{N}(\mu_{z_\mathcal{P}}, Q_{z_\mathcal{P}}^{-1})$
+    \item To sample from the conditional distribution $\mathbf{z}_{\alpha\! y^{\sf{f}}} | \mathbf{y}^{\sf{o}}$ 
+    \begin{enumerate}
+        \item Calculate the conditional mean which is given by
+            $$
+            \boldsymbol{\mu}_{\alpha\! y^{\sf{f}} | y^{\sf{o}}} = \mathbf{Q}^{-1}_{\alpha\! y^{\sf{f}}}\left( \mathbf{Q}_{\alpha\! y^{\sf{f}}}\boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} - \mathbf{Q}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}\left(\mathbf{y}^o-\boldsymbol{\mu}_{y^{\sf{o}}}\right)\right)
+            $$
+            following \citet[][Algorithm 2.1]{rueheld_2005}. This requires the computation of the lower Cholesky factor $\mathbf{L}$ of $\mathbf{Q}_{\alpha\! y^{\sf{f}}}$
+        \item Draw $\mathbf{v} \sim \mathcal{N}(0,I)$, solve $\mathbf{L} \mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ and set $\boldsymbol{\mu}_{\alpha\! y^{\sf{f}} | y^{\sf{o}}} +\mathbf{x}$, yielding a draw of $\mathbf{z}_{\alpha\! y^{\sf{f}}}$ conditional on $\mathbf{y}^{\sf{o}}$ \citep[][Algorithm 2.3]{rueheld_2005} 
+    \end{enumerate}
+    \item Reverse the permutation to back out the draw of $\mathbf{y}^{\sf{f}}$
+    \item Repeat steps 1.-6. $G$ times
 \end{enumerate}
 
 \subsubsection{Conditional forecasting}\label{sec:condfcast}
 
 Forecasts conditional on the future path of a subset of the variables in the model arise frequently in macroeconomic applications. Examples are projections of inflation which take assumptions regarding the macroeconomic environment into account \citep{giannone_etal_2014_ijf} or quarterly DSGE models, where higher-frequency external information (\textit{nowcasts}) serves to inform forecasts for $T+1$ \citep{delnegro_schorfheide_2013_hb}.\footnote{Note that \citet{delnegro_schorfheide_2013_hb} do not feed external nowcasts into the model as observations but rather treat them as newsy or noisy measurements of the future values. We leave it to future research to incorporate such an approach into the algorithms outlined in this paper.}
 
-Only minor modifications to the conditioning set and the permutation matrix are required to handle such cases. Extending the notation, let $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ denote the observations which are being conditioned on. Conversely, $\mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observation for which no conditioning information is available at time $t$. The entire conditioning set is given by 
+Only minor modifications to the conditioning set and the permutation matrix are required to handle such cases. Extending the notation, let $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ denote the observations which are being conditioned on. Conversely, $\mathbf{y}^{\sf{f}} \equiv \mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observation for which no conditioning information is available at time $t$. The entire conditioning set is given by 
 $$
 \mathbf{y}^{\sf{c}} = \transpose{[\mathbf{y}^{\sf{T}}_{c,T+1}, \dots, \mathbf{y}^{\sf{T}}_{c,T+H}]}
 $$ 
 with $N^c = \text{dim}(\mathbf{y}^{\sf{c}})$.
+
+\begin{equation}\label{eqn:preddens_cond}    
+    p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}},\mathbf{y^{\sf{c}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})\, \text{d}\Theta
+\end{equation}
+
+To draw from Equation \ref{eqn:preddens_cond}, \citet{waggonerzha1999_res} propose the following algorithm:\\ 
+
+\noindent\textbf{Algorithm 2: draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o, \mathbf{y}^c)$}
+
+\begin{enumerate}
+    \item Draw $\Theta^{(m)}$ from $p(\Theta | y^o)$
+    \item Construct the system matrices $\mathbf{H}, \mathbf{M}, \bm{V}_{\varepsilon}, \bm{V}_{\upsilon}$
+    \item Compute the mean and precision matrix of the joint distribution of $\mathbf{z} = [\boldsymbol{\alpha}, \mathbf{y}]$  
+    \item Permute $\mathbf{z}$ and its moments, yielding $\mathbf{z}_{\mathcal{P}} \sim \mathcal{N}(\mu_{\mathcal{P}}, Q_{\mathcal{P}}^{-1})$
+    \item Compute the conditional mean
+    \item Sample from $\mathcal{N}(0, 0)$ using Rue and Held Algorithm x and reverse the permutation yielding a draw of $\boldsymbol{\alpha}, \mathbf{y}^{\sf{f}}$
+    \item repeat steps 1.-5. $G_0+G$ times
+    \item Discard the first $G_0$ draws as burn-in
+\end{enumerate}
+
+Note that Hauber and Schumacher (2021) also propose a sequential sampler that first draws the missing observations conditional on the states and then the states given a complete data set. This approach performs somewhat better in terms of computing time and could in principle be used in Algorithms 2, which in any case requires a Gibbs sampling step to update the parameters given the conditioning set. However, the gains in performance from faster sampling of states and forecasts may not outweigh the longer burn-in required due to the additional block in the Gibbs Sampler.\\
+
+If the sample information and prior dominate the information in $y^{\sf{c}}$, the impact of the conditioning arguments on the posterior distribution of the parameters is likely to be negligible and $p(\Theta | y^o, y^c) \approx p(\Theta | y^o)$ \citep{delnegro_schorfheide_2013_hb,bgl_2015ijf}. In such applications, draws from Equation \ref{eqn:preddens_cond} can then be obtained from Algorithm 1, using the permutation matrix $\mathcal{P}'$ instead of $\mathcal{P}$.
 
 With $\mathbf{y}$, $\boldsymbol{\alpha}$ defined, as in Section \ref{sec:uncondfcast}, let $\mathcal{P}'$ be a permutation matrix that reorders $z$ as follows:
 $$
@@ -369,7 +403,7 @@ $$
 
 As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and forecasts can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{Q}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$.
 
-\subsection{Sequential sampling}
+\subsection{Multiple draws from $p(y^f|\mathcal{I}, \Theta^{(m)})$}
 
 \section{Models}\label{sec:models}
 
@@ -500,12 +534,12 @@ The results of the simulations can be seen in Figure \ref{figsimulation}. With t
 Overall, the results suggest that precision-samplers are a viable alternative to Kalman-filter based simulation smoothers and can offer sizeable reductions in computational costs for models with a large cross-section. Nevertheless, the findings should merely be interpreted as indicative of the potential gains, as in practical applications the computational efficiency will not only depend on the algorithms used but also on how they are implemented. For example, I do not consider implementations in low level languages such as C or Fortran. The available hardware and parallelization infrastructure can also have an impact on the overall computing time.\footnote{The simulations in this paper were run on the HPC servers of the University of Kiel. TECHNICAL DETAILS.}
 
 \begin{figure}[htbp] \centering
-    \caption{Simulation results: relative runtime \label{figsimulation}}
+    \caption{Computational efficiency analysis of different simulation smoothers \label{figsimulation}}
     \footnotesize
     \begin{tabular}{p{16cm}}
-    \multicolumn{1}{c}{\includegraphics*[scale = 0.8]{../figures/fig_simulations_Ncond_10.pdf}} \\
+    \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_simulations_Ncond_10.pdf}} \\
     {
-    \footnotesize \textbf{Note:} The figure shows the relative runtime of the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to a precision sampler over 100 draws. The conditioning set consists of the first $0.1 \cdot N$ variables. The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices. In the case of soft conditioning, the runtime of repeated draws given parameters is reported. For details, see the main text and Appendix X.
+    \footnotesize \textbf{Note:} The figure shows the time it takes generate 1000 draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ using the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to the precision sampler outlined above for different forecast horizons $H$. The conditioning set $\mathbf{y}^{\sf{c}}$ consists of the first $0.1\cdot N$ variables. For the small factor model, the number of variables is $N=20$ and the number of static factors is $R=2$. For the large factor model $N=100,\, R = 10$. For the medium- and large-sized vector autoregressions the number of lags is set to $P=4$ as well as $N=20$ and $N=100$, respectively.The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices. In the case of soft conditioning, the runtime of producing 1000 draws given the same parameters is reported. For details, see the main text and Appendix \ref{app:simulation}.
     }
     \end{tabular}
     \newline
