@@ -27,7 +27,7 @@ switch Ntypes_tmp(n)
     case 2
         type_fore = 'cond_hard';
     case 3
-        type_fore = 'soft_cond';
+        type_fore = 'cond_soft';
 end
 
 
