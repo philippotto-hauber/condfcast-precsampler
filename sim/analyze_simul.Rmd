@@ -166,7 +166,7 @@ dat %>%
          !(mod %in% c("large N factor model", "small-sized VAR")),
          Ncond == "N_c=0.1") %>%
   ggplot(aes(x = mod, y = value_rel, 
-             color = sampler, shape = ftype, group = ftype))+
+             color = sampler, shape = ftype, group = sampler))+
   geom_point(size = 4, stroke = 2, position = position_dodge(width = 0.3, 
                                               preserve = c("total")
                                               ))+
