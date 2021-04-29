@@ -24,8 +24,8 @@ library(ggsci)
 dir_in <- "./../../../Dissertation/condfcast-precsampler/sim/out/"
 file_prefix <- "runtime"
 Ng <- 10
+Nm <- 1000
 models <- c(rep("ssm", 3), rep("var", 3))
-
 Nhs <- c(5, 20, 50)
 Nconds <- c(10, 50, 75)
 
@@ -122,9 +122,7 @@ dat %>% group_by(mod, sampler, ftype) %>%
                  )+
   
   facet_grid(Ncond~Nh)+
-  scale_y_continuous(trans='log10', breaks = c(0.5, 1, 10, 50))+
-  labs(title = "Relative run time",
-        subtitle = "Different settings")+
+  scale_y_continuous(trans='log10')+
   theme(text = element_text(size=9),
         axis.text.x = element_text(angle=90, hjust = 1),
         legend.position="top",
@@ -134,16 +132,33 @@ dat %>% group_by(mod, sampler, ftype) %>%
         panel.grid.major.x = element_blank(),)
 ```
 
+```{r, fig.width = 10, fig.height=8}
+dat %>% filter(ftype == "hard conditioning") %>%
+  ggplot(aes(x = mod, y = value, color = sampler))+
+  geom_boxplot()+
+  facet_grid(Ncond~Nh)+
+  scale_y_continuous(trans='log10')+
+  theme(text = element_text(size=9),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="top",
+        axis.title.x = element_blank(), axis.title.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),)
+```
+
+
+
 ## $g=1$
 
 ```{r, fig.width = 10, fig.height=10}
 dat %>% 
   filter(sim == 1) %>%
-  ggplot(aes(x = mod, y = value, color = sampler, shape = ftype))+
+  ggplot(aes(x = mod, y = value, color = sampler, shape = ftype, group = sampler))+
   geom_point(position = position_dodge(width = 0.9, 
                                        preserve = c("total")
                                        ))+
-  facet_grid(Nh~Ncond, scales = "free_y")+
+  facet_grid(Nh~Ncond)+
   scale_y_continuous(trans='log10')+
   scale_shape(solid = FALSE)+
   theme(text = element_text(size=9),
