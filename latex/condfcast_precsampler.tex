@@ -354,13 +354,17 @@ The following algorithm summarizes the required steps to generate $G$ independen
 
 \subsubsection{Conditional forecasting}\label{sec:condfcast}
 
-Forecasts conditional on the future path of a subset of the variables in the model arise frequently in macroeconomic applications. Examples are projections of inflation which take assumptions regarding the macroeconomic environment into account \citep{giannone_etal_2014_ijf} or quarterly DSGE models, where higher-frequency external information (\textit{nowcasts}) serves to inform forecasts for $T+1$ \citep{delnegro_schorfheide_2013_hb}.\footnote{Note that \citet{delnegro_schorfheide_2013_hb} do not feed external nowcasts into the model as observations but rather treat them as newsy or noisy measurements of the future values. We leave it to future research to incorporate such an approach into the algorithms outlined in this paper.}
+Forecasts conditional on the future path of a subset of the variables in the model arise frequently in macroeconomic applications. Examples are projections of inflation which take assumptions regarding the macroeconomic environment into account \citep{giannone_etal_2014_ijf} or external nowcasts as "jump-off" points for longer-term forecasts in reduced form or structural models \citep{faustwright2009_jbes,wolters2015_jae}; \citet{knotekzaman2019_ijof} show how macroeconomic forecasts can be improved by conditioning on nowcasts of financial variables.
 
-Only minor modifications to the conditioning set and the permutation matrix are required to handle such cases. Extending the notation, let $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ denote the observations which are being conditioned on. Conversely, $\mathbf{y}^{\sf{f}} \equiv \mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observation for which no conditioning information is available at time $t$. The entire conditioning set is given by 
+
+
+Extending the notation, let $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ denote the observations which are being conditioned on. Conversely, $\mathbf{y}^{\sf{f}} \equiv \mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observation for which no conditioning information is available at time $t$. The entire conditioning set is given by 
 $$
 \mathbf{y}^{\sf{c}} = \transpose{[\mathbf{y}^{\sf{T}}_{c,T+1}, \dots, \mathbf{y}^{\sf{T}}_{c,T+H}]}
 $$ 
 with $N^c = \text{dim}(\mathbf{y}^{\sf{c}})$.
+
+A conceptual difference to unconditional forecasts is that the information set now reflects additional elements, $y^c$, which may impact the posterior distribution of the parameters and by extension the predictive density. From a computational point of view, the permutation of the joint vector of states and observables also needs to be modified. For conditional forecasts, the predictive density is thus given by
 
 \begin{equation}\label{eqn:preddens_cond}    
     p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}},\mathbf{y^{\sf{c}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})\, \text{d}\Theta
@@ -539,7 +543,7 @@ Overall, the results suggest that precision-samplers are a viable alternative to
     \begin{tabular}{p{16cm}}
     \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_simulations_Ncond_10.pdf}} \\
     {
-    \footnotesize \textbf{Note:} The figure shows the time it takes generate 1000 draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ using the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to the precision sampler outlined above for different forecast horizons $H$. The conditioning set $\mathbf{y}^{\sf{c}}$ consists of the first $0.1\cdot N$ variables. For the small factor model, the number of variables is $N=20$ and the number of static factors is $R=2$. For the large factor model $N=100,\, R = 10$. For the medium- and large-sized vector autoregressions the number of lags is set to $P=4$ as well as $N=20$ and $N=100$, respectively.The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices. In the case of soft conditioning, the runtime of producing 1000 draws given the same parameters is reported. For details, see the main text and Appendix \ref{app:simulation}.
+    \footnotesize \textbf{Note:} The figure shows the time it takes to generate 1000 draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ using the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to the precision sampler outlined above for different forecast horizons $H$. The conditioning set $\mathbf{y}^{\sf{c}}$ consists of the first $0.1\cdot N$ variables. For the small factor model, the number of variables is $N=20$ and the number of static factors is $R=2$. For the large factor model $N=100,\, R = 10$. For the medium- and large-sized vector autoregressions the number of lags is set to $P=4$ as well as $N=20$ and $N=100$, respectively.The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices. In the case of soft conditioning, the runtime of producing 1000 draws given the same parameters is reported. For details, see the main text and Appendix \ref{app:simulation}.
     }
     \end{tabular}
     \newline
