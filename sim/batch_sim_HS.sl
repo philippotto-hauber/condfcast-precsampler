@@ -10,10 +10,6 @@
 #SBATCH --partition=cluster
 #SBATCH --constraint=skylake
 
-module load matlab/2020b
-
-mcc -m simul.m -a ./CK1994 -a ./DK2002 -a ./../precsampler -a ./../functions
-
 # HS prec sampler
 for i in `seq 61 90`
 do
