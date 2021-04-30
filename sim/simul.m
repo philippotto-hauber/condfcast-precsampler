@@ -2,11 +2,11 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Nm = 1000;
+Nm = 1000; 
+
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
 Nconds = [10, 50, 75];
-max_iter = 1e2;
 
 if isdeployed 
     maxNumCompThreads(1);
@@ -59,18 +59,27 @@ function telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model
 
 if strcmp(sampler, 'CK') 
     
-    f = @() tmp_CK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
-    telapsed = timeit(f);
+%     f = @() tmp_CK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+%     telapsed = timeit(f);
+    tstart = cputime;
+    tmp_CK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+    telapsed = cputime - tstart;
 
 elseif strcmp(sampler, 'DK')
     
-    f = @() tmp_DK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
-    telapsed = timeit(f);
+%     f = @() tmp_DK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+%     telapsed = timeit(f);
+    tstart = cputime;
+    tmp_DK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+    telapsed = cputime - tstart;
     
 elseif strcmp(sampler, 'HS')
     
-    f = @() tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
-    telapsed = timeit(f);
+%     f = @() tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
+%     telapsed = timeit(f);
+    tstart = cputime;
+    tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
+    telapsed = cputime - tstart;
     
 end
 
@@ -101,31 +110,24 @@ function tmp_HS(params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, Nr)
 function telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model)
 
 if strcmp(sampler, 'CK')    
-%     tic;
-%     [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
-%     store_Ydraw = simsmooth_CK_oversample(Y_o, Y_f, T, Z, H, R, Q, a1, P1, Nm);
-%     telapsed = toc; 
-    f = @() tmp_CK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
-    telapsed = timeit(f);
+%     f = @() tmp_CK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+%     telapsed = timeit(f);
+    tstart = cputime;
+    tmp_CK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+    telapsed = cputime - tstart;
     
 elseif strcmp(sampler, 'DK')
-%     tic;
-%     [T, Z, H, R, Q, a1, P1] = get_statespaceparams(simdata.params, simdata.y, model);
-%     store_Ydraw = simsmooth_DK_oversample(Y_o, Y_f, T, Z, H, R, Q, a1, P1, Nm);
-%     telapsed = toc; 
-    f = @() tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
-    telapsed = timeit(f);
+%     f = @() tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+%     telapsed = timeit(f);
+    tstart = cputime;
+    tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+    telapsed = cputime - tstart;
 elseif strcmp(sampler, 'HS')
-%     if strcmp(model, 'var') % no states!
-%         p_z = p_timet([Y_o, Y_f], 0);
-%     else % account for states when permuting by time-t
-%         p_z = p_timet([Y_o, Y_f], size(simdata.aalpha, 1));
-%     end
-%     tic;
-%     store_Ydraw = simsmooth_HS_oversample(Y_o, Y_f, simdata.params, p_z, Nm, model);
-%     telapsed = toc; 
-    f = @() tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
-    telapsed = timeit(f);
+%     f = @() tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
+%     telapsed = timeit(f);
+    tstart = cputime;
+    tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
+    telapsed = cputime - tstart;
 end
 
 function tmp_CK_oversample(params, y, model, Y_o, Y_f, Nm)
