@@ -215,10 +215,10 @@ with \citep[see also][eqn. 6-8]{chanjeliazkov_2009}:
     \mathbf{Q}_{\alpha\mid y} &= \mathbf{Q}_{\alpha} \\
     &= 
     \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + {\transpose{\mathbf{M}} \bm{V}^{-1}_{\epsilon}\mathbf{M}}\\
-    \boldsymbol\mu_{\alpha} &= \mathbf{Q}_{\alpha}^{-1} \left(\mathbf{Q}_{\alpha} \tilde{\mathbf{c}}+ \transpose{\mathbf{M}} \bm{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
+    \boldsymbol\mu_{\alpha\mid y} &= \mathbf{Q}_{\alpha}^{-1} \left(\mathbf{Q}_{\alpha} \tilde{\mathbf{c}}+ \transpose{\mathbf{M}} \bm{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
 \end{align*}
 
-Draws from this distribution can be obtained efficiently since the $T\cdot S \times S$ matrix $\mathbf{Q}_{\alpha}$ is banded and its inversion not required. Specifically, the conditional mean can be calculated following \citet[][Algorithm 2.1]{rueheld_2005}, whereas a draw from the conditional distribution can be obtained in the following way: Let $\mathbf{v}$ be a $T\cdot S \times 1$ vector of independent draws from $\mathcal{N}(0,1)$. Then solving $\transpose{\mathbf{L}}\mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ via forward substitution where $\mathbf{L}$ is the lower Cholesky factor of $\mathbf{Q}_{\alpha}$, i.e. $\mathbf{L}\transpose{\mathbf{L}} = \mathbf{Q}_{\alpha}$, yields a draw from $\mathcal{N}(0, \mathbf{Q}^{-1}_{\alpha})$ to which the mean $\boldsymbol{\mu}_{\alpha\mid y}$ can be added to obtain a draw from the desired conditional distribution \citep[][Algorithm 2.4]{rueheld_2005}.
+Draws from this distribution can be obtained efficiently since the $T\cdot S \times S$ matrix $\mathbf{Q}_{\alpha}$ is banded and its inversion not required. Specifically, calculate the conditional mean following \citet[][Algorithm 2.1]{rueheld_2005}. This requires the computation of the lower Cholesky factor $\mathbf{L}$ of $\mathbf{Q}_{\alpha}$. Then draw $\mathbf{v} \sim \mathcal{N}(0,I_{TS})$, solve $\transpose{\mathbf{L}} \mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ and set $\boldsymbol{\mu}_{\alpha\mid y} +\mathbf{x}$, yielding a draw of $\boldsymbol{\alpha}$ conditional on $\mathbf{y}$ \citep[][Algorithm 2.4]{rueheld_2005}. \\
 
 \subsection{Forecasting}
 
@@ -338,58 +338,33 @@ The following algorithm summarizes the required steps to generate $G$ independen
     \item Draw $\Theta^{(m)}$ from $p(\Theta | y^o)$
     \item Construct the system matrices $\mathbf{H}, \mathbf{M}, \mathbf{V}_{\!\varepsilon}, \mathbf{V}_{\!\upsilon}, \tilde{\mathbf{c}}, \mathbf{d}$
     \item Compute the mean $\boldsymbol{\mu}_{z}$ and precision matrix $\mathbf{Q}_{z}$ of the joint distribution of $\mathbf{z} = [\boldsymbol{\alpha}, \mathbf{y}]$  
-    \item Permute $\mathbf{z}$, yielding $\mathbf{z}_{\mathcal{P}} \sim \mathcal{N}(\mu_{z_\mathcal{P}}, Q_{z_\mathcal{P}}^{-1})$
-    \item To sample from the conditional distribution $\mathbf{z}_{\alpha\! y^{\sf{f}}} | \mathbf{y}^{\sf{o}}$ 
-    \begin{enumerate}
-        \item Calculate the conditional mean which is given by
-            $$
-            \boldsymbol{\mu}_{\alpha\! y^{\sf{f}} | y^{\sf{o}}} = \mathbf{Q}^{-1}_{\alpha\! y^{\sf{f}}}\left( \mathbf{Q}_{\alpha\! y^{\sf{f}}}\boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} - \mathbf{Q}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}}\left(\mathbf{y}^o-\boldsymbol{\mu}_{y^{\sf{o}}}\right)\right)
-            $$
-            following \citet[][Algorithm 2.1]{rueheld_2005}. This requires the computation of the lower Cholesky factor $\mathbf{L}$ of $\mathbf{Q}_{\alpha\! y^{\sf{f}}}$
-        \item Draw $\mathbf{v} \sim \mathcal{N}(0,I)$, solve $\mathbf{L} \mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ and set $\boldsymbol{\mu}_{\alpha\! y^{\sf{f}} | y^{\sf{o}}} +\mathbf{x}$, yielding a draw of $\mathbf{z}_{\alpha\! y^{\sf{f}}}$ conditional on $\mathbf{y}^{\sf{o}}$ \citep[][Algorithm 2.3]{rueheld_2005} 
-    \end{enumerate}
+    \item Permute $\mathbf{z}$, yielding $\mathbf{z}_{\mathcal{P}} \sim \mathcal{N}(\mu_{z_\mathcal{P}}, Q_{z_\mathcal{P}}^{-1})$ with partitions $\transpose{[\mathbf{z}^{\sf{T}}_{\alpha\! y^{\sf{f}}}, \mathbf{y}^{\sf{o}}]}$
+    \item Sample from the conditional distribution $\mathbf{z}_{\alpha\! y^{\sf{f}}} | \mathbf{y}^{\sf{o}}$ using \citep[][Algorithm 2.1 and 2.4]{rueheld_2005}
     \item Reverse the permutation to back out the draw of $\mathbf{y}^{\sf{f}}$
     \item Repeat steps 1.-6. $G$ times
 \end{enumerate}
 
+
 \subsubsection{Conditional forecasting}\label{sec:condfcast}
 
-Forecasts conditional on the future path of a subset of the variables in the model arise frequently in macroeconomic applications. Examples are projections of inflation which take assumptions regarding the macroeconomic environment into account \citep{giannone_etal_2014_ijf} or external nowcasts as "jump-off" points for longer-term forecasts in reduced form or structural models \citep{faustwright2009_jbes,wolters2015_jae}; \citet{knotekzaman2019_ijof} show how macroeconomic forecasts can be improved by conditioning on nowcasts of financial variables.
+In certain applications, forecasts conditional on a subset of the future values $y_{T+1}, \dots, y_{T+H}$ may be required. Examples include projections of inflation which take assumptions regarding the macroeconomic environment into account \citep{giannone_etal_2014_ijf} or external nowcasts as "jump-off" points for longer-term forecasts in reduced form or structural models \citep{faustwright2009_jbes,wolters2015_jae}; \citet{knotekzaman2019_ijof} show how macroeconomic forecasts can be improved by conditioning on nowcasts of financial variables.\\
 
-
-
-Extending the notation, let $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ denote the observations which are being conditioned on. Conversely, $\mathbf{y}^{\sf{f}} \equiv \mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observation for which no conditioning information is available at time $t$. The entire conditioning set is given by 
+Extending the notation, let $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ denote the observations which are being conditioned on. The entire conditioning set is given by 
 $$
 \mathbf{y}^{\sf{c}} = \transpose{[\mathbf{y}^{\sf{T}}_{c,T+1}, \dots, \mathbf{y}^{\sf{T}}_{c,T+H}]}
 $$ 
-with $N^c = \text{dim}(\mathbf{y}^{\sf{c}})$.
+with $N^c = \text{dim}(\mathbf{y}^{\sf{c}})$. Conversely, $\mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observations for which no conditioning information is available at time $t$ and $\mathbf{y}^{\sf{f}} = \transpose{[\mathbf{y}^{\sf{T}}_{-c,T+1}, \dots, \mathbf{y}^{\sf{T}}_{-c,T+H}]}$. 
 
-A conceptual difference to unconditional forecasts is that the information set now reflects additional elements, $y^c$, which may impact the posterior distribution of the parameters and by extension the predictive density. From a computational point of view, the permutation of the joint vector of states and observables also needs to be modified. For conditional forecasts, the predictive density is thus given by
+In principle, conditional forecasts can be sampled in much the same way as outlined above. However, some conceptual and computational differences arise. Firstly note that in this case, the predictive density is given by
 
 \begin{equation}\label{eqn:preddens_cond}    
     p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}},\mathbf{y^{\sf{c}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})\, \text{d}\Theta
 \end{equation}
 
-To draw from Equation \ref{eqn:preddens_cond}, \citet{waggonerzha1999_res} propose the following algorithm:\\ 
+which takes into account that the conditioning set $y^c$ contains information about which $\Theta$ are more likely a posteriori. \\
 
-\noindent\textbf{Algorithm 2: draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o, \mathbf{y}^c)$}
+Secondly, to draw from $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}},\mathbf{y^{\sf{c}}}, \Theta)$ requires a different permutation of the joint vector of observables and states. With $\mathbf{z} = \transpose{[\transpose{\boldsymbol{\alpha}}, \transpose{\mathbf{y}}]}$ defined as in Section \ref{sec:uncondfcast}, let $\mathcal{P}'$ be a permutation matrix that reorders $z$ as follows:
 
-\begin{enumerate}
-    \item Draw $\Theta^{(m)}$ from $p(\Theta | y^o)$
-    \item Construct the system matrices $\mathbf{H}, \mathbf{M}, \bm{V}_{\varepsilon}, \bm{V}_{\upsilon}$
-    \item Compute the mean and precision matrix of the joint distribution of $\mathbf{z} = [\boldsymbol{\alpha}, \mathbf{y}]$  
-    \item Permute $\mathbf{z}$ and its moments, yielding $\mathbf{z}_{\mathcal{P}} \sim \mathcal{N}(\mu_{\mathcal{P}}, Q_{\mathcal{P}}^{-1})$
-    \item Compute the conditional mean
-    \item Sample from $\mathcal{N}(0, 0)$ using Rue and Held Algorithm x and reverse the permutation yielding a draw of $\boldsymbol{\alpha}, \mathbf{y}^{\sf{f}}$
-    \item repeat steps 1.-5. $G_0+G$ times
-    \item Discard the first $G_0$ draws as burn-in
-\end{enumerate}
-
-Note that Hauber and Schumacher (2021) also propose a sequential sampler that first draws the missing observations conditional on the states and then the states given a complete data set. This approach performs somewhat better in terms of computing time and could in principle be used in Algorithms 2, which in any case requires a Gibbs sampling step to update the parameters given the conditioning set. However, the gains in performance from faster sampling of states and forecasts may not outweigh the longer burn-in required due to the additional block in the Gibbs Sampler.\\
-
-If the sample information and prior dominate the information in $y^{\sf{c}}$, the impact of the conditioning arguments on the posterior distribution of the parameters is likely to be negligible and $p(\Theta | y^o, y^c) \approx p(\Theta | y^o)$ \citep{delnegro_schorfheide_2013_hb,bgl_2015ijf}. In such applications, draws from Equation \ref{eqn:preddens_cond} can then be obtained from Algorithm 1, using the permutation matrix $\mathcal{P}'$ instead of $\mathcal{P}$.
-
-With $\mathbf{y}$, $\boldsymbol{\alpha}$ defined, as in Section \ref{sec:uncondfcast}, let $\mathcal{P}'$ be a permutation matrix that reorders $z$ as follows:
 $$
 \mathbf{z}_{\mathcal{P}'} \coloneqq \mathcal{P}' \mathbf{z} =
  \transpose{[
@@ -402,12 +377,57 @@ $$
      \alpha^{\sf{T}}_{T+H}, 
      \mathbf{y}^{\sf{T}}_{c,T+H},
      \mathbf{y}^{o\sf{T}},
-     \mathbf{y}^{c\sf{T}}]}
+     \mathbf{y}^{c\sf{T}}]}.
 $$
 
-As above, a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and forecasts can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{Q}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$.
+The first and second moments are permuted accordingly, yielding 
 
-\subsection{Multiple draws from $p(y^f|\mathcal{I}, \Theta^{(m)})$}
+\begin{align*}
+\boldsymbol{\mu}_{z_{\mathcal{P}'}} &\coloneqq \mathcal{P}' \boldsymbol{\mu}_z = 
+\begin{bmatrix}
+    \boldsymbol{\mu}_{\alpha\! y^{\sf{f}}} \\
+    \boldsymbol{\mu}_{y^{\sf{o}}\!y^{\sf{c}}}
+\end{bmatrix}
+\end{align*}
+
+and 
+
+\begin{align*}
+    \mathbf{Q}_{z_{\mathcal{P}'}} &\coloneqq  \mathcal{P}' \mathbf{Q}_z \transpose{\mathcal{P}'} \\
+    &= 
+    \begin{bmatrix}
+        \mathbf{Q}_{\alpha\! y^{\sf{f}}} & \mathbf{Q}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}\!y^{\sf{c}}} \\ 
+        \mathbf{Q}^{\sf{T}}_{\alpha\! y^{\sf{f}}, y^{\sf{o}}\! y^{\sf{c}}} & \mathbf{Q}_{y^{\sf{o}}\!y^{\sf{c}}}
+    \end{bmatrix}
+\end{align*}
+
+Then a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and conditional forecasts given parameters can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{Q}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$. As above, the desired draw of $y^f$ can be backed out by reversing the permutation.\\
+
+Building on this, draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ can then be obtainted by the following algorithm \citep[see also ][Algorithm 1]{waggonerzha1999_res}:\\
+
+\noindent\textbf{Algorithm 2: Draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o, \mathbf{y}^c)$}\\
+
+Initialize $\Theta^{0}$ from $p(\Theta | y^o)$. For $g=1:(G_0+G)$
+
+\begin{enumerate}    
+    \item Construct the system matrices $\mathbf{H}, \mathbf{M}, \mathbf{V}_{\!\varepsilon}, \mathbf{V}_{\!\upsilon}, \tilde{\mathbf{c}}, \mathbf{d}$ given the parameters $\Theta^{(g-1)}$
+    \item Compute the mean $\boldsymbol{\mu}_{z}$ and precision matrix $\mathbf{Q}_{z}$ of the joint distribution of $\mathbf{z} = [\boldsymbol{\alpha}, \mathbf{y}]$  
+    \item Permute $\mathbf{z}$, yielding $\mathbf{z}_{\mathcal{P}'} \sim \mathcal{N}(\mu_{z_\mathcal{P}'}, Q_{z_\mathcal{P}'}^{-1})$ with partitions $\transpose{[\mathbf{z}^{\sf{T}}_{\alpha\! y^{\sf{f}}}, \mathbf{y}^{\sf{o}}, \mathbf{y}^{\sf{c}}]}$
+    \item Sample from the conditional distribution $\mathbf{z}_{\alpha\! y^{\sf{f}}} | \mathbf{y}^{\sf{o}}, \mathbf{y}^{\sf{c}}, \Theta^{(g-1)}$ using \citep[][Algorithm 2.1 and 2.4]{rueheld_2005} and reverse the permutation to back out the draws of $\mathbf{y}^{\sf{f}}$ and $\boldsymbol{\alpha}$
+    \item Draw $\Theta^{(g)}$ from $p(\Theta|\mathbf{y}^o, \mathbf{y}^{\sf{c}}, {\mathbf{y}^{\sf{f}}}^{(g)}, \alpha^{(g)})$ 
+ \end{enumerate}
+
+ Discard the first $G_0$ draws as burn-in.\\
+
+Note that Hauber and Schumacher (2021) also propose a sequential sampler that first draws the missing observations conditional on the states and then the states given a complete data set. This approach performs somewhat better in terms of computing time and could in principle be used in Algorithms 2, which in any case requires a Gibbs sampling step to update the parameters given the conditioning set. However, the gains in performance from faster sampling of states and forecasts may not outweigh the longer burn-in required due to the additional block in the Gibbs Sampler.\\
+
+If the sample information and prior dominate the information in $y^{\sf{c}}$, the impact of the conditioning arguments on the posterior distribution of the parameters is likely to be negligible and $p(\Theta | y^o, y^c) \approx p(\Theta | y^o)$ \citep{delnegro_schorfheide_2013_hb,bgl_2015ijf}. In such applications, draws from Equation \ref{eqn:preddens_cond} can then be obtained from Algorithm 1, using the permutation matrix $\mathcal{P}'$ instead of $\mathcal{P}$.
+
+\subsection{Soft conditions and repeated samples from $p(y^f|y^o, \Theta^{(g)})$}
+
+So far we have considered conditional forecasts that fix the future values of some of the endogeneous variables at single points. \citet{waggonerzha1999_res} labels these "hard" conditions to distinguish them from soft conditions where each element of $y^c$ is merely restricted to lie within a pre-specified range, i.e. $y^c_l \leq y^c \leq y^c_u$. If the probability that the soft conditions are satisified is not too small, then draws from the unconditional predictive density $p(y^f|y^o, \Theta^{(g)})$ can be obtained until $y^c_l \leq y^c \leq y^c_u$.\footnote{Similarly, hard and soft conditions can be combined, e.g. if inflation forecasts are produced conditional on an oil price path and subject to the restriction that the Federal Funds rate is positive. In such a scenario, draws from $p(y^f|y^o, y^c, \Theta^{(g)})$ are obtained until the soft restrictions are satisfied.}\\
+
+The precision-sampling algorithms outlined above are particularly suited to this task since the bottleneck in the calculations is the Cholesky factorization of the band matrix $Q_{\alpha, y^f}$ which requires $((T+H)S+NH)\cdot b_w^2$ floating point operations where $b_w$ is the lower bandwidth of $Q_{\alpha, y^f}$ \citep[][4.3.5]{GolubvanLoan2013}. However, it only needs to be computed once, irrespective of the number of desired draws \citep{rue2001_jrss}. Repeated samples thus come at a significantly reduced computational burden, consisting only of $(T+H)S+NH$ independent draws from the standard Normal distribution, band backward substitution - which requires $2 ((T+H)S+NH) \cdot b_w$ floating point operations \citep[][4.3.2]{GolubvanLoan2013}- and a vector addition.  
 
 \section{Models}\label{sec:models}
 
@@ -531,11 +551,32 @@ Given $y=[y^o, y^f]$, unconditional forecasts are easily produced by conditionin
 
 \subsection{Simulations}
 
-To compare the performance of the precision sampler with Kalman-filter based simulation smoothers, I run simulations for different variants of the models. More concretely, I consider both small ($N=20,\,R=2$) and large factor models ($N=100\,,R=10$) as well as a medium- and large-sized vector autoregression with $N=20$ and $N=100$, respectively; the lag length equals $P=4$ in both vector autoregressions. I evaluate the runtime of obtaining $100$ draws from the predictive density given a sample size $T=100$ and forecast horizons $H = \{5, 20, 50\}$ conditional on a share $\kappa = 0.1$ of the observables (\textit{hard conditioning}).\footnote{The size of the conditioning set does not have a large impact on the relative runtime and in the interest of space I do not report results for $\kappa = \{0.5, 0.75\}$. They are available upon request.} Furthermore, I consider the marginal costs of producing additional draws given the parameters as would be the case when on top of the conditioning set $$\mathbf{y}^{c} = [y_{1, T+1}, \dots, y_{\kappa \cdot N, T+1}, \dots, y_{1,T+H}, \dots, y_{\kappa \cdot N, T+H}]$$ restrictions are imposed on the remainining observables to lie within a prespecified range (\textit{soft conditioning}). Details on the data-generating processes as well as on the implementation of the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers are provided in Appendix \ref{app:simulation}.\\
+\subsubsection{Motivation and related literature}
 
-The results of the simulations can be seen in Figure \ref{figsimulation}. With the expection of the medium-sized VAR, the precision-sampler performs better than Kalman-filter based alternatives in terms of hard conditioning and the gains generally increase in the size of the cross-section $N$ and the forecast horizon $H$. For example, given a long forecast horizon $H=50$, draws from the predictive density of the large-sized VAR can be generated at close to or even less than \sfrac{1}{50} of the computational cost of the other samplers. For the large factor model, the relative gains are not as substantial but the precision-sampler still clearly outperforms the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers. Turning to soft conditioning where the computational cost of producing a marginal draw given the parameters is evaluated, these results continue to hold in the majority of cases. However, for the large factor model the \citet{carterkohn1994_biomtr} sampler performs best. Given that the computational advantage decreases in $\frac{H}{T}$ , a reasonable explanation is that these benefits are due to the recursive nature of this sampler so that only the states and observations in the forecast period are actually sampled. In contrast, the other samplers always produce a draw of the entire history of states from $t=1, \dots, T+H$.\\
+In simulations I compare the computational efficiency of the precision-sampling algorithms outlined above to  simulation smoothers such as \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} that rely on the Kalman-filter and are commonly used in the literature. Previous work in this area has analyzed the computational advantages of such simulation smoothers compared to the algorithms for conditional forecasting given in \citet{waggonerzha1999_res} in the context of a vector autoregression \citep{bgl_2015ijf}; \citet{mmp2011_csda} analyzes the performance of precision-based samplers in the context of a time-varying parameter regression and dynamic factor models and compares the performance to the \citet{durbinkoopman2002_biomtr} simulation smoother.\\
 
-Overall, the results suggest that precision-samplers are a viable alternative to Kalman-filter based simulation smoothers and can offer sizeable reductions in computational costs for models with a large cross-section. Nevertheless, the findings should merely be interpreted as indicative of the potential gains, as in practical applications the computational efficiency will not only depend on the algorithms used but also on how they are implemented. For example, I do not consider implementations in low level languages such as C or Fortran. The available hardware and parallelization infrastructure can also have an impact on the overall computing time.\footnote{The simulations in this paper were run on the HPC servers of the University of Kiel. TECHNICAL DETAILS.}
+I focus on both small ($N=20,\,R=2$) and large factor models ($N=100\,,R=10$) as well as a medium- and large-sized vector autoregression with $N=20$ and $N=100$, respectively; the lag length equals $P=4$ in both vector autoregressions. I evaluate the runtime of obtaining $100$ draws from the predictive density $p(y^f|y^o, y^c)$ given a sample size $T=100$ and forecast horizons $H = \{5, 20, 50\}$ conditional on a share $\kappa = 0.1$ of the observables (\textit{hard conditioning}).\footnote{The size of the conditioning set does not have a large impact on the relative runtime and in the interest of space I do not report results for $\kappa = \{0.5, 0.75\}$. They are available upon request.} Furthermore, I also consider the costs of producing repeated samples from the predictive density given the parameters as would be the case when on top of the conditioning set $$\mathbf{y}^{c} = [y_{1, T+1}, \dots, y_{\kappa \cdot N, T+1}, \dots, y_{1,T+H}, \dots, y_{\kappa \cdot N, T+H}]$$ restrictions are imposed on the remainining observables to lie within a prespecified range (\textit{soft conditioning}). 
+
+\subsubsection{Data-generating process}
+
+In the case of the dynamic factor model outlined in Section \ref{sec:dfm} the factor dynamics are given by a VAR(1) with parameters $\phi_1 = 0.7 \cdot I_R$ and $\Sigma = I_R$. The elements of the loadings on the contemporaneous factors $\lambda_0$ are drawn from independent Normal distributions with mean $0.5$ and variance $0.1$; all remaining loadings are set to 0, i.e. $K=0$. Setting $J=0$, the idiosyncratic components are i.i.d and $\omega_i$ is chosen such that the common component - $\boldsymbol{\lambda}_{0,i\cdot} \mathbf{f}_t$ - explains \sfrac{2}{3} of the total variation in the i-th variable. \\
+
+To generate data from a vector autoregression as discussed in Section \ref{sec:var}, I closely follow the set-up outlined in \citet{CHP2020_ijf}. Let $b_{p, ij}$ denote the element of $B_p$ in row i and column j. The diagonal elements are set to
+
+\begin{subequations}
+    \begin{align}
+        b_{1, ii} = \mathcal{N}(0, \sigma^2_o), \: \forall i = 1, \dots, N \\
+b_{p, ii} = \frac{b_{1,ii}}{p}, \: \forall p = 2, \dots, P
+    \end{align}    
+\end{subequations}
+
+\noindent while each off-diagonal element is non-zero with probability $p_c$ and drawn from $\mathcal{N}(0, \sigma^2_c)$.The lag length $P$ equals 4 and for the medium-sized VAR with $N=20$ variables $\sigma^2_o = 0.2 $, $\sigma^2_c = 0.05$ and $p_c = 0.2$. To ensure a stationary VAR when the cross-section is large, i.e. $N=100$, the values are adjusted to $\sigma^2_o = 0.05 $, $\sigma^2_c = 0.001$ and $p_c = 0.1$.
+
+Details on the implementation of the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers are provided in Appendix \ref{app:kalmansimsmoothers}.\\
+
+\subsubsection{Results}
+
+The results of the simulations can be seen in Figure \ref{figsimulation}. 
 
 \begin{figure}[htbp] \centering
     \caption{Computational efficiency analysis of different simulation smoothers \label{figsimulation}}
@@ -543,7 +584,7 @@ Overall, the results suggest that precision-samplers are a viable alternative to
     \begin{tabular}{p{16cm}}
     \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_simulations_Ncond_10.pdf}} \\
     {
-    \footnotesize \textbf{Note:} The figure shows the time it takes to generate 1000 draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ using the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to the precision sampler outlined above for different forecast horizons $H$. The conditioning set $\mathbf{y}^{\sf{c}}$ consists of the first $0.1\cdot N$ variables. For the small factor model, the number of variables is $N=20$ and the number of static factors is $R=2$. For the large factor model $N=100,\, R = 10$. For the medium- and large-sized vector autoregressions the number of lags is set to $P=4$ as well as $N=20$ and $N=100$, respectively.The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices. In the case of soft conditioning, the runtime of producing 1000 draws given the same parameters is reported. For details, see the main text and Appendix \ref{app:simulation}.
+    \footnotesize \textbf{Note:} The figure shows the time it takes to generate 1000 draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ using the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to the precision sampler outlined above for different forecast horizons $H$. The conditioning set $\mathbf{y}^{\sf{c}}$ consists of the first $0.1\cdot N$ variables. For the small factor model, the number of variables is $N=20$ and the number of static factors is $R=2$. For the large factor model $N=100,\, R = 10$. For the medium- and large-sized vector autoregressions the number of lags is set to $P=4$ as well as $N=20$ and $N=100$, respectively.The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices.For the precision-sampler this includes the costs of setting up the permutation matrices which is incurred only once.In the case of soft conditioning, the runtime of producing 1000 draws given the same parameters is reported. For details, see the main text.
     }
     \end{tabular}
     \newline
@@ -565,26 +606,11 @@ Overall, the results suggest that precision-samplers are a viable alternative to
 
 \appendix
 
-\section{Appendix: Simulations}\label{app:simulation}
+\section{Appendix: Kalman-filter based simulation smoothers}\label{app:kalmansimsmoothers}
 
-This appendix provides details on the data-generating processes and the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers that are used in the simulations in Section \ref{sec:models}
+This appendix provides details on the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers that are used in the simulations in Section \ref{sec:models}
 
-\subsection{Data-generating processes}
 
-In the case of the dynamic factor model outlined in Section \ref{sec:dfm} the factor dynamics are given by a VAR(1) with parameters $\phi_1 = 0.7 \cdot I_R$ and $\Sigma = I_R$. The elements of the loadings on the contemporaneous factors $\lambda_0$ are drawn from independent Normal distributions with mean $0.5$ and variance $0.1$; all remaining loadings are set to 0, i.e. $K=0$. Setting $J=0$, the idiosyncratic components are i.i.d and $\omega_i$ is chosen such that the common component - $\boldsymbol{\lambda}_{0,i\cdot} \mathbf{f}_t$ - explains \sfrac{2}{3} of the total variation in the i-th variable. \\
-
-To generate data from a vector autoregression as discussed in Section \ref{sec:var}, I closely follow the set-up outlined in \citet{CHP2020_ijf}. Let $b_{p, ij}$ denote the element of $B_p$ in row i and column j. The diagonal elements are set to
-
-\begin{subequations}
-    \begin{align}
-        b_{1, ii} = \mathcal{N}(0, \sigma^2_o), \: \forall i = 1, \dots, N \\
-b_{p, ii} = \frac{b_{1,ii}}{p}, \: \forall p = 2, \dots, P
-    \end{align}    
-\end{subequations}
-
-\noindent while each off-diagonal element is non-zero with probability $p_c$ and drawn from $\mathcal{N}(0, \sigma^2_c)$.The lag length $P$ equals 4 and for the medium-sized VAR with $N=20$ variables $\sigma^2_o = 0.2 $, $\sigma^2_c = 0.05$ and $p_c = 0.2$. To ensure a stationary VAR when the cross-section is large, i.e. $N=100$, the values are adjusted to $\sigma^2_o = 0.05 $, $\sigma^2_c = 0.001$ and $p_c = 0.1$.
-
-\subsection{Kalman-filter based simulation smoothers}
 
 In this section we highlight how we implement the Kalman-filter based simulation smoothers and show how to obtain draws from the predictive densities. Although both the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers rely on the Kalman filter and smoother to produce a draw from the conditional distribution of the states, there are important conceptual differences between the two. Let $a_{t|s} = E[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ and $P_{t|s} = Var[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ denote the conditional mean and variance of the state at time $t$ conditional on information up to time $s$ which can be obtainted from the Kalman filter or smoother. In addition, let $a_t$ denote a draw from the conditional distribution $p(\alpha_t | \mathbf{y}_1, \dots, \mathbf{y}_{T+H})$. 
 
