@@ -7,6 +7,7 @@ Nm = 1000;
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
 Nconds = [10, 50, 75];
+max_iter = 100;
 
 if isdeployed 
     maxNumCompThreads(1);
