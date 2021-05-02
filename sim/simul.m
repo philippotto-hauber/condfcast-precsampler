@@ -2,7 +2,7 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Nm = 1000; 
+Nm = 10; 
 
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
@@ -25,7 +25,7 @@ end
 
 % back out g, sampler and type_fore
 [g, sampler, type_fore] = get_g_sampler_typefore(n);
-  
+
 % loop over dims and ftypes
 for Nh = Nhs
     for Ncond = Nconds        
