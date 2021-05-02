@@ -10,6 +10,8 @@
 #SBATCH --partition=cluster
 #SBATCH --constraint=skylake
 
+module load matlab/2020b
+
 # CK 1994 smoother
 for i in `seq 1 30`
 do
