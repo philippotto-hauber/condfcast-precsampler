@@ -2,8 +2,6 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Nm = 10; 
-
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
 Nconds = [10, 50, 75];
@@ -30,6 +28,12 @@ end
 for Nh = Nhs
     for Ncond = Nconds        
         for m = Nmodels
+            if m == 6
+                Nm = 10;
+            else
+                Nm = 100; 
+            end
+            
             [dims, flag_modelclass, dims_str] = get_dims(m, Nh, Ncond);
             disp('-------------------------------')
             disp([flag_modelclass, ' ' dims_str, '_Ncond_' num2str(Ncond)])    
@@ -60,27 +64,27 @@ function telapsed = timesamplers(Y_o, Y_f, Y_u, Y_l, simdata, Nm, sampler, model
 
 if strcmp(sampler, 'CK') 
     
-%     f = @() tmp_CK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
-%     telapsed = timeit(f);
-    tstart = cputime;
-    tmp_CK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
-    telapsed = cputime - tstart;
+    f = @() tmp_CK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+    telapsed = timeit(f);
+%     tstart = cputime;
+%     tmp_CK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+%     telapsed = cputime - tstart;
 
 elseif strcmp(sampler, 'DK')
     
-%     f = @() tmp_DK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
-%     telapsed = timeit(f);
-    tstart = cputime;
-    tmp_DK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
-    telapsed = cputime - tstart;
+    f = @() tmp_DK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+    telapsed = timeit(f);
+%     tstart = cputime;
+%     tmp_DK(simdata.params, simdata.y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm);
+%     telapsed = cputime - tstart;
     
 elseif strcmp(sampler, 'HS')
     
-%     f = @() tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
-%     telapsed = timeit(f);
-    tstart = cputime;
-    tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
-    telapsed = cputime - tstart;
+    f = @() tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
+    telapsed = timeit(f);
+%     tstart = cputime;
+%     tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
+%     telapsed = cputime - tstart;
     
 end
 
@@ -111,24 +115,24 @@ function tmp_HS(params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, Nr)
 function telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model)
 
 if strcmp(sampler, 'CK')    
-%     f = @() tmp_CK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
-%     telapsed = timeit(f);
-    tstart = cputime;
-    tmp_CK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
-    telapsed = cputime - tstart;
+    f = @() tmp_CK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+    telapsed = timeit(f);
+%     tstart = cputime;
+%     tmp_CK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+%     telapsed = cputime - tstart;
     
 elseif strcmp(sampler, 'DK')
-%     f = @() tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
-%     telapsed = timeit(f);
-    tstart = cputime;
-    tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
-    telapsed = cputime - tstart;
+    f = @() tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+    telapsed = timeit(f);
+%     tstart = cputime;
+%     tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
+%     telapsed = cputime - tstart;
 elseif strcmp(sampler, 'HS')
-%     f = @() tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
-%     telapsed = timeit(f);
-    tstart = cputime;
-    tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
-    telapsed = cputime - tstart;
+    f = @() tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
+    telapsed = timeit(f);
+%     tstart = cputime;
+%     tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
+%     telapsed = cputime - tstart;
 end
 
 function tmp_CK_oversample(params, y, model, Y_o, Y_f, Nm)
