@@ -2,6 +2,7 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
+Nm = 100; 
 Nmodels = 1:6;
 Nhs = [5, 20, 50];
 Nconds = [10, 50, 75];
@@ -27,13 +28,7 @@ end
 % loop over dims and ftypes
 for Nh = Nhs
     for Ncond = Nconds        
-        for m = Nmodels
-            if m == 6
-                Nm = 10;
-            else
-                Nm = 100; 
-            end
-            
+        for m = Nmodels           
             [dims, flag_modelclass, dims_str] = get_dims(m, Nh, Ncond);
             disp('-------------------------------')
             disp([flag_modelclass, ' ' dims_str, '_Ncond_' num2str(Ncond)])    
@@ -79,8 +74,12 @@ elseif strcmp(sampler, 'DK')
 %     telapsed = cputime - tstart;
     
 elseif strcmp(sampler, 'HS')
-    
-    f = @() tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
+    if strcmp(model, 'var') % no states!
+        p_z = p_timet([Y_o, Y_f], 0);
+    else % account for states when permuting by time-t
+        p_z = p_timet([Y_o, Y_f], size(simdata.aalpha, 1));
+    end
+    f = @() tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, p_z);
     telapsed = timeit(f);
 %     tstart = cputime;
 %     tmp_HS(simdata.params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, size(simdata.aalpha, 1));
@@ -90,27 +89,21 @@ end
 
 
 function tmp_CK(params, y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm)
-    for m = 1:Nm
+%     for m = 1:Nm
         [T, Z, H, R, Q, a1, P1] = get_statespaceparams(params, y, model);
         [sdraw, Ydraw] = simsmooth_CK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
-    end
+%     end
     
 function tmp_DK(params, y, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm)
-    for m = 1:Nm
+%     for m = 1:Nm
         [T, Z, H, R, Q, a1, P1] = get_statespaceparams(params, y, model);
         [sdraw, Ydraw] = simsmooth_DK(Y_o, Y_f, Y_u, Y_l, T, Z, H, R, Q, a1, P1, max_iter);
-    end
+%     end
     
-function tmp_HS(params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, Nr)
-    if strcmp(model, 'var') % no states!
-        p_z = p_timet([Y_o, Y_f], 0);
-    else % account for states when permuting by time-t
-        p_z = p_timet([Y_o, Y_f], Nr);
-    end
-
-    for m = 1:Nm
+function tmp_HS(params, model, Y_o, Y_f, Y_u, Y_l, max_iter, Nm, p_z)
+%     for m = 1:Nm
         [sdraw, Ydraw] = simsmooth_HS(Y_o, Y_f, Y_l, Y_u, params, p_z, max_iter, model);
-    end
+%     end
 
 function telapsed = timesampler_softcond(Y_o, Y_f, simdata, Nm, sampler, model)
 
@@ -128,7 +121,12 @@ elseif strcmp(sampler, 'DK')
 %     tmp_DK_oversample(simdata.params, simdata.y, model, Y_o, Y_f, Nm);
 %     telapsed = cputime - tstart;
 elseif strcmp(sampler, 'HS')
-    f = @() tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
+    if strcmp(model, 'var') % no states!
+        p_z = p_timet([Y_o, Y_f], 0);
+    else % account for states when permuting by time-t
+        p_z = p_timet([Y_o, Y_f], size(simdata.aalpha, 1));
+    end
+    f = @() tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, p_z);
     telapsed = timeit(f);
 %     tstart = cputime;
 %     tmp_HS_oversample(simdata.params, model, Y_o, Y_f, Nm, size(simdata.aalpha, 1));
@@ -144,12 +142,7 @@ function tmp_DK_oversample(params, y, model, Y_o, Y_f, Nm)
     [T, Z, H, R, Q, a1, P1] = get_statespaceparams(params, y, model);
     Ydraw = simsmooth_DK_oversample(Y_o, Y_f, T, Z, H, R, Q, a1, P1, Nm);
     
-function tmp_HS_oversample(params, model, Y_o, Y_f, Nm, Nr)
-    if strcmp(model, 'var') % no states!
-        p_z = p_timet([Y_o, Y_f], 0);
-    else % account for states when permuting by time-t
-        p_z = p_timet([Y_o, Y_f], Nr);
-    end
+function tmp_HS_oversample(params, model, Y_o, Y_f, Nm, p_z)
     store_Ydraw = simsmooth_HS_oversample(Y_o, Y_f, params, p_z, Nm, model);
 
 
