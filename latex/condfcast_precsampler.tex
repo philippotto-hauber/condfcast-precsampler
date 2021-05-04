@@ -187,8 +187,8 @@ The joint distribution of states and observables is Normal with mean $\boldsymbo
     \end{bmatrix} \\
     &= 
     \begin{bmatrix}
-        \mathbf{Q}_{\alpha} & \mathbf{Q}_{\alpha\text{y}} \\
-        \transpose{\mathbf{Q}}_{\alpha \text{y}} & \mathbf{Q}_{\text{y}}  
+        \mathbf{Q}_{\alpha} & \mathbf{Q}_{\alpha y} \\
+        \transpose{\mathbf{Q}}_{\alpha y} & \mathbf{Q}_{y}  
     \end{bmatrix}
 \end{align*}
 
@@ -202,7 +202,7 @@ Using standard results for multivariate Normal distributions \citep[e.g.][pp. 86
     &\sim
     \mathcal{N}
     \left(
-    \mathbf{Q}^{-1}_{\alpha} \left( \mathbf{Q}_{\alpha}\boldsymbol{\mu}_{\alpha} - \mathbf{Q}^{-1}_{\alpha} \mathbf{Q}_{\alpha y} \left(\mathbf{y} - \boldsymbol{\mu}_{\text{y}}\right)\right), \mathbf{Q}_{\alpha}^{-1}
+    \mathbf{Q}^{-1}_{\alpha} \left( \mathbf{Q}_{\alpha}\boldsymbol{\mu}_{\alpha} - \mathbf{Q}_{\alpha y} \left(\mathbf{y} - \boldsymbol{\mu}_{\text{y}}\right)\right), \mathbf{Q}_{\alpha}^{-1}
     \right) \\
     &\coloneqq \mathcal{N}
         \left(
@@ -214,8 +214,8 @@ with \citep[see also][eqn. 6-8]{chanjeliazkov_2009}:
 \begin{align*}
     \mathbf{Q}_{\alpha\mid y} &= \mathbf{Q}_{\alpha} \\
     &= 
-    \transpose{\mathbf{H}} \bm{V}^{-1}_{\upsilon} \mathbf{H} + {\transpose{\mathbf{M}} \bm{V}^{-1}_{\epsilon}\mathbf{M}}\\
-    \boldsymbol\mu_{\alpha\mid y} &= \mathbf{Q}_{\alpha}^{-1} \left(\mathbf{Q}_{\alpha} \tilde{\mathbf{c}}+ \transpose{\mathbf{M}} \bm{V}_{\epsilon}^{-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
+    \transpose{\mathbf{H}} \mathbf{V}^{\,-1}_{\!\upsilon} \mathbf{H} + {\transpose{\mathbf{M}} \mathbf{V}^{\,-1}_{\!\epsilon}\mathbf{M}}\\
+    \boldsymbol\mu_{\alpha\mid y} &= \mathbf{Q}_{\alpha}^{-1} \left(\mathbf{Q}_{\alpha} \tilde{\mathbf{c}}+ \transpose{\mathbf{M}} \mathbf{V}_{\!\epsilon}^{\,-1} \left(\mathbf{y} - \mathbf{d}\right) \right)
 \end{align*}
 
 Draws from this distribution can be obtained efficiently since the $T\cdot S \times S$ matrix $\mathbf{Q}_{\alpha}$ is banded and its inversion not required. Specifically, calculate the conditional mean following \citet[][Algorithm 2.1]{rueheld_2005}. This requires the computation of the lower Cholesky factor $\mathbf{L}$ of $\mathbf{Q}_{\alpha}$. Then draw $\mathbf{v} \sim \mathcal{N}(0,I_{TS})$, solve $\transpose{\mathbf{L}} \mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ and set $\boldsymbol{\mu}_{\alpha\mid y} +\mathbf{x}$, yielding a draw of $\boldsymbol{\alpha}$ conditional on $\mathbf{y}$ \citep[][Algorithm 2.4]{rueheld_2005}. \\
@@ -423,11 +423,11 @@ Note that Hauber and Schumacher (2021) also propose a sequential sampler that fi
 
 If the sample information and prior dominate the information in $y^{\sf{c}}$, the impact of the conditioning arguments on the posterior distribution of the parameters is likely to be negligible and $p(\Theta | y^o, y^c) \approx p(\Theta | y^o)$ \citep{delnegro_schorfheide_2013_hb,bgl_2015ijf}. In such applications, draws from Equation \ref{eqn:preddens_cond} can then be obtained from Algorithm 1, using the permutation matrix $\mathcal{P}'$ instead of $\mathcal{P}$.
 
-\subsection{Soft conditions and repeated samples from $p(y^f|y^o, \Theta^{(g)})$}
+\subsubsection{Soft conditions and repeated samples from $p(y^f|y^o, \Theta^{(g)})$}
 
 So far we have considered conditional forecasts that fix the future values of some of the endogeneous variables at single points. \citet{waggonerzha1999_res} labels these "hard" conditions to distinguish them from soft conditions where each element of $y^c$ is merely restricted to lie within a pre-specified range, i.e. $y^c_l \leq y^c \leq y^c_u$. If the probability that the soft conditions are satisified is not too small, then draws from the unconditional predictive density $p(y^f|y^o, \Theta^{(g)})$ can be obtained until $y^c_l \leq y^c \leq y^c_u$.\footnote{Similarly, hard and soft conditions can be combined, e.g. if inflation forecasts are produced conditional on an oil price path and subject to the restriction that the Federal Funds rate is positive. In such a scenario, draws from $p(y^f|y^o, y^c, \Theta^{(g)})$ are obtained until the soft restrictions are satisfied.}\\
 
-The precision-sampling algorithms outlined above are particularly suited to this task since the bottleneck in the calculations is the Cholesky factorization of the band matrix $Q_{\alpha, y^f}$ which requires $((T+H)S+NH)\cdot b_w^2$ floating point operations where $b_w$ is the lower bandwidth of $Q_{\alpha, y^f}$ \citep[][4.3.5]{GolubvanLoan2013}. However, it only needs to be computed once, irrespective of the number of desired draws \citep{rue2001_jrss}. Repeated samples thus come at a significantly reduced computational burden, consisting only of $(T+H)S+NH$ independent draws from the standard Normal distribution, band backward substitution - which requires $2 ((T+H)S+NH) \cdot b_w$ floating point operations \citep[][4.3.2]{GolubvanLoan2013}- and a vector addition.  
+The precision-sampling algorithms outlined above are particularly suited to this task since the bottleneck in the calculations is the Cholesky factorization of the band matrix $Q_{\alpha\!y^{\sf{f}}}$ which requires $((T+H)S+NH)\cdot b_w^2$ floating point operations where $b_w$ is the lower bandwidth of $Q_{\alpha, y^f}$ \citep[][4.3.5]{GolubvanLoan2013}. However, it only needs to be computed once, irrespective of the number of desired draws \citep{rue2001_jrss}. Repeated samples thus come at a significantly reduced computational burden, consisting only of $(T+H)S+NH$ independent draws from the standard Normal distribution, band backward substitution - which requires $2 ((T+H)S+NH) \cdot b_w$ floating point operations \citep[][4.3.2]{GolubvanLoan2013}- and a vector addition.  
 
 \section{Models}\label{sec:models}
 
@@ -533,21 +533,167 @@ which allows to efficiently sample from $p(\mathbf{y}^{\sf{f}}\,|\, I, \Theta)$ 
 
 Vector autoregressions (VAR) are another class of popular macroeconometric models. Given their flexibility, large VAR are heavily overparametrized and the estimation typically relies on Bayesian shrinkage (). 
 
-\begin{equation}
-    \mathbf{y}_t = \mathbf{b} + \sum_{p=1}^P \mathbf{B}_p \mathbf{y}_{t-p} + \boldsymbol{\varepsilon}_t
+\begin{equation}\label{eqn:var}
+    \mathbf{y}_t = \mathbf{b} + \sum_{p=1}^P \mathbf{B}_p \mathbf{y}_{t-p} + \boldsymbol{\upsilon}_t
 \end{equation}
 
-where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots, \mathbf{B}_P$ are the $N \times N$ coefficient matrices and $\boldsymbol{\varepsilon}_t \sim \mathcal{N}(0, \Sigma)$.
+where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots, \mathbf{B}_P$ are the $N \times N$ coefficient matrices and $\boldsymbol{\upsilon}_t \sim \mathcal{N}(0, \Sigma)$.
 
-A VAR is easily cast into state space form, as the observables are the states and the measurement equation is simply an identity matrix without measurement error. In terms of the stacked model, considered in Section \ref{sec:precsampler}, this implies that $M = I_{TN}$ and $V_{\varepsilon} = 0$. That is to say, the model can rewritten as
+A VAR is easily cast into state space form, as the observables are the states and the measurement equation is simply an identity matrix without measurement error. In terms of the stacked model considered in Section \ref{sec:precsampler} this implies that $M = I_{TN}$ and $V_{\varepsilon} = 0$. Moreover, since there are no states it suffices to condition on $y_{T-P+1}, \dots, y_{T}$ when calculating the predictive density. That is to say, given the parameters the model can rewritten in stacked form as
+
+
+\begin{equation*}
+    \begin{bmatrix}
+        I_N \\
+        \shortminus\mathbf{B}_1 & I_N \\
+        & \ddots & \ddots & \\
+        \shortminus\mathbf{B}_{P} & \dots & \shortminus\mathbf{B}_1 & I_N & & \\
+        & \ddots &  & \ddots & \ddots & \\
+        & & \shortminus\mathbf{B}_{P} & \dots & \shortminus\mathbf{B}_1 & I_N       
+    \end{bmatrix}
+    \begin{bmatrix}
+        \mathbf{y}_{T-P+1} \\
+        \vdots \\
+        \mathbf{y}_{T} \\
+        \mathbf{y}_{T+1} \\
+        \vdots \\
+        \mathbf{y}_{T+H} 
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        \mathbf{b} \\
+        \vdots \\
+        \mathbf{b} \\
+        \mathbf{b} \\
+        \vdots \\
+        \mathbf{b} 
+    \end{bmatrix}
+    +
+    \begin{bmatrix}
+        \boldsymbol{\upsilon}_{T-P+1} \\
+        \vdots \\
+        \boldsymbol{\upsilon}_{T} \\
+        \boldsymbol{\upsilon}_{T+1} \\
+        \vdots \\
+        \boldsymbol{\upsilon}_{T+H} 
+    \end{bmatrix}
+\end{equation*}
+
+or more compactly:
+\begin{equation*}
+    \mathbf{H} \mathbf{y} = \mathbf{c} + \boldsymbol{\upsilon}.
+\end{equation*}
+
+Sticking with the notation, define $z=y$. Then the joint distribution of available observations and forecasts is Normal:
 
 $$
-H y = \upsilon
+\mathbf{z} \sim \mathcal{N}(\mathbf{H}^{-1} \mathbf{c}, (\transpose{\mathbf{H}} \mathbf{V}^{-1}_{\!\upsilon}\mathbf{H})^{-1}).
 $$
 
+Draws from the predictive density can be obtained by applying Algorithms 1 and 2.\\
 
+Of course, unconditional forecasts given the parameters can simply be obtained by drawing $\boldsymbol{\upsilon}_{T+1}, \dots, \boldsymbol{\upsilon}_{T+1}$ and using Equation \ref{eqn:var} to recursively construct $\mathbf{y}_{T+1}, \dots, \mathbf{y}_{T+H}$. Nevertheless, it is instructive to see how such draws can also be obtained by permuting the joint distribution $z$, as this forms the basis for generating conditional forecasts. Consider a VAR(1) and $H=1$. Clearly, in this case, $\mathbf{y}_{T+1}|\mathbf{y}_T, \Theta \sim \mathcal{N}(\mathbf{b} + \mathbf{B}_1 \mathbf{y}_T, \boldsymbol{\Sigma})$. To derive the result from the joint distribution $\mathbf{z} = [\mathbf{z}_{y^o}, \mathbf{z}_{y^f}] = [\mathbf{y}_T, \mathbf{y}_{T+1}]$, start with the mean $\boldsymbol{\mu}_z$:
 
-Given $y=[y^o, y^f]$, unconditional forecasts are easily produced by conditioning on the observables. B
+\begin{align*}
+\boldsymbol{\mu}_z = \mathbf{H}^{-1} \mathbf{c} &= 
+\begin{bmatrix}
+    I_N \\
+    \shortminus\mathbf{B}_1 & I_N 
+\end{bmatrix}
+^{-1}
+\begin{bmatrix}
+    \mathbf{b} \\
+    \mathbf{b} 
+\end{bmatrix}
+\\
+&= 
+\begin{bmatrix}
+    I_N \\
+    \mathbf{B}_1 & I_N 
+\end{bmatrix}
+\begin{bmatrix}
+    \mathbf{b} \\
+    \mathbf{b} 
+\end{bmatrix}
+\\
+&= 
+\begin{bmatrix}
+    \mathbf{b} \\
+    \mathbf{B}_1\mathbf{b} + \mathbf{b} 
+\end{bmatrix}
+\end{align*}
+
+Similarly, the precision matrix $Q_z$ is given by
+
+\begin{align*}
+    \mathbf{Q}_z = \transpose{\mathbf{H}} \mathbf{V}_{\!\upsilon}^{-1} \mathbf{H} &= 
+    \transpose{
+    \begin{bmatrix}
+        I_N \\
+        \shortminus\mathbf{B}_1 & I_N 
+    \end{bmatrix}
+    }
+    \begin{bmatrix}
+        \Sigma^{\shortminus 1} & \\
+        &\Sigma^{\shortminus 1} 
+    \end{bmatrix}
+    \begin{bmatrix}
+        I_N &  \shortminus\mathbf{B}_1 \\
+        & I_N 
+    \end{bmatrix}
+    \\
+    &= 
+    \begin{bmatrix}
+        \Sigma^{\shortminus 1} + \mathbf{B}^{\sf{T}}_1\Sigma^{\shortminus 1}\mathbf{B}_1 & \shortminus\mathbf{B}^{\sf{T}}_1\Sigma^{\shortminus 1}  \\
+        \shortminus\Sigma^{\shortminus 1}\mathbf{B}_1 & \Sigma^{\shortminus 1} 
+    \end{bmatrix}
+\end{align*}
+
+Permute $\mathbf{z}$ such that $\mathbf{y}_T$ is ordered last, i.e. $\mathbf{z}_{\mathcal{P}} = \mathcal{P} \mathbf{z}  = [\mathbf{z}_{y^f}, \mathbf{z}_{y^o}] = [\mathbf{y}_{T+1}, \mathbf{y}_T]$. The corresponding moments with partitions $y^{\sf{f}}$ and $y^{\sf{o}}$ are then given by
+
+\begin{align*}
+\boldsymbol{\mu}_{z_{\mathcal{P}}} &= 
+\begin{bmatrix}
+    \mathbf{b} + \mathbf{B}_1\mathbf{b} \\
+    \mathbf{b} 
+\end{bmatrix}
+\coloneqq
+\begin{bmatrix}
+    \boldsymbol{\mu}_{y^{\sf{f}}} \\
+    \boldsymbol{\mu}_{y^{\sf{o}}}
+\end{bmatrix}
+,\\
+\mathbf{Q}_{z_{\mathcal{P}}} &= 
+\begin{bmatrix}
+    \Sigma^{\shortminus 1}   & \shortminus\boldsymbol{\Sigma}^{\shortminus 1}\mathbf{B}_1 \\
+    \shortminus\mathbf{B}^{\sf{T}}_1\boldsymbol{\Sigma}^{\shortminus 1} & \boldsymbol{\Sigma}^{\shortminus 1} + \mathbf{B}^{\sf{T}}_1\boldsymbol{\Sigma}^{\shortminus 1}\mathbf{B}_1
+\end{bmatrix}
+\coloneqq
+\begin{bmatrix}
+    \mathbf{Q}_{y^f} & \mathbf{Q}_{y^f\!y^o} \\
+    \mathbf{Q}^{\sf{T}}_{y^f\!y^o} & \mathbf{Q}_{y^o}
+\end{bmatrix}
+.
+\end{align*}
+
+The precision matrix of the conditional distribution $\mathbf{z}_{y^f}|\mathbf{z}_{y^o}$ is simply given by
+
+\begin{equation*}
+    \mathbf{Q}_{y^f|y^o} = 
+    \mathbf{Q}_{y^f} = 
+    \boldsymbol{\Sigma}^{-1}
+\end{equation*}
+
+and the corresponding conditional mean is:
+
+\begin{align*}
+    \boldsymbol{\mu}_{y^f|y^o} &= 
+    \boldsymbol{\mu}_{y^f} - \mathbf{Q}_{y^f}^{-1} \mathbf{Q}_{y^{\sf{f}}\!y^o} (\mathbf{y}_o - \boldsymbol{\mu}_{y^o})\\
+    &= \mathbf{B}_1\mathbf{b} + \mathbf{b} - \boldsymbol{\Sigma} (\shortminus\boldsymbol{\Sigma}^{-1} \mathbf{B}_1) (\mathbf{y}_T - \mathbf{b}) \\
+    &= \mathbf{B}_1\mathbf{b} + \mathbf{b} + \mathbf{B}_1 (\mathbf{y}_T - \mathbf{b}) \\
+    &= \mathbf{b} + \mathbf{B}_1 \mathbf{y}_T.
+\end{align*}
+
 
 \subsection{Simulations}
 
