@@ -4,7 +4,7 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=30
 #SBATCH --mem=3000
-#SBATCH --time=10:00:00
+#SBATCH --time=12:00:00
 #SBATCH --output=simulHS.out
 #SBATCH --error=simulHS.err
 #SBATCH --partition=cluster
@@ -13,7 +13,7 @@
 module load matlab/2020b
 
 # HS prec sampler
-for i in `seq 61 90`
+for i in `seq 601 900`
 do
 	./simul $i &
 done
