@@ -3,9 +3,6 @@ rng(1234) % set random seed for reproducibility
 
 % set-up
 Nm = 100; 
-Nmodels = 1:6;
-Nhs = [5, 20, 50];
-Nconds = [10, 50, 75];
 max_iter = 100;
 
 if isdeployed 
@@ -13,13 +10,19 @@ if isdeployed
     dir_in = './../../sim-precsampler/dgp/';
     dir_out = './../../sim-precsampler/out/';
     n = str2double(n);
+    Nmodels = 1:6;
+    Nhs = [5, 20, 50];
+    Nconds = [10, 50, 75];
 else
     addpath('./../precsampler/')
     addpath('CK1994/')
     addpath('DK2002/')
     addpath('./../functions/')
-    dir_in = './../../../Dissertation/condfcast-precsampler/sim/dgp/';
-    dir_out = './../../../Dissertation/condfcast-precsampler/sim/out test/';
+    dir_in = './dgp/';
+    dir_out = './out local/';
+    Nmodels = 1;
+    Nhs = [50];
+    Nconds = [10];
 end
 
 % back out g, sampler and type_fore

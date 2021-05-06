@@ -1,6 +1,6 @@
 function [g, sampler, type_fore] = get_g_sampler_typefore(n)
 
-Ng = 100;
+Ng = 10;
 samplers = {'CK', 'DK', 'HS'};
 type_fores = {'uncond', 'cond_hard', 'cond_soft'};
 
