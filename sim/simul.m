@@ -2,7 +2,7 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Nm = 100; 
+Nm = 10; 
 max_iter = 100;
 
 if isdeployed 
@@ -20,9 +20,9 @@ else
     addpath('./../functions/')
     dir_in = './dgp/';
     dir_out = './out local/';
-    Nmodels = 1;
-    Nhs = [50];
-    Nconds = [10];
+    Nmodels = 6;
+    Nhs = [5, 20, 50];
+    Nconds = [10, 50, 75];
 end
 
 % back out g, sampler and type_fore
@@ -33,8 +33,8 @@ for Nh = Nhs
     for Ncond = Nconds        
         for m = Nmodels           
             [dims, flag_modelclass, dims_str] = get_dims(m, Nh, Ncond);
-            disp('-------------------------------')
-            disp([flag_modelclass, ' ' dims_str, '_Ncond_' num2str(Ncond)])    
+            %disp('-------------------------------')
+            %disp([flag_modelclass, ' ' dims_str, '_Ncond_' num2str(Ncond)])    
             load([dir_in, flag_modelclass, '_', dims_str, '_g_', num2str(g)]);
             if strcmp(flag_modelclass, 'var')
                 Y_o = []; 
