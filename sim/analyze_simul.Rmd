@@ -1,10 +1,15 @@
 ---
 title: "Simulation results"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
+# Overview
 
-# Clear workspace, load packages
+This notebook loads the output of the runtime simulations and transform and analyzes the output. Also produces a plot and calculates results that are used in the paper. 
+
+## Clear workspace, load packages
 
 ```{r}
 rm(list = ls())
@@ -18,10 +23,11 @@ library(ggsci)
 ```
 
 
-# Set-up
+## Set-up
 
 ```{r}
-dir_in <- "./../../../Dissertation/condfcast-precsampler/sim/out/"
+#dir_in <- "./../../../Dissertation/condfcast-precsampler/sim/out/"
+dir_in <- "./out local/"
 file_prefix <- "runtime"
 Ng <- 10
 Nm <- 1000
@@ -55,7 +61,7 @@ names_dims = c("small factor model",
 ```
 
 
-# Load simulation output
+## Load simulation output
 
 ```{r}
 dat_raw <- data.frame() # initialize empty data frame
@@ -83,7 +89,7 @@ for (g in seq(1, Ng)){
 }
 ```
 
-# Transform output
+## Transform output
 
 ```{r}
 # Calculate relative run time (precision-sampler = 1)
@@ -106,11 +112,60 @@ dat$Ncond <- factor(dat$Ncond, levels = paste0(Nconds/100), labels = paste0("N_c
 
 ```
 
-# Analyze output
+## Analyze output
+
+Calculate mean and standard deviation of runtime to see if there are any outliers and if the runtime is always above $0.1s$ as suggested by the [Matlab documentation]{https://de.mathworks.com/help/matlab/matlab_prog/measure-performance-of-your-program.html}
+
+```{r}
+dat %>% 
+  group_by(mod, sampler, ftype, Ncond, Nh) %>%
+  summarise(mean_runtime = mean(value),
+            sd_runtime = sd(value)) %>%
+  ungroup() -> dat_tmp
+```
+
+```{r}
+dat_tmp %>% ggplot(aes(x = mod, y = mean_runtime, color = sampler, shape = ftype))+
+    geom_point(position = position_dodge(width = 1.0, 
+                                           preserve = c("total")
+                                           ))+
+  facet_grid(Ncond ~ Nh)+
+  theme(text = element_text(size=7),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="right")
+```
+
+
+```{r}
+dat_tmp %>% ggplot(aes(x = mod, y = sd_runtime, color = sampler, shape = ftype))+
+    geom_point(position = position_dodge(width = 1.0, 
+                                           preserve = c("total")
+                                           ))+
+  facet_grid(Ncond ~ Nh)+
+  theme(text = element_text(size=7),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="right")
+```
+
+Is there a relationship between average runtime and standard deviation?
+
+```{r}
+dat_tmp %>% ggplot(aes(x = mean_runtime, y = sd_runtime, color = interaction(sampler, mod), shape = ftype))+
+    geom_point()+
+  facet_grid(Ncond ~ Nh)+
+  theme(text = element_text(size=7),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="right")
+```
+
+
+```{r}
+filter(dat, value < 0.1)
+```
 
 
 ```{r, fig.width = 10, fig.height=8}
-dat %>% group_by(mod, sampler, ftype) %>%
+dat %>% group_by(mod, sampler, ftype, Ncond, Nh) %>%
   mutate(upper = max(value),
          lower = min(value)) %>%
   ungroup() %>%
@@ -120,7 +175,6 @@ dat %>% group_by(mod, sampler, ftype) %>%
                                            preserve = c("total")
                                            )
                  )+
-  
   facet_grid(Ncond~Nh)+
   scale_y_continuous(trans='log10')+
   theme(text = element_text(size=9),
@@ -134,6 +188,23 @@ dat %>% group_by(mod, sampler, ftype) %>%
 
 ```{r, fig.width = 10, fig.height=8}
 dat %>% filter(ftype == "hard conditioning") %>%
+  ggplot(aes(x = mod, y = value, color = sampler))+
+  geom_boxplot()+
+  facet_grid(Ncond~Nh)+
+  scale_y_continuous(trans='log10')+
+  theme(text = element_text(size=9),
+        axis.text.x = element_text(angle=90, hjust = 1),
+        legend.position="top",
+        axis.title.x = element_blank(), axis.title.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),)
+```
+
+
+
+```{r, fig.width = 10, fig.height=8}
+dat %>% filter(ftype == "soft conditioning") %>%
   ggplot(aes(x = mod, y = value, color = sampler))+
   geom_boxplot()+
   facet_grid(Ncond~Nh)+
@@ -190,7 +261,7 @@ dat %>%
          shape = guide_legend(order = 2))+
   scale_shape(solid = FALSE)+
   scale_color_jco()+
-  scale_y_continuous(trans='log10', breaks = c(0.2, 1, 2, 10, 50))+
+  scale_y_continuous(trans='log10', breaks = c(1, 2, 10, 50))+
   facet_wrap(~Nh, ncol = 1)+
   theme_bw()+
   theme(text = element_text(size=15),
@@ -203,8 +274,61 @@ dat %>%
         axis.title.y = element_blank()) 
 ```
 
+```{r,fig.width = 10, fig.height=10}
+dat %>% 
+  filter(!(sampler == "precision-sampler"),
+         !(ftype %in% c("unconditional forecasts", "soft conditioning")),
+         !(mod %in% c("large N factor model", "small-sized VAR")),
+         Ncond == "N_c=0.1") %>%
+  ggplot(aes(x = mod, y = value_rel, 
+             color = sampler))+
+  geom_boxplot()+
+  guides(color = guide_legend(order = 1), 
+         shape = guide_legend(order = 2))+
+  scale_shape(solid = FALSE)+
+  scale_color_jco()+
+  scale_y_continuous(trans='log10', breaks = c(1, 2, 10, 50), limits = c(0.7, 20))+
+  facet_wrap(~Nh, ncol = 1)+
+  theme_bw()+
+  theme(text = element_text(size=15),
+        legend.position="top", legend.title = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(angle=30, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) 
+```
+
+```{r,fig.width = 10, fig.height=10}
+dat %>% 
+  filter(!(sampler == "precision-sampler"),
+         !(ftype %in% c("unconditional forecasts", "hard conditioning")),
+         !(mod %in% c("large N factor model", "small-sized VAR")),
+         Ncond == "N_c=0.1") %>%
+  ggplot(aes(x = mod, y = value_rel, 
+             color = sampler))+
+  geom_boxplot()+
+  guides(color = guide_legend(order = 1), 
+         shape = guide_legend(order = 2))+
+  scale_shape(solid = FALSE)+
+  scale_color_jco()+
+  scale_y_continuous(trans='log10', breaks = c(1, 2, 10, 50), limits = c(1, 90))+
+  facet_wrap(~Nh, ncol = 1)+
+  theme_bw()+
+  theme(text = element_text(size=15),
+        legend.position="top", legend.title = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(angle=30, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()) 
+```
+
+
 ```{r}
-ggsave(paste0(dir_fig, "fig_simulations_Ncond_10.pdf"), width = 10, height = 10, units = "in")
+#ggsave(paste0(dir_fig, "fig_simulations_Ncond_10.pdf"), width = 10, height = 10, units = "in")
 ```
 
 
