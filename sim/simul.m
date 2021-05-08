@@ -2,7 +2,7 @@ function simul(n)
 rng(1234) % set random seed for reproducibility
 
 % set-up
-Nm = 10; 
+Nm = 100; 
 max_iter = 100;
 
 if isdeployed 
