@@ -49,7 +49,299 @@ This paper proposes precision-based sampling algorithms for conditional forecast
 
 \section{Precision-based sampling algorithms for conditional forecasting}\label{sec:precsampler}
 
+In this section, I lay out the precision-based sampling algorithms to obtain conditional forecasts. To fix notation and ideas, I show how 
 \subsection{Precision-based sampling}\label{subsec:precsampler}
+
+To fix notation and ideas I outline the precision-based algorithms to sample unobserved components before turning to forecasting. The analysis is done through the lens of a dynamic factor model but can be generalized to other state space models with unobserved components.
+
+Factor models feature prominently in the macroeconomic literature. For an overview of the methodological developments of factor models and their applications, see \citet{stockwatson2016_hbmacro}. Precision-based sampling applications include \citet{chanjeliazkov_2009,mccausland_factor2015,kaufmannschumacher_jae2017,kaufmannschumacher_jectrcs2019}\\
+
+A \textit{dynamic factor model} is defined as
+
+\begin{subequations}
+    \label{eqn:factormodel}
+    \begin{align}
+        \mathbf{y}_t &= \sum_{k=0}^K \lambda_k \, \mathbf{f}_{t-k} + \mathbf{e}_t \label{eqn:facmod_obs}\\ 
+        \mathbf{f}_t &= \sum_{p=1}^P \phi_p \, \mathbf{f}_{t-p} + \boldsymbol{\upsilon}_t \label{eqn:facmod_factors}\\
+        \mathbf{e}_t &= \sum_{j=0}^J \psi_j \, \mathbf{e}_{t-j} + \boldsymbol{\epsilon}_t \label{eqn:facmod_idios}
+    \end{align}
+\end{subequations}
+
+where $\mathbf{f}_t$ denotes an $R \times 1$ vector of unobserved factors which summarizes the co-movement of the observables $\mathbf{y}_t$. The dynamics of the factors are modelled as a vector autoregression of order $P$. The idiosyncratic components, $\mathbf{e}_t$ are modeled as independent autoregressive processes of order $J$, i.e. $\psi_1, \dots, \psi_J$ are diagonal matrices. The $N \times R$ loadings matrices $\mathbf{\lambda}_k$ capture the dynamic relationships between observables and factors. Setting $K=0$, so that the variables only load contemporaneously on the factors, yields a \textit{static factor model}. The innovations $\epsilon_t$, $\upsilon_t$ are Normal, uncorrelated at all leads and lags and their covariance matrices given by $\Omega$ and $\Sigma$, respectively. \\
+
+Stacking the observables, factors and idiosyncratic components over $t$ yields 
+
+\begin{equation}
+    \mathbf{y} = \mathbf{M} \, \mathbf{f} + \mathbf{e}
+\end{equation} 
+
+\noindent where 
+
+$$
+\mathbf{M}
+=
+\begin{bmatrix}
+    \boldsymbol{\lambda_0} &   \\
+    \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0}   \\
+    \boldsymbol{\lambda_2} & \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0} \\
+     & \ddots & \ddots & \ddots \\
+     & \boldsymbol{\lambda_K} &\dots & \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0}
+     &  \\
+     & & \ddots & \ddots & \ddots & \ddots \\
+    & & & \boldsymbol{\lambda_K} &\dots & \boldsymbol{\lambda_1} & \boldsymbol{\lambda_0}
+\end{bmatrix}.
+$$
+
+The vector of idiosyncratic components can be written as $\mathbf{H}_e\, \mathbf{e} = \boldsymbol{\varepsilon}$ with 
+
+$$
+\mathbf{H}_e
+=
+\begin{bmatrix}
+    I_N &  \\
+    \shortminus \psi_1 & I_N &  \\
+    \shortminus \psi_2 & \shortminus \psi_1 & I_N &  \\
+     &  &  &  &  & \\
+    \shortminus \psi_J & \dots & \dots & \shortminus \psi_1 & I_N \\
+     &  &  &  &  & \\
+    & & \shortminus \psi_J & \dots & \dots & \shortminus \psi_1 & I_N
+\end{bmatrix}
+$$
+
+\noindent and $\boldsymbol{\varepsilon} \sim \mathcal{N}(0_{NT}, I_T \otimes \boldsymbol{\Omega})$. It follows that $\mathbf{e}$ is Normal, with mean $0$ and covariance matrix $\bm{V}_{e} = (\transpose{\mathbf{H}}_{e} (I_T \otimes \boldsymbol{\Omega}^{-1}) \mathbf{H}_e)^{-1}$. \\
+
+In a similar fashion, the vector of factors is distributed as 
+
+$$
+\mathbf{f} \sim \mathcal{N}\left(0, (\transpose{\mathbf{H}}_{\sf{f}} (I_T \otimes \boldsymbol{\Sigma^{-1}}) \mathbf{H}_{\sf{f}})^{-1}\right)
+$$
+
+with 
+
+$$
+\mathbf{H}_{\sf{f}}
+=
+\begin{bmatrix}
+    I_N &  \\
+    \shortminus \phi_1 & I_N &  \\
+    \shortminus \phi_2 & \shortminus \phi_1 & I_N &  \\
+     &  &  &  &  & \\
+    \shortminus \phi_P & \dots & \dots & \shortminus \phi_1 & I_N \\
+     &  &  &  &  & \\
+    & & \shortminus \phi_P & \dots & \dots & \shortminus \phi_1 & I_N
+\end{bmatrix}.
+$$
+
+Define 
+
+\begin{equation}
+    \mathbf{z} 
+    \coloneqq 
+    \begin{bmatrix}
+        \mathbf{f} \\
+        \mathbf{y}
+    \end{bmatrix} 
+    = 
+    \begin{bmatrix}
+        I_{TR} & 0 \\
+        \mathbf{M} & I_{TN} 
+    \end{bmatrix}
+    \begin{bmatrix}
+        \mathbf{f}\\
+        \mathbf{e}\\
+    \end{bmatrix}.
+\end{equation}
+
+It follows that $\mathbf{z}$ is Normal with mean 0 and covariance matrix $\mathbf{V}_{\!z}$. The corresponding precision matrix is the inverse of the covariance matrix: 
+
+\begin{align*}
+    \mathbf{Q}_z 
+    &= 
+    \mathbf{V}^{-1}_{\!z} \\
+    &= 
+    \text{\sf{Var}}\left(
+    \begin{bmatrix}
+        \mathbf{f} \\
+        \mathbf{y}
+    \end{bmatrix}
+    \right)^{-1} \\
+    &=  
+    \left(
+    \begin{bmatrix}
+        I & 0 \\
+        \mathbf{M} & I
+    \end{bmatrix}
+    \begin{bmatrix}
+        \mathbf{H}_{\sf{f}}^{-1} \mathbf{V}_{\!\upsilon} \transpose{\mathbf{H}_{\sf{f}}^{-1}} & 0 \\
+        0 & \mathbf{V}_{\!e}
+    \end{bmatrix} 
+    \begin{bmatrix}
+        I & \transpose{\mathbf{M}} \\
+        0 & I
+    \end{bmatrix}
+    \right)^{-1}\\
+    &=
+    \begin{bmatrix}
+        I & \shortminus\transpose{\mathbf{M}} \\
+        0 & I
+    \end{bmatrix}
+    \begin{bmatrix}
+        \transpose{\mathbf{H}_{\sf{f}}} \mathbf{V}_{\!\upsilon} \mathbf{H}_{\sf{f}} & 0 \\
+        0 & \mathbf{V}_{\!e}
+    \end{bmatrix} 
+    \begin{bmatrix}
+        I & 0 \\
+        \shortminus\mathbf{M} & I 
+    \end{bmatrix} \\
+    &=
+    \begin{bmatrix}
+         \transpose{\mathbf{H}_{\sf{f}}} \mathbf{V}_{\!\upsilon} \mathbf{H}_{\sf{f}} + \transpose{\mathbf{M}}\bm{V}_{\varepsilon}\mathbf{M}  & \shortminus \transpose{\mathbf{M}} \mathbf{V}_{\!e} \\
+         \shortminus \mathbf{V}_{\!e} \mathbf{M} & \mathbf{V}_{\!e}
+    \end{bmatrix} \\
+    &= 
+    \begin{bmatrix}
+        \mathbf{Q}_{\sf{f}} & \mathbf{Q}_{\sf{f} y} \\
+        \transpose{\mathbf{Q}}_{\sf{f} y} & \mathbf{Q}_{y}  
+    \end{bmatrix}
+\end{align*}
+
+Bayesian estimation of \Crefrange{eqn:facmod_obs}{eqn:facmod_idios} requires a draw from the distribution of the factors conditional on the observations and parameters $\Theta$, $p(\mathbf{f}_1, \dots, \mathbf{f}_T | \mathbf{y}_1, \dots, \mathbf{y}_T, \Theta)$. "Simulation smoothing" methods based on the Kalman filter/smoother have been proposed by Carter and Kohn (1994) and Durbin and Koopman (2001) and are widely used in the literature. Precision-based sampling algorithms \citep{chanjeliazkov_2009} provide an alternative to these methods.\\
+
+Using standard results for multivariate Normal distributions \citep[e.g.][pp. 86-87]{bishop_prml_2006}, we can derive the desired conditional distribution:
+
+\begin{align*}
+    p
+    \left(
+    \mathbf{f} \mid \mathbf{y}, \Theta
+     \right) 
+    &\sim
+    \mathcal{N}
+    \left(
+    \mathbf{Q}^{-1}_{\alpha} \left( \mathbf{Q}_{\alpha}\boldsymbol{\mu}_{\alpha} - \mathbf{Q}_{\alpha y} \left(\mathbf{y} - \boldsymbol{\mu}_{\text{y}}\right)\right), \mathbf{Q}_{\alpha}^{-1}
+    \right) \\
+    &\coloneqq \mathcal{N}
+        \left(
+            \boldsymbol{\mu}_{\alpha\mid y}, \mathbf{Q}_{\alpha\mid y}^{-1}
+        \right) \\
+\end{align*}
+
+with \citep[see also][eqn. 6-8]{chanjeliazkov_2009}:
+\begin{align*}
+    \mathbf{Q}_{\sf{f}\mid y} &= \mathbf{Q}_{\sf{f}} \\
+    &= 
+    \transpose{\mathbf{H}} \mathbf{V}^{\,-1}_{\!\upsilon} \mathbf{H} + {\transpose{\mathbf{M}} \mathbf{V}^{\,-1}_{\!\epsilon}\mathbf{M}}\\
+    \boldsymbol\mu_{\sf{f}\mid y} &= \mathbf{Q}_{\sf{f}}^{-1} \mathbf{Q}_{\sf{f}} \tilde{\mathbf{c}}+ \transpose{\mathbf{M}} \mathbf{V}_{\!\epsilon}^{\,-1} \mathbf{y}
+\end{align*}
+
+Draws from this distribution can be obtained efficiently since the $T\cdot S \times R$ matrix $\mathbf{Q}_{\sf{f}}$ is banded and its inversion not required. Specifically, calculate the conditional mean following \citet[][Algorithm 2.1]{rueheld_2005}. This requires the computation of the lower Cholesky factor $\mathbf{L}$ of $\mathbf{Q}_{\sf{f}}$. Then draw $\mathbf{v} \sim \mathcal{N}(0,I_{TR})$, solve $\transpose{\mathbf{L}} \mathbf{x} = \mathbf{v}$ for $\mathbf{x}$ and set $\boldsymbol{\mu}_{\sf{f}\mid y} +\mathbf{x}$, yielding a draw of $\mathbf{f}$ conditional on $\mathbf{y}$ \citep[][Algorithm 2.4]{rueheld_2005}. \\
+
+\subsection{Forecasting}
+
+In addition to a draw of the factors conditional on the data, macroeconomic applications may require forecasts - both unconditional and conditional on future paths of a subset of the observables - from the model in \Crefrange{eqn:facmod_obs}{eqn:facmod_idios}. Examples include projections of inflation which take assumptions regarding the macroeconomic environment into account \citep{giannone_etal_2014_ijf} or external nowcasts as "jump-off" points for longer-term forecasts in reduced form or structural models \citep{faustwright2009_jbes,wolters2015_jae}; \citet{knotekzaman2019_ijof} show how macroeconomic forecasts can be improved by conditioning on nowcasts of financial variables.\\
+
+Let $\mathbf{y}^{\sf{o}} = \transpose{[\mathbf{y}^{\sf{T}}_{1}, \dots, \mathbf{y}^{\sf{T}}_{T}]}$ denote the available observations through $T$. For the forecast periods $h = 1:H$, $\mathbf{y}_{c,t}\: \forall t = T+1:T+H$ are the observations which are being conditioned on. The entire conditioning set is given by 
+$$
+\mathbf{y}^{\sf{c}} = \transpose{[\mathbf{y}^{\sf{T}}_{c,T+1}, \dots, \mathbf{y}^{\sf{T}}_{c,T+H}]}
+$$ 
+with $N^c = \text{dim}(\mathbf{y}^{\sf{c}})$. Conversely, $\mathbf{y}_{-c,t} = \mathbf{y}_t\notin\mathbf{y}_{c,t}$ denotes the observations for which no conditioning information is available at time $t$ and which are being forecast: $\mathbf{y}^{\sf{f}} = \transpose{[\mathbf{y}^{\sf{T}}_{-c,T+1}, \dots, \mathbf{y}^{\sf{T}}_{-c,T+H}]}$.\\
+
+In what follows, I will not be concerned with the estimation of model parameters and assume that random draws from $p(\Theta|\mathbf{y}^{\sf{o}})$ are readily available. Also, for the sake of exposition, I assume that between periods $t=1$ and $t=T$ all observations are available. Situations where this is not the case, e.g. because some series start at a later date in the sample or because outlying observations have been removed by setting them to missing, can naturally be accommodated.\\
+
+From a Bayesian perspective, the aim is to sample from the predictive density 
+
+\begin{equation}\label{eqn:preddens}    
+    p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}},\mathbf{y^{\sf{c}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})\, \text{d}\Theta
+\end{equation}
+
+which takes into account that the conditioning set $y^c$ contains information about which $\Theta$ are more likely a posteriori. Draws from this density can be obtained by applying the insights in Hauber and Schumacher (2021) who generalize the precision sampler outlined above to applications with missing data. Since future values of the variables can simply be considered as missing, draws from the joint distribution of states and forecasts conditional on the data (and possibly the future paths of a subset of the variables) can be sampled efficiently.\\
+
+To evaluate Equation \ref{eqn:preddens}, derive the joint distribution of states and observations from $t=1:T+H$: 
+
+\begin{align*}
+    \mathbf{z} &= \transpose{[\transpose{\mathbf{f}}, \transpose{\mathbf{y}}]} \\
+     &= \transpose{[\mathbf{f}_1, \dots, \mathbf{f}_{T+H}, \mathbf{y}_1, \dots, \mathbf{y}_{T+H}]} 
+\end{align*}
+
+It follows that the distribution of $\mathbf{z}$ is Normal with mean $\boldsymbol{\mu}_{z} = 0$ and precision matrix $\mathbf{Q}_{z}$ as in Section \ref{subsec:precsampler}. To sample from the conditional distribution $p\left(\mathbf{y}^{\sf{f}}, \mathbf{f} \mid \mathbf{y}^{\sf{o}}, \mathbf{y}^{\sf{c}}, \Theta \right)$  requires a permutation of $\mathbf{z}$. To this end, define the permutation matrix $\mathcal{P}$ that reorders $\mathbf{z}$ such that the states and elements of $\mathbf{y^f}$ - ordered by time period $t$ - are placed first. That is to say,
+
+$$
+\mathbf{z}_{\mathcal{P}} \coloneqq \mathcal{P} \mathbf{z} =
+ \transpose{[
+     \mathbf{f}^{\sf{T}}_1, 
+     \dots, 
+     \mathbf{f}^{\sf{T}}_T, 
+     \mathbf{f}^{\sf{T}}_{T+1}, 
+     \mathbf{y}^{\sf{T}}_{\shortminus c,T+1}, 
+     \dots, 
+     \mathbf{f}^{\sf{T}}_{T+H}, 
+     \mathbf{y}^{\sf{T}}_{\shortminus c,T+H},
+     \mathbf{y}^{\sf{T}}_1,
+     \dots,
+     \mathbf{y}^{\sf{T}}_{T+H},
+     \mathbf{y}^{\sf{T}}_{c, T+1},
+     \dots, 
+     \mathbf{y}^{\sf{T}}_{c, T+H}]}.
+$$
+
+Note that the conditioning arguments $\mathbf{y}^{\sf{o}}, \mathbf{y}^{\sf{c}}$ are now ordered last. Moreover, by placing those components of $\mathbf{z}$ which are conditionally dependent close to each other, the bandwidth of $\mathbf{Q}_{z_{\mathcal{P}}}$ is kept small. The permuted vector of states and observations is also Normal with (permuted) moments given by 
+
+\begin{equation*}
+    \mathbf{z_{\mathcal{P}}} \sim \mathcal{N}\left(\mathcal{P}\boldsymbol{\mu}_z, \left(\mathcal{P} \mathbf{Q}_z \transpose{\mathcal{P}}\right)^{-1}\right)
+\end{equation*}
+
+where we have made use of the fact that the inverse of a permutation matrix is equal to its transpose.  The precision matrix of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as follows: 
+
+\begin{align*}
+    \mathbf{Q}_{z_{\mathcal{P}}} &\coloneqq  \mathcal{P} \mathbf{Q}_z \transpose{\mathcal{P}} \\
+    &= 
+    \begin{bmatrix}
+        \mathbf{Q}_{\sf{f}\! y^{\sf{f}}} & \mathbf{Q}_{\sf{f}\! y^{\sf{f}}, y^{\sf{o}}} \\ 
+        \mathbf{Q}^{\sf{T}}_{\sf{f}\! y^{\sf{f}}, y^{\sf{o}}} & \mathbf{Q}_{y^{\sf{o}}}
+    \end{bmatrix}
+\end{align*}
+
+where $\mathbf{Q}_{\sf{f}\! y^{\sf{f}}, y^{\sf{o}}}$ is a 
+$T\!\cdot\!R + H\!\cdot\!N \times T\!\cdot\!N$ matrix and $\mathbf{Q}_{\sf{f}\! y^{\sf{f}}}$ and $\mathbf{Q}_{y^{\sf{o}}}$ are square with dimensions $T\!\cdot\!R + H\!\cdot\!N$ and $T\!\cdot\!N $, respectively. Similarly, the mean of $\mathbf{z}_{\mathcal{P}}$ can be partitioned as 
+$$
+\boldsymbol{\mu}_{z_{\mathcal{P}}} = 
+\begin{bmatrix}
+    \boldsymbol{\mu}_{\sf{f} y^{\sf{f}}} \\
+    \boldsymbol{\mu}_{y^{\sf{o}}}
+\end{bmatrix}
+$$
+
+Denote by $\mathbf{z}^*$ a draw from the conditional distribution (surpressing the dependence on the parmeters $\Theta$ for the sake of readability)
+
+\begin{equation*}
+    \mathbf{z}_{\sf{f} y^{\sf{f}}} | \mathbf{y}^{o}, \mathbf{y}^{c} \sim 
+    \mathcal{N}\left(
+        \mathbf{Q}^{-1}_{\sf{f} y^{\sf{f}}}\left( \mathbf{Q}_{\sf{f} y^{\sf{f}}}\boldsymbol{\mu}_{\sf{f} y^{\sf{f}}} - \mathbf{Q}_{\sf{f} y^{\sf{f}}, y^{\sf{o}}}\left(\mathbf{y}^o-\boldsymbol{\mu}_{y^{\sf{o}}}\right)\right)
+    ,
+    \mathbf{Q}_{\sf{f} y^{\sf{f}}}
+    \right).
+\end{equation*}
+
+Then by reversing the permutation, i.e 
+
+$$
+\begin{bmatrix}
+    \mathbf{f} \\
+    \mathbf{y}_1 \\
+    \vdots \\
+    \mathbf{y}_{T+H} 
+\end{bmatrix}
+= 
+\mathcal{P}^{-1} 
+\begin{bmatrix}
+    \mathbf{z}^*\\
+    \mathbf{y^{o}} \\
+    \mathbf{y^{c}}
+\end{bmatrix}
+$$
+
+we can back out the draws of $\mathbf{f}$ and $\mathbf{y}^{\sf{f}} = [\mathbf{y}_{\shortminus c, T+1}, \dots, \mathbf{y}_{\shortminus c, T+H}]$.\\
+
+\subsection{Precision-based sampling}
 
 Let $\mathbf{y_t} = \transpose{[y_{1t}, \dots, y_{Nt}]}$ denote an $N \times 1$ vector of observations and $\mathbf{f_t}$ an $S \times 1$ vector of unobserved states. Consider the following state space model which $\forall \: t = 1:T$ 
 
@@ -438,7 +730,6 @@ Factor models feature prominently in the macroeconomic literature. By exploiting
 A \textit{dynamic factor model} is defined as
 
 \begin{subequations}
-    \label{eqn:factormodel}
     \begin{align}
         \mathbf{y}_t &= \sum_{k=0}^K \lambda_k \, \mathbf{f}_{t-k} + \mathbf{e}_t \\
         \mathbf{f}_t &= \sum_{p=1}^P \phi_p \, \mathbf{f}_{t-p} + \boldsymbol{\upsilon}_t \\
