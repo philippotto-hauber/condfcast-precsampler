@@ -90,7 +90,7 @@ for Nh = Nhs
     end
 end
 
-    function [B, Sigma, F, Q] = sim_var_params(Nn, Np)
+function [B, Sigma, F, Q] = sim_var_params(Nn, Np)
 
 % set-up (see Cross et al. 2020, IJoF)
 if Nn == 3
@@ -121,6 +121,8 @@ while true
                 if i ~= j
                     if rand < p_c
                         Bp(i, j) = randn * sig_c;
+                    else
+                        Bp(i, j) = 1e-7;
                     end
                 end
             end
