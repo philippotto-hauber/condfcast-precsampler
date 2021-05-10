@@ -261,7 +261,7 @@ dat %>%
          shape = guide_legend(order = 2))+
   scale_shape(solid = FALSE)+
   scale_color_jco()+
-  scale_y_continuous(trans='log10', breaks = c(1, 2, 10, 50))+
+  scale_y_continuous(trans='log10', breaks = c(1, 2, 10, 50), limits = c(0.8*, 150))+
   facet_wrap(~Nh, ncol = 1)+
   theme_bw()+
   theme(text = element_text(size=15),
@@ -313,7 +313,7 @@ dat %>%
          shape = guide_legend(order = 2))+
   scale_shape(solid = FALSE)+
   scale_color_jco()+
-  scale_y_continuous(trans='log10', breaks = c(1, 2, 10, 50), limits = c(1, 90))+
+  scale_y_continuous(trans='log10', breaks = c(1, 2, 10, 50), limits = c(1, 200))+
   facet_wrap(~Nh, ncol = 1)+
   theme_bw()+
   theme(text = element_text(size=15),
