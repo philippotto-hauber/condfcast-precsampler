@@ -1,0 +1,139 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+rm(list = ls())
+options(scipen = 999)
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readr)
+
+dir_data <- "C:/Users/Philipp/Desktop/Abbildung Schlaglicht Mai/" 
+filename <- "consumer_total_sa_m_nace2.xlsx"
+```
+
+
+## Data
+
+### Monthly data
+
+```{r}
+
+sheetname <- "CONSUMER MONTHLY"
+
+# subcategories are stored in different sheets
+subcategories <- paste0("WO", seq(1, 10, by = 1))
+
+# empty data frame
+data <- data.frame()
+
+for (sheetname in subcategories)
+{
+  read_excel(path = paste0(dir_data, filename), sheet = sheetname) %>%
+  select(date = !!sheetname, everything()) %>% 
+  gather(colname, value, -date) %>%
+  mutate(value = parse_double(value)) %>%
+  separate(colname, into = c("type", 
+                             "geo_short", 
+                             "occup_short", 
+                             "var_short", 
+                             "answers", 
+                             "frequency")
+           ) %>%
+  select(-c("type", "answers", "frequency")) %>%
+  rbind(data) -> data
+}
+```
+
+### Merge with variable names, countries and categories.
+
+```{r}
+countries <- read_excel(path = paste0(dir_data, filename), 
+                        sheet = "Index", range = "A7:B41",
+                        col_names = c("geo_short", "geo_long"))
+
+variables <- read_excel(path = paste0(dir_data, filename), 
+                       sheet = "Index", range = "A69:B81",
+                       col_names = c("var_short", "var_long"))
+
+
+occupations <- read_excel(path = paste0(dir_data, filename), 
+                        sheet = "Index", range = "A48:B78",
+                        col_names = c("occup_short", "occup_long")) %>% drop_na()
+
+# join with data
+data <- data  %>% left_join(countries, by = "geo_short") %>%
+                  left_join(variables, by = "var_short") %>%
+                  left_join(occupations, by = "occup_short") 
+
+# clean up
+rm(list = c("countries", "variables", "occupations"))
+```
+
+### Details of dataset
+
+#### List of countries/regions
+
+```{r}
+data %>% select(geo_short, geo_long) %>% distinct
+```
+
+#### Variables
+
+```{r}
+data %>% select(var_short, var_long) %>% distinct
+```
+
+#### Occupations
+
+[ISCO-08 classification](https://ec.europa.eu/eurostat/ramon/nomenclatures/index.cfm?TargetUrl=LST_NOM_DTL&StrNom=CL_ISCO08&StrLanguageCode=DE&IntPcKey=&StrLayoutCode=HIERARCHIC&IntCurrentPage=1)
+
+```{r}
+data %>% select(occup_short, occup_long) %>% distinct
+```
+
+## Plots
+
+### Unemployment expectations in the Euro area
+
+```{r}
+data %>% filter(date > "2019-01-01", geo_short %in% c("EA","DE", "FR", "IT", "ES", "AT"),occup_short == "WO6", var_short == 7) %>%
+
+ggplot(aes(x = date, y = value, group = interaction(var_short, occup_short, geo_short), color = geo_long))+
+    geom_line()+
+    labs(y = "", 
+         x = "", 
+         title = "Unemployment expectations", 
+         caption = "Monthly data, balances. Source: European Commission")+
+    theme(legend.position = "right",
+          legend.text=element_text(size=10),
+          legend.title = element_blank())
+```
+
+
+### unemployment expectations by profession
+
+```{r}
+data %>% filter(date > "2019-01-01", geo_short %in% c("EA","DE", "FR", "IT", "ES", "AT"), occup_short %in% paste0("WO", seq(1,6)), var_short == 7) %>%
+
+ggplot(aes(x = date, y = value, group = interaction(var_short, occup_short, geo_short), color = occup_short))+
+    geom_line()+
+    facet_wrap(~geo_long, ncol = 2)+
+    labs(y = "", 
+         x = "", 
+         title = "Unemployment expectations in the Euro area",
+         subtitle = "Different occupations",
+         caption = "Monthly data, balances. Source: European Commission")+
+    theme(legend.position = "right",
+          legend.text=element_text(size=10),
+          legend.title = element_blank())
+```
+
+
+
+

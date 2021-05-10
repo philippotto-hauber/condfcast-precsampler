@@ -1,0 +1,165 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+rm(list = ls())
+options(scipen = 999)
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readr)
+library(lubridate)
+
+dir_data <- "C:/Users/Philipp/Desktop/Abbildung Schlaglicht Mai/" 
+filename <- "consumer_total_sa_nace2.xlsx"
+```
+
+
+## Data
+
+### Monthly data
+
+```{r}
+
+sheetname <- "CONSUMER MONTHLY"
+
+data <-   read_excel(path = paste0(dir_data, filename), sheet = sheetname) %>%
+          select_if(function(x){!all(is.na(x))}) %>%
+          select(date = ...1, everything()) %>% 
+          mutate(date = make_date(year = year(date), month = month(date), day = 1)) %>%
+          gather(colname, value, -date) %>%
+          mutate(value = parse_double(value)) %>%
+          separate(colname, into = c("type", 
+                                     "geo_short", 
+                                     "occup_short", 
+                                     "var_short", 
+                                     "answers", 
+                                     "frequency")
+                   ) %>%
+          select(-c("type", "answers", "occup_short"))
+```
+
+### Quarterly variables
+
+```{r}
+
+sheetname <- "CONSUMER QUARTERLY"
+
+read_excel(path = paste0(dir_data, filename), sheet = sheetname) %>%
+select_if(function(x){!all(is.na(x))}) %>%
+select(date = ...1, everything()) %>% 
+separate(date, into = c("year", "quarter"), sep = "-Q") %>%
+mutate(date = make_date(year = parse_integer(year), month = 3  * parse_integer(quarter), day = 1)) %>%
+select(-c("year", "quarter")) %>%
+gather(colname, value, -date) %>%
+mutate(value = parse_double(value)) %>%
+separate(colname, into = c("type", 
+                         "geo_short", 
+                         "occup_short", 
+                         "var_short", 
+                         "answers", 
+                         "frequency")
+       ) %>%
+select(-c("type", "answers", "occup_short")) %>% rbind(data) -> data
+```
+
+### Merge with variable names and country
+
+```{r}
+read_excel(path = paste0(dir_data, filename), 
+           sheet = "Index", range = "A7:B42",
+           col_names = c("geo_short", "geo_long")) %>% drop_na() -> countries
+
+read_excel(path = paste0(dir_data, filename), 
+           sheet = "Index", range = "A57:B74",
+           col_names = c("var_short", "var_long")) %>% drop_na() -> variables
+
+
+# join with data
+data <- data  %>% left_join(countries, by = "geo_short") %>%
+                  left_join(variables, by = "var_short") 
+
+# clean up
+#rm(list = c("countries", "variables"))
+```
+
+### Details of dataset
+
+#### List of countries/regions
+
+```{r}
+data %>% arrange(geo_short) %>% select(geo_short, geo_long) %>% distinct
+```
+
+#### Variables
+
+```{r}
+data %>% arrange(var_short) %>% select(var_short, var_long) %>% distinct
+```
+
+### Deviation from long-run mean
+
+```{r}
+data %>% group_by(var_short, geo_short) %>%
+         mutate(value_stand = value - mean(value, na.rm = TRUE)) %>%
+         ungroup() %>%
+         select(everything(), value, value_stand) -> data
+```
+
+
+## Plots
+
+### Consumer confidence and unemployment expectations in the Euro area and the big 4
+
+```{r}
+data %>% filter(geo_short %in% c("EA", "DE", "FR", "IT", "ES"), 
+                var_short %in% c("COF", "7")) %>% 
+         ggplot(aes(x = date, 
+                    y = value_stand, 
+                    group = interaction(var_short, geo_short), 
+                    color = geo_long))+
+          geom_line()+
+          facet_wrap(~var_long, ncol = 1, scales = "free_y")+  
+          labs(y = "", 
+               x = "", 
+               title = "Economic Sentiment Indicators: Consumers", 
+               caption = "Monthly data, balances, deviation from long-run mean. Source: European Commission")+
+          theme(legend.position = "right",
+                legend.text=element_text(size=10),
+                legend.title = element_blank())
+```
+
+### Intention to buy a car
+
+```{r}
+data %>% filter(geo_short %in% c("EA", "DE", "FR", "IT", "ES"), 
+                var_short %in% c("13")) %>% 
+         ggplot(aes(x = date, 
+                    y = value, 
+                    group = interaction(var_short, geo_short), 
+                    color = geo_long))+
+          geom_line()+
+          labs(y = "", 
+               x = "", 
+               title = "Economic Sentiment Indicators: Intention to buy a car in the next 12 months", 
+               caption = "Quarterly data, balances, deviation from long-run mean. Source: European Commission")+
+          theme(legend.position = "right",
+                legend.text=element_text(size=10),
+                legend.title = element_blank())
+```
+
+## Export data
+
+```{r}
+data %>% filter(var_short == "7") %>% 
+         select(date, geo_long, value) %>%
+         spread(geo_long, value) %>% write.csv(file = "esi_unempexp.csv", 
+                                               row.names = FALSE, 
+                                               col.names = TRUE)
+
+```
+
