@@ -403,7 +403,7 @@ and
 
 Then a draw of the $T\!\cdot\!N + H\!\cdot\!N - N^c$ vector of states and conditional forecasts given parameters can be obtained from the permuted moments of the joint distribution $\boldsymbol{\mu}_{z_{\mathcal{P}'}} $ and $\mathbf{Q}_{z_{\mathcal{P}'}} $ by conditioning on $\mathbf{y^{o}}$ and $\mathbf{y^c}$. As above, the desired draw of $y^f$ can be backed out by reversing the permutation.\\
 
-Building on this, draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ can then be obtainted by the following algorithm \citep[see also ][Algorithm 1]{waggonerzha1999_res}:\\
+Building on this, draws from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ can then be obtainted by the following algorithm \citep[see also][Algorithm 1]{waggonerzha1999_res}:\\
 
 \noindent\textbf{Algorithm 2: Draws from the predictive density $p(\mathbf{y}^f | \mathbf{y}^o, \mathbf{y}^c)$}\\
 
@@ -584,15 +584,15 @@ or more compactly:
     \mathbf{H} \mathbf{y} = \mathbf{c} + \boldsymbol{\upsilon}.
 \end{equation*}
 
-Sticking with the notation, define $z=y$. Then the joint distribution of available observations and forecasts is Normal:
+Sticking with the notation, define $\mathbf{z}={y} = \transpose{[\transpose{\mathbf{y}_1}, \dots, \transpose{\mathbf{y}_{T+H}}]}$. Then the joint distribution of available observations and forecasts is Normal:
 
 $$
 \mathbf{z} \sim \mathcal{N}(\mathbf{H}^{-1} \mathbf{c}, (\transpose{\mathbf{H}} \mathbf{V}^{-1}_{\!\upsilon}\mathbf{H})^{-1}).
 $$
 
-Draws from the predictive density can be obtained by applying Algorithms 1 and 2.\\
+Draws from the predictive density can be obtained by applying Algorithms 1 and 2, treating the vector of states, $\boldsymbol{\alpha}$, as empty: in the case of unconditional forecasts, the partition of the permuted vector is thus $\mathbf{z}_{\mathcal{P}} = \transpose{[\mathbf{y}^{\sf{f}}, \mathbf{y}^{\sf{o}}]}$; for conditional forecasts $\mathbf{z}_{\mathcal{P}'} = \transpose{[\mathbf{y}^{\sf{f}}, \mathbf{y}^{\sf{o}}, \mathbf{y}^{\sf{c}}]}$.\\
 
-Of course, unconditional forecasts given the parameters can simply be obtained by drawing $\boldsymbol{\upsilon}_{T+1}, \dots, \boldsymbol{\upsilon}_{T+1}$ and using Equation \ref{eqn:var} to recursively construct $\mathbf{y}_{T+1}, \dots, \mathbf{y}_{T+H}$. Nevertheless, it is instructive to see how such draws can also be obtained by permuting the joint distribution $z$, as this forms the basis for generating conditional forecasts. Consider a VAR(1) and $H=1$. Clearly, in this case, $\mathbf{y}_{T+1}|\mathbf{y}_T, \Theta \sim \mathcal{N}(\mathbf{b} + \mathbf{B}_1 \mathbf{y}_T, \boldsymbol{\Sigma})$. To derive the result from the joint distribution $\mathbf{z} = [\mathbf{z}_{y^o}, \mathbf{z}_{y^f}] = [\mathbf{y}_T, \mathbf{y}_{T+1}]$, start with the mean $\boldsymbol{\mu}_z$:
+Of course, unconditional forecasts given the parameters can simply be obtained by drawing $\boldsymbol{\upsilon}_{T+1}, \dots, \boldsymbol{\upsilon}_{T+1}$ and using Equation \ref{eqn:var} to recursively construct $\mathbf{y}_{T+1}, \dots, \mathbf{y}_{T+H}$. Nevertheless, it is instructive to see how such draws can also be obtained by permuting the joint distribution $\mathbf{z}$, as this forms the basis for generating conditional forecasts. Consider a VAR(1) and $H=1$. Clearly, in this case, $\mathbf{y}_{T+1}|\mathbf{y}_T, \Theta \sim \mathcal{N}(\mathbf{b} + \mathbf{B}_1 \mathbf{y}_T, \boldsymbol{\Sigma})$. To derive the result from the joint distribution $\mathbf{z} = [\mathbf{y}^o, \mathbf{y}^{\sf{f}}] = [\mathbf{y}_T, \mathbf{y}_{T+1}]$, start with the mean $\boldsymbol{\mu}_z$:
 
 \begin{align*}
 \boldsymbol{\mu}_z = \mathbf{H}^{-1} \mathbf{c} &= 
@@ -649,7 +649,7 @@ Similarly, the precision matrix $Q_z$ is given by
     \end{bmatrix}
 \end{align*}
 
-Permute $\mathbf{z}$ such that $\mathbf{y}_T$ is ordered last, i.e. $\mathbf{z}_{\mathcal{P}} = \mathcal{P} \mathbf{z}  = [\mathbf{z}_{y^f}, \mathbf{z}_{y^o}] = [\mathbf{y}_{T+1}, \mathbf{y}_T]$. The corresponding moments with partitions $y^{\sf{f}}$ and $y^{\sf{o}}$ are then given by
+Permute $\mathbf{z}$ such that $\mathbf{y}_T$ is ordered last, i.e. $\mathbf{z}_{\mathcal{P}} = \mathcal{P} \mathbf{z}  = \transpose{[\transpose{\mathbf{y}^{\sf{f}}}, \transpose{\mathbf{y}^o}]} = \transpose{[\mathbf{y}^{\sf{T}}_{T+1}, \mathbf{y}^{\sf{T}}_T]}$. The corresponding moments with partitions $y^{\sf{f}}$ and $y^{\sf{o}}$ are then given by
 
 \begin{align*}
 \boldsymbol{\mu}_{z_{\mathcal{P}}} &= 
