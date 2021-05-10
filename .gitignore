@@ -1,5 +1,3 @@
-# ignore mat files
-*.mat
 # ignore all latex related files except tex
 latex/condfcast_precsampler.*
 !latex/condfcast_precsampler.tex
