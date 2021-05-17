@@ -214,7 +214,7 @@ realtime_data <- function()
                               )
                    )
 
-  # core CPI inflation
+  # core CPI inflation 
   df_data <- rbind(df_data, 
                    data.frame(name = "core CPI inflation",
                               mnemonic = "cpi_core",
