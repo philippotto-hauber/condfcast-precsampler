@@ -186,6 +186,84 @@ get_financial_data <- function(df_in, v_star)
   return(df_out)
 }
 
+get_survey_data <- function(v_star)
+{
+  dir_data = ""
+  
+  filename <- "main_indicators_nace2.xlsx"
+  
+  read_excel(path = paste0(dir_data, filename), 
+             sheet = "Index", range = "A7:B41",
+             col_names = c("geo_short", "geo_long")) %>% drop_na() -> countries
+  
+  read_excel(path = paste0(dir_data, filename), 
+             sheet = "Index", range = "A47:B53",
+             col_names = c("var_short", "var_long")) %>% drop_na() -> variables
+  
+  sheetname <- "MONTHLY"
+  
+  data <- read_excel(path = paste0(dir_data, filename), sheet = sheetname) %>%
+    select_if(function(x){!all(is.na(x))}) %>%
+    select(date = ...1, everything()) %>% 
+    mutate(date = make_date(year = year(date), month = month(date), day = 1)) %>%
+    gather(colname, value, -date) %>%
+    mutate(value = parse_double(value)) %>%
+    separate(colname, into = c("geo_short", 
+                               "var_short")) 
+  
+  # join with data
+  data <- data  %>% left_join(countries, by = "geo_short") %>%
+    left_join(variables, by = "var_short") 
+  
+  # filter values for Germany and relevant indicators
+  data <- filter(data, geo_long == "Germany", var_short != "ESI")
+  
+  # replicate real-time availability
+  if (day(v_star) >= 28 & month(v_star) == 1) # December data is usually released in early January, so prior to Jan 8th we only have values until November!
+  {
+        tmp <- as_date(v_star) - months(2)
+        ind_available_date <- make_date(year = year(tmp), month = month(tmp), day = days_in_month(month(tmp)))
+  } else
+  {
+      if (day(v_star) >= 28){
+        ind_available_date <- make_date(year = year(v_star), month = month(v_star), day = days_in_month(month(v_star)))
+      } else {
+        tmp <- as_date(v_star) - months(1)
+        ind_available_date <- make_date(year = year(tmp), month = month(tmp), day = days_in_month(month(tmp)))
+      }
+  }
+  data %>%
+    filter(date <= ind_available_date) -> data
+  
+  
+  # aggregate to quarterly frequency
+  dataQ <- data.frame()
+  
+  for (i in unique(data$var_short)){
+    name <- head(data$var_long[data$var_short == i], 1)
+    df_tmp <- filter(data, var_short == !!i)
+    df_tmp <- aggregate_to_Q(df_tmp, "M")
+    df_tmp$mnemonic <- paste0("survey_", tolower(i))
+    df_tmp$name <- name
+    dataQ <- rbind(dataQ, df_tmp)
+  }
+  
+  # add group, category
+  dataQ$group <- "survey"
+  dataQ$category <- "activity"
+  dataQ$category[dataQ$mnemonic == "survey_eei"] <- "labor market"
+  
+  # add trafo
+  dataQ$trafo <- dataQ$raw
+  
+  # select and order df
+  dataQ %>% 
+    select(date, raw, trafo, name, mnemonic, group, category) -> df_out
+  
+  return(df_out)
+}
+
+
 
 # SET-UP----
 realtime_data_spec <- realtime_data()
@@ -209,6 +287,9 @@ for (v_star in vintages)
     {
           df_data <- rbind(df_data, get_financial_data(financial_data_spec[i, ], v_star))
     }
+    
+
+    df_data <- rbind(df_data, get_survey_data(v_star))
     
     name <- paste0("vintage", v_star, ".csv")
     export_vintage_to_csv(df_data, sample_start, name)
