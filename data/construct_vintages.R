@@ -6,6 +6,8 @@ library(bundesbank)
 library(lubridate)
 library(dplyr)
 library(tidyr)
+library(readxl)
+library(readr)
 
 # SOURCED FUNCTIONS ----
 source("realtime_data.R")
@@ -63,7 +65,7 @@ download_financial_data <- function(code)
 }
 
 # helper functions
-export_vintage_to_csv <- function(df, sample_start, name)
+export_vintage_to_csv <- function(df, sample_start, name, dir_out)
 {
   df %>% 
     filter(date >= sample_start) %>%
@@ -75,7 +77,7 @@ export_vintage_to_csv <- function(df, sample_start, name)
   
   df_export <- df[seq(1, ind_sample), ]
   
-  write.csv(df_export, name, row.names = F, na = "NaN")
+  write.csv(df_export, paste0(dir_out, name), row.names = F, na = "NaN")
   
   return(df_export)
 }
@@ -188,7 +190,7 @@ get_financial_data <- function(df_in, v_star)
 
 get_survey_data <- function(v_star)
 {
-  dir_data = ""
+  dir_data = paste0(getwd(), "/raw/")
   
   filename <- "main_indicators_nace2.xlsx"
   
@@ -263,15 +265,12 @@ get_survey_data <- function(v_star)
   return(df_out)
 }
 
-
-
 # SET-UP----
+dir_out <- paste0(getwd(), "/vintages/")
 realtime_data_spec <- realtime_data()
 financial_data_spec <- financial_data()
-vintages <- c("2006-02-28", "2006-05-31", "2006-08-31", "2006-11-30")
 vintages <- c("2006-04-05")
 sample_start <- "1996-01-01"
-
 
 # LOOP OVER VINTAGES----
 for (v_star in vintages)
@@ -288,11 +287,10 @@ for (v_star in vintages)
           df_data <- rbind(df_data, get_financial_data(financial_data_spec[i, ], v_star))
     }
     
-
     df_data <- rbind(df_data, get_survey_data(v_star))
     
     name <- paste0("vintage", v_star, ".csv")
-    export_vintage_to_csv(df_data, sample_start, name)
+    export_vintage_to_csv(df_data, sample_start, name, dir_out)
 }
 
 
