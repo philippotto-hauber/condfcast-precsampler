@@ -1,6 +1,5 @@
 download_realtime_data <- function(code, v_star)
 {
-  print(code)
   dat <- getSeries(code,
                    start = "1991-01",
                    end = format(Sys.Date(), "%Y-%m"),
@@ -30,7 +29,6 @@ download_realtime_data <- function(code, v_star)
 
 download_financial_data <- function(code)
 {
-  print(code)
   dat <- getSeries(code,
                    start = "1991-01",
                    end = format(Sys.Date(), "%Y-%m"),
