@@ -207,7 +207,7 @@ realtime_data <- function()
                               mnemonic = "cpi",
                               category = "prices",
                               group = "prices",
-                              trafo = "log, diff",
+                              trafo = "y/y",
                               frequency = "M",
                               code = "BBKRT.M.DE.Y.P.PC1.PC100.R.I",
                               code_deflate = NA 
@@ -220,7 +220,7 @@ realtime_data <- function()
                               mnemonic = "cpi_core",
                               category = "prices",
                               group = "prices",
-                              trafo = "log, diff",
+                              trafo = "y/y",
                               frequency = "M",
                               code = "BBKRT.M.DE.S.P.PC1.PC110.R.I" , 
                               code_deflate = NA 
@@ -233,7 +233,7 @@ realtime_data <- function()
                               mnemonic = "ppi",
                               category = "prices",
                               group = "prices",
-                              trafo = "log, diff",
+                              trafo = "y/y",
                               frequency = "M",
                               code = "BBKRT.M.DE.S.P.PP1.PP100.R.I",
                               code_deflate = NA 
@@ -246,7 +246,7 @@ realtime_data <- function()
                               mnemonic = "ppi_core",
                               category = "prices",
                               group = "prices",
-                              trafo = "log, diff",
+                              trafo = "y/y",
                               frequency = "M",
                               code = "BBKRT.M.DE.S.P.PP1.PP200.R.I",
                               code_deflate = NA 
@@ -258,7 +258,7 @@ realtime_data <- function()
                               mnemonic = "ppi_constr",
                               category = "prices",
                               group = "prices",
-                              trafo = "log, diff",
+                              trafo = "y/y",
                               frequency = "Q",
                               code = "BBKRT.Q.DE.N.P.PP1.PP300.R.I",
                               code_deflate = NA 
@@ -271,7 +271,7 @@ realtime_data <- function()
                               mnemonic = "ppi_agri",
                               category = "prices",
                               group = "prices",
-                              trafo = "log, diff",
+                              trafo = "y/y",
                               frequency = "M",
                               code = "BBKRT.M.DE.S.P.PP1.PP400.R.I",
                               code_deflate = NA 
