@@ -151,22 +151,58 @@ get_survey_data <- function(v_star)
   return(df_out)
 }
 
-export_vintage_to_csv <- function(df, sample_start, name, dir_out)
+# export_vintage_to_csv <- function(df, sample_start, name, dir_out)
+# {
+#   df %>% 
+#     filter(date >= sample_start) %>%
+#     select(date, trafo, mnemonic) %>%
+#     pivot_wider(names_from = mnemonic, values_from = trafo) -> df
+#   
+#   ind_vars <- which(colnames(df)!= "date") # col indices
+#   ind_sample <- min(min(which(apply(is.na(df[, ind_vars]), 1, sum) == length(ind_vars)))-1, nrow(df)) # row indices
+#   
+#   df_export <- df[seq(1, ind_sample), ]
+#   
+#   write.csv(df_export, paste0(dir_out, name), row.names = F, na = "NaN")
+#   
+#   return(df_export)
+# }
+
+add_ReutersPoll_forecasts <- function(df_data, df_fore, sample_start, v_star)
 {
-  df %>% 
+  df_data %>% 
     filter(date >= sample_start) %>%
     select(date, trafo, mnemonic) %>%
-    pivot_wider(names_from = mnemonic, values_from = trafo) -> df
+    drop_na() -> df_data
   
-  ind_vars <- which(colnames(df)!= "date") # col indices
-  ind_sample <- min(min(which(apply(is.na(df[, ind_vars]), 1, sum) == length(ind_vars)))-1, nrow(df)) # row indices
+  df_fore %>% 
+    filter(dates_fore == v_star) %>%
+    mutate(date = make_date(year = year(quarter), month = 3 * ceiling(month(quarter)/3), day = 1L)) %>%
+    select(date, var, med, min, max) %>%
+    pivot_longer(cols = c(med, min, max), names_to = "mnemonic", values_to = "trafo") %>%
+    unite("mnemonic", c(mnemonic, var)) -> df_fore
   
-  df_export <- df[seq(1, ind_sample), ]
+  rbind(df_data, df_fore) %>% pivot_wider(names_from = mnemonic, values_from = trafo) -> df_export
   
-  write.csv(df_export, paste0(dir_out, name), row.names = F, na = "NaN")
+  # check that there is no overlap between data and conditioning information
+  intersect_dates_gdp <- intersect(as.character(df_export$date[!is.na(df_export$gdp)]),
+                                   as.character(df_export$date[!is.na(df_export$med_gdp)])
+                                  )
+  intersect_dates_cpi <- intersect(as.character(df_export$date[!is.na(df_export$cpi)]),
+                                   as.character(df_export$date[!is.na(df_export$med_cpi)])
+                                  )
+
+    if (length(intersect_dates_cpi) != 0 | length(intersect_dates_gdp) != 0)
+    stop("Overlap between data and conditioning set. Abort!")
+  
+  # add flag indicating the sample used for estimation
+  df_export$flag_estim <- 0
+  df_export$flag_estim[!is.na(df_export$gdp)] <- 1
   
   return(df_export)
 }
+  
+  
 
 # PACKAGES----
 library(bundesbank)
@@ -181,10 +217,11 @@ dir_out <- paste0(getwd(), "/vintages/")
 realtime_data_spec <- realtime_data()
 financial_data_spec <- financial_data()
 load("list_vintages.Rda")
+load("ReutersPoll_data.Rda")
 sample_start <- "1996-01-01"
 
 # LOOP OVER VINTAGES----
-for (v_star in list_vintages)
+for (v_star in list_vintages[1])
 {
     
     df_data <- data.frame()
@@ -200,15 +237,24 @@ for (v_star in list_vintages)
     
     df_data <- rbind(df_data, get_survey_data(v_star))
     
+    df_export <- add_ReutersPoll_forecasts(df_data, df_out, sample_start, v_star)
+    
     name <- paste0("vintage", v_star, ".csv")
-    export_vintage_to_csv(df_data, sample_start, name, dir_out)
+    write.csv(df_export, paste0(dir_out, name), row.names = F, na = "NaN", quote=F)
 }
 
 
-  
 
 
-
+# ggplot(df_export, aes(x = date))+
+#   geom_line(aes(y = med_gdp), color = "red")+
+#   geom_ribbon(aes(ymin = min_gdp, ymax = max_gdp), fill = "red", alpha = 0.2)+
+#   geom_line(aes(y = gdp), color = "black")
+# 
+# ggplot(df_export, aes(x = date))+
+#   geom_line(aes(y = med_cpi), color = "red")+
+#   geom_ribbon(aes(ymin = min_cpi, ymax = max_cpi), fill = "red", alpha = 0.2)+
+#   geom_line(aes(y = cpi), color = "black")
 
 
 
