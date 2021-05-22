@@ -8,7 +8,14 @@ output: html_notebook
 # clear workspace
 rm(list = ls())
 
+# working directory
 setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/data")
+
+# packages
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(ggplot2)
 
 # directories
 dir_forecasts <- "/raw/Reuters Poll/"
@@ -236,7 +243,7 @@ save(file = "list_vintages.Rda", list_vintages)
 ```{r}
 df_out <- rbind(df_gdp, df_cpi)
 
-df_out <- filter(df_out, dates_fore %in% df_vintages$vintages)
+df_out <- filter(df_out, dates_fore %in% as_date(df_vintages$v))
 
 save(file = "ReutersPoll_data.Rda", df_out)
 ```
