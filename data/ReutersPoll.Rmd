@@ -1,0 +1,308 @@
+---
+title: "Reuters Poll forecasts for GDP and CPI growth"
+output: html_notebook
+---
+
+## Set-up
+```{r}
+# clear workspace
+rm(list = ls())
+
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/data")
+
+# directories
+dir_forecasts <- "/raw/Reuters Poll/"
+
+# evaluation period
+yys <- 2006:2018 # years
+qqs <- 1:4 # quarters
+
+# max and min horizons
+max_h <- 3 # 3Q-ahead forecast (relative to the quarter in which the forecast is made)
+min_h <- -1 # backcast
+```
+
+## Extract Reuters Poll data from raw csv-files
+
+Function to read in Reuters Poll forecasts
+```{r}
+get_forecasts <- function(yy, qq, filename, max_h, min_h)
+{
+  # define helper function
+  dropNA_first <- function(df)
+  # function that removes NA observations and drops first element
+  # output is a vector
+  {
+    tmp <- df[!is.na(df)] # rem NA
+    out <- tmp[-1] # drop first element
+  }
+  
+  # read in csv
+  
+  if (file.exists(filename))
+  {
+    dat <- read.csv(filename)
+  } else
+  {
+    break
+  }
+
+  
+  # get row indices 
+  ind_median <- grep("median", dat[, 1], ignore.case = TRUE)
+  ind_min <- grep("min", dat[, 1], ignore.case = TRUE)
+  ind_max <- grep("max", dat[, 1], ignore.case = TRUE)
+  ind_date <- grep("consensus", dat[, 1], ignore.case = TRUE)
+
+  # extract values
+  dates_fore_tmp <- dmy(dropNA_first(dat[ind_date, ]))
+  medf_tmp <- as.numeric(dropNA_first(dat[ind_median, ]))
+  minf_tmp <- as.numeric(dropNA_first(dat[ind_min, ]))
+  maxf_tmp <- as.numeric(dropNA_first(dat[ind_max, ]))
+  quarter_date <- make_date(year = yy, month = 3 * qq - 2, day = 1) 
+  
+  # calculate forecast horizon (in quarters)
+  horizon_tmp <- round(as.numeric((quarter_date - dates_fore_tmp) / 90), digits = 0)
+  
+  # insert NA where no values are present between max_h and min_h
+  seq_h <- seq(max(c(max(horizon_tmp), max_h)), min(c(min(horizon_tmp), min_h)))
+  ind_h <- seq_h %in% horizon_tmp
+  tmp_NA <- rep(NA, length(seq_h))
+  medf <- tmp_NA; medf[which(ind_h)] <- medf_tmp
+  minf <- tmp_NA; minf[which(ind_h)] <- minf_tmp
+  maxf <- tmp_NA; maxf[which(ind_h)] <- maxf_tmp
+  dates_fore <- tmp_NA; dates_fore[which(ind_h)] <- dates_fore_tmp
+  dates_fore <- as_date(dates_fore)
+  horizon <- seq_h
+
+  # store in df
+  df <- data.frame(dates_fore = as_date(dates_fore), 
+                   med = medf,
+                   min = minf,
+                   max = maxf,
+                   quarter = quarter_date,
+                   horizon = horizon
+                  )
+  
+ return(df)
+}
+```
+
+### GDP
+
+```{r}
+dir_in <- paste0(dir_forecasts, "GDP/")
+df_gdp <- data.frame() 
+for (yy in yys)
+{
+  for (qq in qqs)
+  {
+    filename <- paste0(getwd(), dir_in, yy, "Q", qq, ".csv")
+    if (file.exists(filename))
+      df_gdp <- rbind(df_gdp, get_forecasts(yy, qq, filename, max_h, min_h))
+    else
+      next
+  }
+}
+```
+
+### CPI
+
+```{r}
+dir_in <- paste0(dir_forecasts, "CPI/")
+df_cpi <- data.frame() 
+for (yy in yys)
+{
+  for (qq in qqs)
+  {
+    filename <- paste0(getwd(), dir_in, yy, "Q", qq, ".csv")
+    if (file.exists(filename))
+      df_cpi <- rbind(df_cpi, get_forecasts(yy, qq, filename, max_h, min_h))
+    else
+      next
+  }
+}
+```
+
+### Plots
+
+```{r}
+df_cpi$var <- "cpi"
+
+df_gdp$var <- "gdp"
+
+df_plot <- rbind(df_cpi, df_gdp)
+```
+
+
+GDP forecasts
+
+```{r}
+df_plot %>%
+  filter(var == "gdp", horizon %in% c(0, 1, 2, 3)) %>%
+  ggplot(aes(x=dates_fore))+
+    geom_ribbon(aes(ymin = min, ymax = max), fill = "red", alpha = 0.2)+
+    geom_line(aes(y = med), color = "red")+
+    facet_wrap(~horizon, scales = "free", ncol = 2)+
+    labs(title="GDP growth (q/q)")
+```
+
+CPI forecasts
+```{r}
+df_plot %>%
+  filter(var == "cpi", horizon %in% c(0, 1, 2, 3)) %>%
+  ggplot(aes(x=dates_fore))+
+    geom_ribbon(aes(ymin = min, ymax = max), fill = "red", alpha = 0.2)+
+    geom_line(aes(y = med), color = "red")+
+    facet_wrap(~horizon, scales = "free", ncol = 2)+
+    labs(title = "CPI inflation (y/y)")
+```
+## Export data
+
+Need to export 
+
+- the actual forecasts - median, min and max - as well as
+- the list of vintages for which all forecasts are available 
+
+
+### List of vintages
+
+Determine the vintages that will be used in the forecast evaluation. For these we require that all nowcasts and forecasts (and backcasts in the case of GDP) are available. 
+
+First, remove the backcasts for CPI. These are not necessary as we usually have a flash estimate of previous quarter CPI inflation and do not rely on it. Moreover, it appears to be missing during the start of the sample, so including it would mean that we discard a large part of the potential evaluation sample. 
+
+```{r}
+df_cpi <- filter(df_cpi, horizon != -1) 
+```
+
+Find the intersection of vintages for GDP and CPI
+
+```{r}
+vint_cpi <- as.character(unique(df_cpi$dates_fore))
+vint_gdp <- as.character(unique(df_gdp$dates_fore))
+
+vint_cpi <- vint_cpi[!is.na(vint_cpi)]
+vint_gdp <- vint_gdp[!is.na(vint_gdp)]
+vintages <- intersect(vint_cpi, vint_gdp)
+```
+
+Check that for these vintages we have all available forecasts, i.e. no missing ones in between!
+
+```{r}
+h_start_gdp <- -1
+h_start_cpi <- 0
+h_max <- 4
+counter <- 1
+complete_vintage <- matrix(FALSE, nrow = length(vintages), ncol = 2) # col1 = cpi, col2 = gdp
+for (v in vintages)
+{
+  df_cpi %>% filter(dates_fore == v) -> df_tmp
+  
+  if (nrow(df_tmp) != 0)
+  {
+    diff_cpi <- setdiff(seq(h_start_cpi, max(h_max, max(df_tmp$horizon))), df_tmp$horizon)
+    if (length(diff_cpi) == 0)
+      complete_vintage[counter, 1] = TRUE
+  }
+  
+  df_gdp %>% filter(dates_fore == v) -> df_tmp
+  if (nrow(df_tmp) != 0)
+  {
+    diff_gdp <- setdiff(seq(h_start_gdp, max(h_max, max(df_tmp$horizon))), df_tmp$horizon)
+    if (length(diff_gdp) == 0)
+      complete_vintage[counter, 2] = TRUE
+  }
+  
+  counter <- counter + 1
+}
+
+df_vintages <- data.frame(v = vintages, 
+                          complete_cpi = complete_vintage[, 1],
+                          complete_gdp = complete_vintage[, 2]
+                          )
+
+df_vintages <- filter(df_vintages, complete_cpi == T, complete_gdp == T)
+```
+
+Export this list as `list_vintages.Rda`
+
+```{r}
+list_vintages <- df_vintages$v
+save(file = "list_vintages.Rda", list_vintages)
+```
+
+### Forecasts 
+
+```{r}
+df_out <- rbind(df_gdp, df_cpi)
+
+df_out <- filter(df_out, dates_fore %in% df_vintages$vintages)
+
+save(file = "ReutersPoll_data.Rda", df_out)
+```
+
+## Transform CPI y/y forecasts to q/q
+
+The original Reuters Poll reports professional forecasters' CPI forecasts in terms of y/y changes and need to be converted to q/q growth rates given the available data at the time
+
+To this end
+
+- download the corresponding vintage of data available at the time the forecasts were made using the package `bundesbank`
+- given the CPI data, reconstruct the (log) level of the CPI $log(cpi)_{t+h}$ given the forecasts $\Delta_4 cpi^f_{t+h|t}$, i.e. $\Delta_4 cpi_{t} = log(cpi)_{t} - log(cpi)_{t-4}$ 
+$$
+log(cpi)_{t+h} = log(cpi)_{t+h-4} + \Delta_4 cpi^f_{t+h|t}
+$$
+
+### Example: forecasts as 2006-04-05
+
+```{r}
+# source functions
+source("functions.R")
+
+# download vintage for 2006-04-05, convert to quarterly frequency
+dat <- download_realtime_data("BBKRT.M.DE.Y.P.PC1.PC100.R.I", "2006-04-05") %>% aggregate_to_Q("M")
+```
+
+```{r}
+df_cpi %>%
+  filter(dates_fore == "2006-04-05") %>%
+  mutate(quarter2 = make_date(year = year(quarter), month = 3 * ceiling(month(quarter)/3), day = 1L)) %>%
+  select(date = quarter2, med, min, max) -> forecasts_yoy
+```
+
+
+```{r}
+dat$log_med <- log(dat$raw)
+dat$log_min <- log(dat$raw)
+dat$log_max <- log(dat$raw)
+
+for (n in seq(1, nrow(forecasts_yoy)))
+{
+  ind_row <- which(dat$date == forecasts_yoy$date[n])
+  dat$log_med[ind_row]<- forecasts_yoy$med[n]/100 + dat$log_med[ind_row - 4]
+  dat$log_min[ind_row]<- forecasts_yoy$min[n]/100 + dat$log_min[ind_row - 4]
+  dat$log_max[ind_row]<- forecasts_yoy$max[n]/100 + dat$log_max[ind_row - 4]
+}
+
+dat$med_qoq <- c(NA, 100 * diff(dat$log_med))
+dat$min_qoq <- c(NA, 100 * diff(dat$log_min))
+dat$max_qoq <- c(NA, 100 * diff(dat$log_max))
+
+forecasts_qoq <- select(dat, date, med_qoq, min_qoq, max_qoq)
+
+forecasts <- merge(forecasts_yoy, forecasts_qoq, by = "date")
+```
+
+
+Note, however, that because of the transformation it is possible for the median forecast to lie below or above the minimum or maximum forecast (in y/y terms). This is a bit unfortunate. 
+```{r}
+dat$qoq <- c(NA, 100*diff(log(dat$raw)))
+dat %>% filter(date < "2010-01-01", date > "2005-01-01") %>% ggplot()+geom_line(aes(x=date, y=med_qoq), color = "red")+geom_ribbon(aes(x=date, ymin = min_qoq, ymax = max_qoq), fill = "red", alpha = 0.2)+geom_line(aes(x=date, y=qoq), color = "black")
+```
+
+When you look at the level this looks okay again: 
+
+```{r}
+dat %>% filter(date < "2008-01-01", date > "2005-01-01") %>% ggplot()+geom_line(aes(x=date, y=log_med), color = "red")+geom_ribbon(aes(x=date, ymin = log_min, ymax = log_max), fill = "red", alpha = 0.2)+geom_line(aes(x=date, y=log(raw)), color = "black")
+```
+
