@@ -29,21 +29,34 @@ max_h <- 3 # 3Q-ahead forecast (relative to the quarter in which the forecast is
 min_h <- -1 # backcast
 ```
 
+## Functions
+
+```{r}
+# define helper function
+dropNA_first <- function(df)
+# function that removes NA observations and drops first element
+# output is a vector
+{
+  tmp <- df[!is.na(df)] # rem NA
+  out <- tmp[-1] # drop first element
+}
+```
+
+Source some other functions
+
+```{r}
+source("functions.R")
+```
+
+
 ## Extract Reuters Poll data from raw csv-files
+
+### GDP
 
 Function to read in Reuters Poll forecasts
 ```{r}
-get_forecasts <- function(yy, qq, filename, max_h, min_h)
+get_gdp_forecasts <- function(yy, qq, filename, max_h, min_h)
 {
-  # define helper function
-  dropNA_first <- function(df)
-  # function that removes NA observations and drops first element
-  # output is a vector
-  {
-    tmp <- df[!is.na(df)] # rem NA
-    out <- tmp[-1] # drop first element
-  }
-  
   # read in csv
   
   if (file.exists(filename))
@@ -95,7 +108,6 @@ get_forecasts <- function(yy, qq, filename, max_h, min_h)
 }
 ```
 
-### GDP
 
 ```{r}
 dir_in <- paste0(dir_forecasts, "GDP/")
@@ -106,30 +118,153 @@ for (yy in yys)
   {
     filename <- paste0(getwd(), dir_in, yy, "Q", qq, ".csv")
     if (file.exists(filename))
-      df_gdp <- rbind(df_gdp, get_forecasts(yy, qq, filename, max_h, min_h))
+      df_gdp <- rbind(df_gdp, get_gdp_forecasts(yy, qq, filename, max_h, min_h))
     else
       next
   }
 }
 ```
 
+
 ### CPI
 
+The original Reuters Poll reports professional forecasters' CPI forecasts in terms of y/y changes and need to be converted to q/q growth rates given the available data at the time
+
+To this end
+
+- download the corresponding vintage of data available at the time the forecasts were made using the package `bundesbank`
+- given the CPI data, reconstruct the (log) level of the CPI $log(cpi)_{t+h}$ given the forecasts $\Delta_4 cpi^f_{t+h|t}$, i.e. $\Delta_4 cpi_{t} = log(cpi)_{t} - log(cpi)_{t-4}$ 
+$$
+log(cpi)_{t+h} = log(cpi)_{t+h-4} + \Delta_4 cpi^f_{t+h|t}
+$$
+- calculate the corresponding q/q growth rates and take the min, max and median for each quarter
+
+#### Functions 
+
 ```{r}
-dir_in <- paste0(dir_forecasts, "CPI/")
-df_cpi <- data.frame() 
+get_individual_fore <- function(yy, qq, filename)
+{
+  
+  dat <- read.csv(filename)
+  
+  ind_date <- grep("consensus", dat[, 1], ignore.case = TRUE)
+  dates_fore_tmp <- dmy(dropNA_first(dat[ind_date, ]))
+  
+  tmp <- grep("Contributor", dat[, 1], ignore.case = TRUE)
+  ind_contribs <- tmp + seq(1, nrow(dat)-tmp)
+  
+  df_fore_yoy <- data.frame()
+  for (i in ind_contribs)
+  {
+    fore <- as.numeric(dropNA_first(dat[i, ]))
+    name_contrib <- dat[i, 1]
+    df_fore_yoy <- rbind(df_fore_yoy, 
+                         data.frame(yoy = fore, 
+                                    dates = dates_fore_tmp,
+                                    name = name_contrib)
+    )
+    
+  }
+  
+  df_fore_yoy$quarter_date <- make_date(year = yy, month = 3 * qq -2, day = 1) 
+  
+  df_fore_yoy$horizon <- round(as.numeric((df_fore_yoy$quarter_date - df_fore_yoy$dates) / 90), digits = 0)
+  return(df_fore_yoy)
+}
+```
+
+```{r}
+transform_yoy_to_qoq <- function(cpi, df)
+  {
+    df %>%
+      drop_na() %>%
+      filter(dates == v) -> df
+    
+    unique_names <- unique(df$name)
+    
+    df_out <- data.frame()
+    
+    for (n in seq(1, length(unique_names)))
+    {
+    
+      df %>%
+        filter(name == unique_names[n]) %>%
+        arrange(quarter_date) -> df_tmp
+      
+      cpi_tmp <- cpi
+      cpi_tmp$log <- log(cpi_tmp$raw)
+      
+      for (i in seq(1, nrow(df_tmp)))
+      {
+        ind_row <- which(cpi_tmp$date == df_tmp$quarter_date[i])
+        cpi_tmp$log[ind_row]<- df_tmp$yoy[i]/100 + cpi_tmp$log[ind_row - 4]
+      }
+      
+      cpi_tmp$qoq <- c(NA, 100 * diff(cpi_tmp$log))
+  
+      df_out <- rbind(df_out, 
+                      merge(df_tmp, 
+                            select(cpi_tmp, date, qoq), 
+                            by.x = "quarter_date", by.y = "date")
+                      )
+      df_out$qoq[is.nan(df_out$qoq)] <- NA
+    }
+    
+    return(df_out)
+}
+```
+
+
+#### Read in individual forecasts from csv's
+
+```{r, message = F, warning = F}
+dir_in <- "/raw/Reuters Poll/CPI/"
+df_cpi_yoy <- data.frame()
 for (yy in yys)
 {
   for (qq in qqs)
   {
     filename <- paste0(getwd(), dir_in, yy, "Q", qq, ".csv")
     if (file.exists(filename))
-      df_cpi <- rbind(df_cpi, get_forecasts(yy, qq, filename, max_h, min_h))
+      df_cpi_yoy <- rbind(df_cpi_yoy, get_individual_fore(yy, qq, filename))
     else
       next
   }
 }
+
+df_cpi_yoy$quarter_date <- make_date(
+                            year = year(df_cpi_yoy$quarter_date),
+                            month = month(df_cpi_yoy$quarter_date) + 2,
+                            day = 1L
+                                    )
 ```
+
+
+#### Transform to q/q growth rates
+
+```{r, message = F, warning = F}
+vintages <- unique(df_cpi_yoy$dates)
+df_cpi_qoq <- data.frame()
+for (v in vintages)
+{
+  download_realtime_data("BBKRT.M.DE.Y.P.PC1.PC100.R.I", v) %>% 
+    aggregate_to_Q("M") -> cpi
+  
+  df_cpi_qoq <- rbind(df_cpi_qoq, transform_yoy_to_qoq(cpi, df_cpi_yoy))
+}
+
+
+df_cpi_qoq %>% 
+ drop_na %>% 
+ group_by(quarter_date, horizon, dates) %>% 
+ summarise(min = min(qoq, na.rm = T), 
+           max = max(qoq, na.rm = T), 
+           med = median(qoq, na.rm = T)) %>%
+ select(dates_fore = dates, 
+        med, min, max, 
+        quarter = quarter_date, horizon) -> df_cpi
+```
+
 
 ### Plots
 
@@ -231,11 +366,11 @@ df_vintages <- data.frame(v = vintages,
 df_vintages <- filter(df_vintages, complete_cpi == T, complete_gdp == T)
 ```
 
-Export this list as `list_vintages.Rda`
+Export this list as `list_vintages.csv`
 
 ```{r}
 list_vintages <- df_vintages$v
-save(file = "list_vintages.Rda", list_vintages)
+write.csv(file = "list_vintages.csv", list_vintages, row.names = F)
 ```
 
 ### Forecasts 
@@ -248,68 +383,4 @@ df_out <- filter(df_out, dates_fore %in% as_date(df_vintages$v))
 save(file = "ReutersPoll_data.Rda", df_out)
 ```
 
-## Transform CPI y/y forecasts to q/q
-
-The original Reuters Poll reports professional forecasters' CPI forecasts in terms of y/y changes and need to be converted to q/q growth rates given the available data at the time
-
-To this end
-
-- download the corresponding vintage of data available at the time the forecasts were made using the package `bundesbank`
-- given the CPI data, reconstruct the (log) level of the CPI $log(cpi)_{t+h}$ given the forecasts $\Delta_4 cpi^f_{t+h|t}$, i.e. $\Delta_4 cpi_{t} = log(cpi)_{t} - log(cpi)_{t-4}$ 
-$$
-log(cpi)_{t+h} = log(cpi)_{t+h-4} + \Delta_4 cpi^f_{t+h|t}
-$$
-
-### Example: forecasts as 2006-04-05
-
-```{r}
-# source functions
-source("functions.R")
-
-# download vintage for 2006-04-05, convert to quarterly frequency
-dat <- download_realtime_data("BBKRT.M.DE.Y.P.PC1.PC100.R.I", "2006-04-05") %>% aggregate_to_Q("M")
-```
-
-```{r}
-df_cpi %>%
-  filter(dates_fore == "2006-04-05") %>%
-  mutate(quarter2 = make_date(year = year(quarter), month = 3 * ceiling(month(quarter)/3), day = 1L)) %>%
-  select(date = quarter2, med, min, max) -> forecasts_yoy
-```
-
-
-```{r}
-dat$log_med <- log(dat$raw)
-dat$log_min <- log(dat$raw)
-dat$log_max <- log(dat$raw)
-
-for (n in seq(1, nrow(forecasts_yoy)))
-{
-  ind_row <- which(dat$date == forecasts_yoy$date[n])
-  dat$log_med[ind_row]<- forecasts_yoy$med[n]/100 + dat$log_med[ind_row - 4]
-  dat$log_min[ind_row]<- forecasts_yoy$min[n]/100 + dat$log_min[ind_row - 4]
-  dat$log_max[ind_row]<- forecasts_yoy$max[n]/100 + dat$log_max[ind_row - 4]
-}
-
-dat$med_qoq <- c(NA, 100 * diff(dat$log_med))
-dat$min_qoq <- c(NA, 100 * diff(dat$log_min))
-dat$max_qoq <- c(NA, 100 * diff(dat$log_max))
-
-forecasts_qoq <- select(dat, date, med_qoq, min_qoq, max_qoq)
-
-forecasts <- merge(forecasts_yoy, forecasts_qoq, by = "date")
-```
-
-
-Note, however, that because of the transformation it is possible for the median forecast to lie below or above the minimum or maximum forecast (in y/y terms). This is a bit unfortunate. 
-```{r}
-dat$qoq <- c(NA, 100*diff(log(dat$raw)))
-dat %>% filter(date < "2010-01-01", date > "2005-01-01") %>% ggplot()+geom_line(aes(x=date, y=med_qoq), color = "red")+geom_ribbon(aes(x=date, ymin = min_qoq, ymax = max_qoq), fill = "red", alpha = 0.2)+geom_line(aes(x=date, y=qoq), color = "black")
-```
-
-When you look at the level this looks okay again: 
-
-```{r}
-dat %>% filter(date < "2008-01-01", date > "2005-01-01") %>% ggplot()+geom_line(aes(x=date, y=log_med), color = "red")+geom_ribbon(aes(x=date, ymin = log_min, ymax = log_max), fill = "red", alpha = 0.2)+geom_line(aes(x=date, y=log(raw)), color = "black")
-```
 
