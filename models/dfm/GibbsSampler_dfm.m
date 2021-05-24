@@ -19,15 +19,6 @@ draws.phi = NaN(options.Nr, options.Nr * options.Np, options.Nreplic);
 draws.psi = NaN(options.Nn, options.Nj, options.Nreplic);
 draws.sig2 = NaN(options.Nn, options.Nreplic);
 
-% standardize data
-mean_y = mean(y, 1, 'omitnan');
-std_y = std(y, [], 1, 'omitnan');
-y = (y - mean_y) ./ std_y;
-
-% store mean and std of y for later reference
-draws.mean_y = mean_y;
-draws.std_y = std_y; 
-
 % starting values
 [lam, phi, psi, sig2] = f_startingvalues(y, options);
 Omega = eye(options.Nr); 
