@@ -40,6 +40,7 @@ if options.Nj > 0
     end
     sig2 = var(eps, [], 1)';
 else
+    psi = [];
     sig2 = var(e, [], 1)';
 end
 
