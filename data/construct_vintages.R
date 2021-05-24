@@ -141,8 +141,9 @@ get_survey_data <- function(v_star)
   dataQ$category <- "activity"
   dataQ$category[dataQ$mnemonic == "survey_eei"] <- "labor market"
   
-  # add trafo
-  dataQ$trafo <- dataQ$raw
+  # transform series
+  diff_series <- function(x){c(NA, x[seq(2, length(x))] - x[seq(1, length(x)-1)])}
+  dataQ %>% group_by(mnemonic) %>% mutate(trafo = diff_series(raw)) -> dataQ
   
   # select and order df
   dataQ %>% 
