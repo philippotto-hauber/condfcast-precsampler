@@ -63,17 +63,37 @@ y_u = out_dfm.y_u;
 ind_cond = not(isnan(y_l));
 store_Y_fore_c_soft = NaN(size(y_f, 1), size(y_o, 2), size(out_dfm.draws.lam, 3));
 Nsample = 1000;
-counter = 0;
-while counter < 100
+counter = 1;
+while counter < 1000
     disp(counter)
     [~, Yplus] = f_simsmoothsHS(y_o, y_f, out_dfm.draws.phi(:, :, m),  eye(Nr), out_dfm.draws.lam(:, :, m), out_dfm.draws.psi(:, :, m), out_dfm.draws.sig2(:, m), p_z, Nsample);
     % check conditions    
     for m1 = 1:Nsample
         Yplus_tmp = Yplus(end-size(y_f, 1)+1:end, :, m1); 
-        check_cond = all(Yplus_tmp(ind_cond) > y_l(ind_cond)) && all(Yplus_tmp(ind_cond) < y_u(ind_cond)); 
-        if  check_cond
+        check_u = Yplus_tmp(ind_cond) < y_u(ind_cond);
+        check_l= Yplus_tmp(ind_cond) > y_l(ind_cond);
+        if  all(check_u) && all(check_l)
             store_Y_fore_c_soft(:, :, counter) = Yplus_tmp;
             counter = counter + 1;
         end
     end
 end
+
+med_fore_c_soft = median(store_Y_fore_c_soft, 3);
+upp_fore_c_soft = prctile(store_Y_fore_c_soft, [90], 3);
+low_fore_c_soft = prctile(store_Y_fore_c_soft, [10], 3);
+
+figure;
+ind_n = 2;
+plot([y_o(:, ind_n); med_fore(:, ind_n)], 'b-')
+hold on
+plot([y_o(:, ind_n); upp_fore(:, ind_n)], 'b:')
+plot([y_o(:, ind_n); low_fore(:, ind_n)], 'b:')
+plot([y_o(:, ind_n); med_fore_c(:, ind_n)], 'r-')
+plot([y_o(:, ind_n); upp_fore_c(:, ind_n)], 'r:')
+plot([y_o(:, ind_n); low_fore_c(:, ind_n)], 'r:')
+plot([y_o(:, ind_n); med_fore_c_soft(:, ind_n)], 'g-')
+plot([y_o(:, ind_n); upp_fore_c_soft(:, ind_n)], 'g:')
+plot([y_o(:, ind_n); low_fore_c_soft(:, ind_n)], 'g:')
+plot([y_o(:, ind_n); NaN(size(y_f, 1), 1)], 'k-')
+title(out_dfm.mnemonics{ind_n})
