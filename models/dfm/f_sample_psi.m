@@ -13,7 +13,13 @@ for i = 1:size(e,2)
     
     Q_eps = speye(Nobs) *(sig2(i,1)^(-1)); 
 
-    [psi_tmp, eps(:, i)] = f_linreg(y, X, Q_eps, q0_psi);
-    psi(i, :) = psi_tmp';
+    %[psi_tmp, eps(:, i)] = f_linreg(y, X, Q_eps, q0_psi);
+    
+    XtQ_eps = X' * Q_eps;
+    Q_psi = diag(q0_psi) + XtQ_eps * X;
+    m_psi = Q_psi \ (XtQ_eps * y);
+    
+    psi(i, :) = f_sample_truncNorm(m_psi, sqrt(Q_psi^(-1)), -0.99, 0.99); % univariate Normal truncated to stationary region
+    eps(:, i) = y - X * psi(i, :);
 end
 
