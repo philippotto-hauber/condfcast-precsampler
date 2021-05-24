@@ -5,9 +5,22 @@ Nr = size(f, 2);
 Nobs = size(y, 1) / Nr;
 Q_e = kron(speye(Nobs), eye(size(Omega, 1))/Omega);
 
-[phi_tmp, ~] = f_linreg(y, X, Q_e, q0_phi);
+max_iter = 100;
+for iter = 1:max_iter
+    [phi_vec, ~] = f_linreg(y, X, Q_e, q0_phi);
+    phi_candidate = reshape(phi_vec, Nr*Np, Nr)';
+    phi_companion = [phi_candidate; eye(Nr*(Np-1)) zeros(Nr*(Np-1), Nr)];
 
-phi = reshape(phi_tmp, Nr*Np, Nr)';
+    if max(abs(eig(phi_companion))) < 1
+        phi = phi_candidate;
+        break
+    end
+end
+
+if iter == max_iter
+    error('Did not produce a stationary draw of phi!')
+end
+
 
 
 function [y_estim, X_estim] = f_constructyandX(y, Np)
