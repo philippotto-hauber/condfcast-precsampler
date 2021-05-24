@@ -177,7 +177,7 @@ add_ReutersPoll_forecasts <- function(df_data, df_fore, sample_start, v_star)
     drop_na() -> df_data
   
   df_fore %>% 
-    filter(dates_fore == v_star) %>%
+    filter(dates_fore == v_star, horizon <= 2) %>%
     mutate(date = make_date(year = year(quarter), month = 3 * ceiling(month(quarter)/3), day = 1L)) %>%
     select(date, var, med, min, max) %>%
     pivot_longer(cols = c(med, min, max), names_to = "mnemonic", values_to = "trafo") %>%
