@@ -3,38 +3,25 @@ function batch_estim_dfm(v)
 addpath('../../functions')
 dir_in = 'C:\Users\Philipp\Documents\GitHub\condfcast-precsampler\data\vintages\';
 dir_out = 'C:\Users\Philipp\Documents\Dissertation\condfcast-precsampler\models\dfm\';
+
 % load data
-tmp = importdata([dir_in, 'vintage', v, '.csv']);
-
-
-offset_numcols = size(tmp.textdata, 2) - size(tmp.data, 2); % offset as there are less numeric columns!
-ind_sample = logical(tmp.data(:, find(strcmp('flag_estim', tmp.textdata(1,:))) - offset_numcols));
-ind_vars = find(not(contains(tmp.textdata(1,:), 'min')) & ...
-                not(contains(tmp.textdata(1,:), 'med')) & ...
-                not(contains(tmp.textdata(1,:), 'max')) & ...
-                not(contains(tmp.textdata(1,:), 'date')) & ...
-                not(contains(tmp.textdata(1,:), 'flag'))) - offset_numcols;
-
-
-% data 
-y = tmp.data(ind_sample, ind_vars); 
-clear tmp
+out_dfm = prepare_data(v, dir_in);
 
 % MCMC options
-options.Nburnin = 1000 ; % # of burn-ins
-options.Nreplic = 1000 ; % # of replics
-options.Nthin = 2 ; % store each options.thinning-th draw
-options.Ndisplay = 1000 ;  % display each options.display-th iteration
+out_dfm.options.Nburnin = 1000 ; % # of burn-ins
+out_dfm.options.Nreplic = 1000 ; % # of replics
+out_dfm.options.Nthin = 2 ; % store each options.thinning-th draw
+out_dfm.options.Ndisplay = 1000 ;  % display each options.display-th iteration
 
 % model specs
-options.Nr = 3;
-options.Nj = 1;
-options.Ns = 3;
-options.Np = 2;
+out_dfm.options.Nr = 1;
+out_dfm.options.Nj = 1;
+out_dfm.options.Ns = 2;
+out_dfm.options.Np = 2;
 
 % call GibbsSampler_dfm.m
-draws = GibbsSampler_dfm(y, options);
+out_dfm.draws = GibbsSampler_dfm(out_dfm.y_o, out_dfm.options);
 
-% store draws
-save([dir_out, 'draws_', v, '.mat'], 'draws')
+% store output
+save([dir_out, 'out_dfm_', v, '.mat'], 'out_dfm')
 
