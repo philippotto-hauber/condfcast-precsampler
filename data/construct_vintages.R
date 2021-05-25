@@ -217,14 +217,13 @@ library(readr)
 dir_out <- paste0(getwd(), "/vintages/")
 realtime_data_spec <- realtime_data()
 financial_data_spec <- financial_data()
-load("list_vintages.Rda")
-list_vintages <- read.csv(file = "list_vintages.csv")
+list_vintages <- read.csv(file = "list_vintages.csv", header = F)
 list_vintages <- list_vintages[, 1]
 load("ReutersPoll_data.Rda")
 sample_start <- "1996-01-01"
 
 # LOOP OVER VINTAGES----
-for (v_star in list_vintages)
+for (v_star in list_vintages[1])
 {
     
     df_data <- data.frame()
