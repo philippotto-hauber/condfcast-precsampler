@@ -224,7 +224,7 @@ load("ReutersPoll_data.Rda")
 sample_start <- "1996-01-01"
 
 # LOOP OVER VINTAGES----
-for (v_star in list_vintages[1])
+for (v_star in list_vintages)
 {
     
     df_data <- data.frame()
