@@ -1,15 +1,4 @@
-clear; close all; clc; 
-%-------------------------------------------------------------------------%
-% set-up
-%-------------------------------------------------------------------------%
-
-Nt = 100;
-Nh = 50; 
-Nn = 60;
-Nr = 2; 
-Nj = 1; 
-Np = 2;
-Ns = 3;
+function simdata = simdata_dfm(Nt, Nh, Nn, Nr, Nj, Np, Ns)
 
 %-------------------------------------------------------------------------%
 % params
@@ -65,12 +54,17 @@ for t = 5:Nburnin+Nt+Nh
       f_lags = [f_lags; f(:, t-p)];
   end
   f(:, t) = phi * f_lags + mvnrnd(zeros(Nr, 1), sig_ups)';
-  e_lags = []; Psi_diag = [];
-  for j = 1:Nj
-       Psi_diag = [Psi_diag diag(psi(:, j))];
-       e_lags = [e_lags; e(:, t-j)];
+  if Nj > 0
+      e_lags = []; Psi_diag = [];
+      for j = 1:Nj
+           Psi_diag = [Psi_diag diag(psi(:, j))];
+           e_lags = [e_lags; e(:, t-j)];
+      end
+  else
+      e_lags = zeros(Nn, 1);
   end
   e(:, t) = diag(psi) * e_lags + sqrt(sig_eps) .* randn(Nn, 1);
+  
   F = [];
   for s = 0:Ns
       F = [F; f(:, t-s)];
@@ -106,7 +100,5 @@ simdata.setup.Nr = Nr;
 simdata.setup.Np = Np;
 simdata.setup.Ns = Ns;
 simdata.setup.Nj = Nj;
-
-save('simdata.mat', 'simdata')
 
 
