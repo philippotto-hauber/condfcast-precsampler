@@ -16,6 +16,7 @@ library(dplyr)
 library(lubridate)
 library(tidyr)
 library(ggplot2)
+library(bundesbank)
 
 # directories
 dir_forecasts <- "/raw/Reuters Poll/"
@@ -370,7 +371,7 @@ Export this list as `list_vintages.csv`
 
 ```{r}
 list_vintages <- df_vintages$v
-write.csv(file = "list_vintages.csv", list_vintages, row.names = F)
+write.table(file = "list_vintages.csv", list_vintages, row.names = F, col.names = F, quote = F)
 ```
 
 ### Forecasts 
