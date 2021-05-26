@@ -4,7 +4,7 @@
 #SBATCH --tasks-per-node=32
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=3000
-#SBATCH --time=10:00:00
+#SBATCH --time=05:00:00
 #SBATCH --output=estim2.out
 #SBATCH --error=estim2.err
 #SBATCH --partition=cluster
