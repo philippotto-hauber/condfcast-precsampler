@@ -1,6 +1,11 @@
 function estim_dfm(n_spec)
 
-addpath('../../functions')
+if isdeployed
+	n_spec = str2double(n_spec);
+	maxNumCompThreads(1);
+end
+
+%addpath('../../functions')
 dir_in = '../../data/vintages/';
 dir_out = 'draws/';
 
