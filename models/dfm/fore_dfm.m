@@ -1,5 +1,11 @@
 function fore_dfm(n_spec)
 
+if isdeployed
+	n_spec = str2double(n_spec);
+	maxNumCompThreads(1);
+end
+
+
 dir_in = 'draws/';
 dir_out = 'forecasts/';
 % vintage and forecast type
