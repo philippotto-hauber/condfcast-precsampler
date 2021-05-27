@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=3000
 #SBATCH --time=05:00:00
-#SBATCH --output=estim1.out
-#SBATCH --error=estim1.err
+#SBATCH --output=fore_blocks.out
+#SBATCH --error=fore_blocks.err
 #SBATCH --partition=cluster
 
 module load matlab/2020b
