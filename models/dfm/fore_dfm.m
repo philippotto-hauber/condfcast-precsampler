@@ -66,7 +66,7 @@ ind_cond = not(isnan(y_l));
 store_Y_fore = NaN(Nh * Ndraws, Nn);
 Nsample = 1000;
 m = 1;
-iter_max = 10000;
+iter_max = 50000;
 iter = 1;
 while m < Ndraws && iter < iter_max
     disp(m)
