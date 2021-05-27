@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=fore_blocks  
-#SBATCH --array=1-7
+#SBATCH --array=1-5
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=32
 #SBATCH --cpus-per-task=1

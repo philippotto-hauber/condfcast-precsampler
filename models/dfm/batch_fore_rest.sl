@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=fore_rest  
 #SBATCH --nodes=1
-#SBATCH --tasks-per-node=32
+#SBATCH --tasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=3000
 #SBATCH --time=05:00:00
@@ -11,7 +11,7 @@
 
 module load matlab/2020b
 
-for i in `seq 224 252`
+for i in `seq 161 168`
 do
 	./fore_dfm $i &
 done

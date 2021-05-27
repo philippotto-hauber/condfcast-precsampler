@@ -9,7 +9,7 @@ dir_in = '';
 model_specs = readmatrix([dir_in, 'model_specs.csv']);
 
 % forecast_types
-forecast_types = {'unconditional', 'conditional (hard)', 'conditional (soft)'};
+forecast_types = {'unconditional', 'conditional_hard'};
 
 ind_vs = repmat(1:length(vintages), 1, size(model_specs, 1) * length(forecast_types));
 ind_types = repmat(kron(1:length(forecast_types), ones(1, length(vintages))), 1, size(model_specs, 1));

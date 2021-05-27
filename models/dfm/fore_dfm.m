@@ -33,7 +33,7 @@ count_draws = kron((1:Ndraws)', ones(Nh, 1));
 % restandardize
 store_Y_fore = store_Y_fore .* out_dfm.std_y_o + out_dfm.mean_y_o;
 
-elseif strcmp(forecast_type, 'conditional (hard)')
+elseif strcmp(forecast_type, 'conditional_hard')
 % conditional forecasts
 y_o = out_dfm.y_o;
 y_f = out_dfm.y_c;
@@ -97,6 +97,6 @@ end
 
 % export to csv
 out_fore = [count_hs, count_draws, store_Y_fore];
-writetable(array2table(out_fore, 'VariableNames',[{'horizon', 'draw'}, out_dfm.mnemonics]), [dir_out,  forecast_type, '_', model_spec, v '.csv'])
+writetable(array2table(out_fore, 'VariableNames',[{'horizon', 'draw'}, out_dfm.mnemonics]), [dir_out,  forecast_type, '_', model_spec, '_', v '.csv'])
 
 
