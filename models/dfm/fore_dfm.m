@@ -69,6 +69,7 @@ m = 1;
 iter_max = 10000;
 iter = 1;
 while m < Ndraws && iter < iter_max
+    disp(m)
     [~, Yplus] = f_simsmoothsHS(y_o, y_f, out_dfm.draws.phi(:, :, m),  eye(out_dfm.options.Nr), out_dfm.draws.lam(:, :, m), out_dfm.draws.psi(:, :, m), out_dfm.draws.sig2(:, m), p_z, Nsample);
     % check conditions    
     for m1 = 1:Nsample
@@ -84,7 +85,8 @@ while m < Ndraws && iter < iter_max
 end
 
 if iter == iter_max
-    error('Soft conditioning took too many iterations. Abort')
+    mess = ['Soft conditioning took too many iterations. After ' num2str(iter) , 'only ' num2str(m) ' acceptable draws were obtained. Abort!'];
+    error(mess)    
 end
 
 count_hs = kron(ones(Ndraws, 1), (1:Nh)');
