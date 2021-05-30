@@ -4,8 +4,8 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=32
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=3000
-#SBATCH --time=05:00:00
+#SBATCH --mem=100000
+#SBATCH --time=20:00:00
 #SBATCH --output=fore_blocks.out
 #SBATCH --error=fore_blocks.err
 #SBATCH --partition=cluster
