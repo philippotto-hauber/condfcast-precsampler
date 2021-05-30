@@ -1,0 +1,94 @@
+---
+title: "Plot predictive densities and realization"
+output: html_notebook
+---
+
+# Set-up
+
+```{r}
+rm(list = ls())
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval")
+dir_densities <- paste0(getwd(), "/../models/dfm/forecasts/")
+dir_releases <- paste0(getwd(), "/releases/")
+```
+
+
+# User input
+
+```{r}
+mod <- c("Nr4_Nj1_Np2_Ns0", "Nr1_Nj1_Np2_Ns3") 
+
+type <- c("unconditional", "conditional_hard")
+
+v <- "2009-10-07"
+
+mnemonic_select <- c("c_priv", "p_c_priv")
+```
+
+
+# Load draws from the predictive densities
+
+Loop over **models** and forecast **type**
+
+```{r}
+df_plot <- data.frame()
+
+for (m in mod){
+  for (t in type){
+    filename <- paste0(t, "_", m, "_", v, ".csv")
+    dat <- read.csv(paste0(dir_densities, filename))
+    dat %>% 
+      pivot_longer(-c(horizon, draw), names_to = "mnemonic", values_to = "value") %>%
+      filter(mnemonic %in% mnemonic_select) %>%
+      mutate(model = m,
+             type = t) %>%
+      rbind(df_plot) -> df_plot
+  }
+}
+```
+
+Convert horizon to refer to the forecast period relative to vintage, not data end point
+
+```{r}
+convert_horizon <- data.frame(horizon_new = c(seq(-1, 2)),
+                              horizon = c(seq(1, 4))
+                              )
+
+df_plot <- merge(df_plot, convert_horizon, by = "horizon")
+df_plot %>% select(-horizon) %>% rename(horizon = horizon_new) -> df_plot
+```
+
+Calculate the release period to match with realizations
+
+```{r}
+v_date <- as_date(v)
+quarter_tmp <- v_date + months(df_plot$horizon * 3 )
+df_plot$quarter <- make_date(year = year(quarter_tmp), month = month(quarter_tmp) + 2, day = 1L)
+```
+
+
+# Add realizations
+
+```{r}
+load(paste0(dir_releases, "releases.Rda"))
+
+df_releases %>% 
+  select(quarter, release = value, mnemonic) %>% 
+  merge(df_plot, by= c("quarter", "mnemonic")) -> df_plot
+```
+
+
+# Plot
+
+```{r}
+df_plot %>% 
+  filter(mnemonic != "gdp", horizon <= 0)%>%
+  ggplot(aes(x = value, color = model, linetype = type))+
+    geom_density(size = 1.0)+
+    geom_vline(aes(xintercept = release))+
+    facet_wrap(mnemonic ~ horizon, scales="free", nrow = length(mnemonic_select))
+```
+
