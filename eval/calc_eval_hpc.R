@@ -19,7 +19,6 @@ dir_releases <- "./releases/"
 dir_vintages <- "./../data/"
 
 list_vintages <- read.csv(paste0(dir_vintages, "list_vintages.csv"), header=F)
-
 models <- c("Nr4_Nj1_Np2_Ns0", "Nr1_Nj1_Np2_Ns3") 
 types <- c("unconditional", "conditional_hard")
 
@@ -113,4 +112,4 @@ for (v in seq(1, nrow(list_vintages))){
   file.remove(fn)
 }
 
-save("df_eval.Rda", df_eval)
+save(file="df_eval.Rda", df_eval)
