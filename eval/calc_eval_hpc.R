@@ -102,3 +102,15 @@ tmp_out <- foreach (v = seq(1, nrow(list_vintages)), .combine = c) %dopar%
   # save as csv
   write.csv(file = paste0(list_vintages[v, 1], ".csv"), df_eval)
 }
+
+# collect csv files in one Rda structure
+df_eval <- data.frame()
+
+for (v in seq(1, nrow(list_vintages))){
+  fn <- paste0(list_vintages[v, 1], ".csv")
+  tmp <- read.csv(fn)
+  df_eval <- rbind(df_eval, tmp[, seq(2, ncol(tmp))])
+  file.remove(fn)
+}
+
+save("df_eval.Rda", df_eval)
