@@ -1,23 +1,22 @@
 # Set-up----
-
-# parallel set-up
-registerDoParallel(cores=32)
-print(getDoParWorkers())
-
 # libraries
-library(tidyr)
-library(dplyr)
-library(lubridate)
-library(scoringRules)
-
-suppressMessages(library(doParallel))
+suppressMessages(library(iterators, lib.loc = "~/R_libs"))
+suppressMessages(library(foreach, lib.loc = "~/R_libs"))
+suppressMessages(library(doParallel, lib.loc = "~/R_libs"))
+suppressMessages(library(crayon, lib.loc = "~/R_libs"))
 suppressMessages(library(dplyr, lib.loc = "~/R_libs"))
 suppressMessages(library(lubridate, lib.loc = "~/R_libs"))
 suppressMessages(library(scoringRules, lib.loc = "~/R_libs"))
+suppressMessages(library(tidyr, lib.loc = "~/R_libs"))
+getwd()
 
-dir_densities <- "/../models/dfm/forecasts/"
-dir_releases <- "/releases/"
-dir_vintages <- "../data/"
+# parallel set-up
+registerDoParallel(cores=8)
+print(getDoParWorkers())
+
+dir_densities <- "./../models/dfm/forecasts/"
+dir_releases <- "./releases/"
+dir_vintages <- "./../data/"
 
 list_vintages <- read.csv(paste0(dir_vintages, "list_vintages.csv"), header=F)
 
@@ -30,7 +29,6 @@ tmp <- realtime_data()
 mnemonic_select <- tmp$mnemonic
 mnemonic_select <- setdiff(mnemonic_select, c("gdp", "cpi", "inv"))
 rm(tmp)
-mnemonic_select <- c("c_priv", "p_c_priv")
 
 # Functions----
 
@@ -53,9 +51,9 @@ df_releases %>%
   select(quarter, realization = value, mnemonic) -> df_releases
 
 # Loop over types, models and vintages----
-#tmp_out <- foreach (i = seq(1, nrow(list_vintages)), .combine = c) %dopar%
-tmp_out <- foreach (i = seq(1, 3), .combine = c) %dopar%
+tmp_out <- foreach (v = seq(1, nrow(list_vintages)), .combine = c) %dopar%
 {
+	print(v)
   df_eval <- data.frame()
   for (t in types){
     for (m in models){
@@ -102,5 +100,5 @@ tmp_out <- foreach (i = seq(1, 3), .combine = c) %dopar%
     }
   }
   # save as csv
-  writecsv(file = paste0(v, ".csv"), df_eval)
+  write.csv(file = paste0(list_vintages[v, 1], ".csv"), df_eval)
 }
