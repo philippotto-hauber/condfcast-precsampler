@@ -1,0 +1,75 @@
+# Test **BayesianARs** module
+
+
+
+This document tests the **BayesianARs** module.
+
+To run
+
+- make sure pwd() is set to benchmarks/test/
+- weave using the command weave("test_module.jmd"; out_path=:pwd, fig_path = "figures")
+
+
+```julia; echo = false; results = "hidden"
+#import Pkg
+#Pkg.activate(".")
+include("./../BayesianARs.jl")
+using .BayesianARs
+using Statistics, LinearAlgebra, Distributions, Plots
+```
+
+## Simulate data
+
+Model is $y_t = \beta_0 + \beta_1 y_{t-1} + \beta_2 y_{t-2} + e_t; \: e_t \sim \mathcal{N}(0, \sigma^2)$
+
+```julia
+Nt = 300
+Nh = 4
+Np = 2
+
+y, yᶠ_true, β, σ² = simulate_data(Nt, Nh)
+```
+
+## Prepare estimation
+
+regressors **X**
+
+```julia
+# regressors
+X = [ones(Nt-Np, 1) lags(y, Np)];
+```
+priors
+```julia
+m₀ = zeros(Np+1)
+Q₀ = diagm(vcat(0.01, collect(1:Np)))
+prior_β = MvNormalCanon(Q₀*m₀, Q₀)
+prior_σ² = InverseGamma(3, 0.1);
+```
+initialize model type with OLS
+```julia
+β_ols = (X'*X)\X'*y[Np+1:end] 
+σ²_ols = var(y[Np+1:end]-X*β_ols)
+ar_model = BayesianAR(y, X, Np, β_ols, σ²_ols, prior_β, prior_σ²);
+```
+
+## Estimate
+
+```julia
+β_hat, σ²_hat, yᶠ = gibbs_sampler(ar_model; Nh = 4);
+```
+
+## Plots
+
+### Parameters $\beta$ and $\sigma^2$
+
+```julia
+histogram(hcat(β_hat', σ²_hat), bins = 100, label = "", title=["bet0" "bet1" "bet2" "sigma"], layout = (2,2))
+vline!([vcat(β, σ²)'], linewidth = 4, label = "", linecolor = :black, layout = (2, 2))
+```
+
+### Predictive densities
+
+```julia
+histogram(yᶠ', bins = 100, label = "", title=["h=1" "h=2" "h=3" "h=4"], layout = (2, 2))
+vline!([yᶠ_true'], linewidth = 4, linecolor = :black, layout = (2, 2), label = "")
+```
