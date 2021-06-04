@@ -3,6 +3,7 @@ function out = prepare_data(v, dir_data)
 % load data
 tmp = importdata([dir_data, 'vintage', v, '.csv']);
 offset_numcols = size(tmp.textdata, 2) - size(tmp.data, 2); % offset as there are less numeric columns!
+offset_numrows = size(tmp.textdata, 1) - size(tmp.data, 1); % offset as there are less numeric rows!
 
 % y_o
 ind_sample = logical(tmp.data(:, find(strcmp('flag_estim', tmp.textdata(1,:))) - offset_numcols));
@@ -52,6 +53,8 @@ out.y_l = (y_l - mean_y_o) ./ std_y_o;
 out.y_u = (y_u - mean_y_o) ./ std_y_o;
 out.mean_y_o = mean_y_o;
 out.std_y_o = std_y_o; 
+
+out.dates_fore = tmp.textdata(find(ind_h)+offset_numrows, 1);
 
 % mnemonics of vars (add offset back!)
 out.mnemonics = tmp.textdata(1, ind_vars+offset_numcols);
