@@ -73,6 +73,7 @@ df_eval_tmp %>%
             mean_crps = mean(crps),
             n_quarters = n()) -> df_eval
 
+save(file = "df_benchmark.Rda", df_eval)
 
 
 
