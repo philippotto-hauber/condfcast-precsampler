@@ -1,6 +1,9 @@
 realtime_data <- function()
 {
-  # gross domestic product
+  #######################################################################################
+  # gross domestic product and expenditure side 
+  #######################################################################################
+ 
   df_data <- data.frame(name = "gross domestic product",
                         mnemonic = "gdp",
                         category = "national accounts (expenditure)",
@@ -11,7 +14,6 @@ realtime_data <- function()
                         code_deflate = NA
                         )
   
-  # gross domestic product implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator gross domestic product",
                             mnemonic = "p_gdp",
                             category = "national accounts (expenditure)",
@@ -23,7 +25,6 @@ realtime_data <- function()
                             )
                   )
 
-  # private consumption
   df_data <- rbind(df_data, data.frame(name = "private consumption",
                             mnemonic = "c_priv",
                             category = "national accounts (expenditure)",
@@ -35,7 +36,6 @@ realtime_data <- function()
                             )
                   )
   
-  # private consumption implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator private consumption",
                             mnemonic = "p_c_priv",
                             category = "national accounts (expenditure)",
@@ -46,7 +46,6 @@ realtime_data <- function()
                             code_deflate = "BBKRT.Q.DE.Y.A.CA1.BA100.V.A"
                             )
                   )
-  # public consumption
   df_data <- rbind(df_data, data.frame(name = "government consumption",
                             mnemonic = "c_gov",
                             category = "national accounts (expenditure)",
@@ -58,7 +57,6 @@ realtime_data <- function()
                             )
                   )
   
-  # public consumption implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator government consumption",
                             mnemonic = "p_c_gov",
                             category = "national accounts (expenditure)",
@@ -70,7 +68,6 @@ realtime_data <- function()
                             )
                   )
 
-  # equipment investment
   df_data <- rbind(df_data, data.frame(name = "equipment investment",
                             mnemonic = "gfcf_equip",
                             category = "national accounts (expenditure)",
@@ -82,7 +79,6 @@ realtime_data <- function()
                             )
                   )
   
-  # equipment investment implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator equipment investment",
                             mnemonic = "p_gfcf_equip",
                             category = "national accounts (expenditure)",
@@ -94,7 +90,6 @@ realtime_data <- function()
                             )
                   )
 
-  # construction investment
   df_data <- rbind(df_data, data.frame(name = "construction investment",
                             mnemonic = "gfcf_constr",
                             category = "national accounts (expenditure)",
@@ -106,7 +101,6 @@ realtime_data <- function()
                             )
                   )
   
-  # construction investment implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator construction investment",
                             mnemonic = "p_gfcf_constr",
                             category = "national accounts (expenditure)",
@@ -117,7 +111,6 @@ realtime_data <- function()
                             code_deflate = "BBKRT.Q.DE.Y.A.CF1.CA010.V.A"
                             )
                   )
-  # other investment
   df_data <- rbind(df_data, data.frame(name = "other investment",
                             mnemonic = "gfcf_other",
                             category = "national accounts (expenditure)",
@@ -129,7 +122,6 @@ realtime_data <- function()
                             )
                   )
   
-  # other investment implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator other investment",
                             mnemonic = "p_gfcf_other",
                             category = "national accounts (expenditure)",
@@ -141,7 +133,6 @@ realtime_data <- function()
                             )
                   ) 
 
-  # exports
   df_data <- rbind(df_data, data.frame(name = "exports",
                             mnemonic = "x",
                             category = "national accounts (expenditure)",
@@ -153,7 +144,6 @@ realtime_data <- function()
                             )
                   )
   
-  # exports implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator exports",
                             mnemonic = "p_x",
                             category = "national accounts (expenditure)",
@@ -164,7 +154,6 @@ realtime_data <- function()
                             code_deflate = "BBKRT.Q.DE.Y.A.CX1.CA010.V.A"
                             )
                   ) 
-  # imports
   df_data <- rbind(df_data, data.frame(name = "imports",
                             mnemonic = "m",
                             category = "national accounts (expenditure)",
@@ -176,7 +165,6 @@ realtime_data <- function()
                             )
                   )
   
-  # imports implicit deflator
   df_data <- rbind(df_data, data.frame(name = "implicit deflator imports",
                             mnemonic = "p_m",
                             category = "national accounts (expenditure)",
@@ -189,7 +177,6 @@ realtime_data <- function()
                   ) 
 
   
-  # inventories
   df_data <- rbind(df_data, data.frame(name = "inventories",
                             mnemonic = "inv",
                             category = "national accounts (expenditure)",
@@ -200,8 +187,188 @@ realtime_data <- function()
                             code_deflate = NA
                             )
                   )
+  
+  #######################################################################################
+  # gross value added 
+  #######################################################################################
+
+  df_data <- rbind(df_data, data.frame(name = "gva industry",
+                            mnemonic = "gva_ind",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA020.A.I",
+                            code_deflate = NA
+                            )
+                  )
+  df_data <- rbind(df_data, data.frame(name = "gva industry deflator",
+                            mnemonic = "p_gva_ind",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA020.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA020.V.A"
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva construction",
+                            mnemonic = "gva_constr",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA030.A.I",
+                            code_deflate = NA
+                            )
+                  )
+  df_data <- rbind(df_data, data.frame(name = "gva construction",
+                            mnemonic = "p_gva_constr",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA030.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA030.V.A"
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva trade, transport, hospitality",
+                            mnemonic = "gva_tth",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA040.A.I",
+                            code_deflate = NA
+                            )
+                  )
+  df_data <- rbind(df_data, data.frame(name = "gva trade, transport, hospitality deflator",
+                            mnemonic = "p_gva_tth",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA040.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA040.V.A"
+                            )
+                  )
+
+  
+  df_data <- rbind(df_data, data.frame(name = "gva finance",
+                            mnemonic = "gva_fin",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA052.A.I",
+                            code_deflate = NA
+                            )
+                  )
+  df_data <- rbind(df_data, data.frame(name = "gva finance deflator",
+                            mnemonic = "p_gva_fin",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA052.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA052.V.A"
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva information, communication",
+                            mnemonic = "gva_ic",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA051.A.I",
+                            code_deflate = NA
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva information communication deflator",
+                            mnemonic = "p_gva_ic",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA051.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA051.V.A"
+                            )
+                  )
+  
+  df_data <- rbind(df_data, data.frame(name = "gva real estate",
+                            mnemonic = "gva_re",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA061.A.I",
+                            code_deflate = NA
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva real estate deflator",
+                            mnemonic = "p_gva_re",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA061.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA061.V.A"
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva professional services",
+                            mnemonic = "gva_profserv",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA062.A.I",
+                            code_deflate = NA
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva professional services deflator",
+                            mnemonic = "p_gva_profserv",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA062.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA062.V.A"
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva public services",
+                            mnemonic = "gva_pub",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA063.A.I",
+                            code_deflate = NA
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva public services deflator",
+                            mnemonic = "p_gva_pub",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA063.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA063.V.A"
+                            )
+                  )
+
+  #######################################################################################
+  # prices
+  #######################################################################################
                   
-  # CPI inflation
   df_data <- rbind(df_data, 
                    data.frame(name = "CPI inflation",
                               mnemonic = "cpi",
@@ -214,7 +381,6 @@ realtime_data <- function()
                               )
                    )
 
-  # core CPI inflation 
   df_data <- rbind(df_data, 
                    data.frame(name = "core CPI inflation",
                               mnemonic = "cpi_core",
@@ -227,7 +393,6 @@ realtime_data <- function()
                               )
                    )
 
-  # PPI
   df_data <- rbind(df_data, 
                    data.frame(name = "PPI inflation",
                               mnemonic = "ppi",
@@ -240,7 +405,6 @@ realtime_data <- function()
                               )
                    )
   
-  # core PPI
   df_data <- rbind(df_data, 
                    data.frame(name = "core PPI inflation",
                               mnemonic = "ppi_core",
@@ -252,7 +416,6 @@ realtime_data <- function()
                               code_deflate = NA 
                               )
                    )  
-  # PPI construction
   df_data <- rbind(df_data, 
                    data.frame(name = "PPI inflation construction",
                               mnemonic = "ppi_constr",
@@ -265,7 +428,6 @@ realtime_data <- function()
                               )
                    )  
 
-  # PPI agricultural
   df_data <- rbind(df_data, 
                    data.frame(name = "PPI inflation agriculture",
                               mnemonic = "ppi_agri",
@@ -277,8 +439,11 @@ realtime_data <- function()
                               code_deflate = NA 
                               )
                    )  
+
+  #######################################################################################
+  # monthly activity indicators
+  #######################################################################################
   
-  # industrial production
   df_data <- rbind(df_data, 
                    data.frame(name = "production industry",
                               mnemonic = "prod_ind",
@@ -291,7 +456,6 @@ realtime_data <- function()
                               )
                   )
 
-  # production construction
   df_data <- rbind(df_data, 
                    data.frame(name = "production construction",
                               mnemonic = "prod_constr",
@@ -304,7 +468,6 @@ realtime_data <- function()
                               )
                   )
   
-  # orders
   df_data <- rbind(df_data, 
                    data.frame(name = "orders industry",
                               mnemonic = "ord",
@@ -317,7 +480,6 @@ realtime_data <- function()
                               )
                   )
 
-  # orders construction
   df_data <- rbind(df_data, 
                    data.frame(name = "orders construction",
                               mnemonic = "ord_constr",
@@ -330,7 +492,6 @@ realtime_data <- function()
                               )
                   )
 
-  # turnover
   df_data <- rbind(df_data, 
                    data.frame(name = "turnover industry",
                               mnemonic = "to",
@@ -343,7 +504,7 @@ realtime_data <- function()
                               )
                   )
   
-  # turnover retail sales
+
   df_data <- rbind(df_data, 
                    data.frame(name = "turnover retail",
                               mnemonic = "to_retail",
@@ -355,7 +516,7 @@ realtime_data <- function()
                               code_deflate = NA 
                               )
                   )
-  # turnover construction
+
   df_data <- rbind(df_data, 
                    data.frame(name = "turnover construction",
                               mnemonic = "to_constr",
@@ -367,7 +528,11 @@ realtime_data <- function()
                               code_deflate = NA 
                               )
                   )
-  # employment
+
+  #######################################################################################
+  # labor market
+  #######################################################################################
+
   df_data <- rbind(df_data, 
                    data.frame(name = "employment",
                               mnemonic = "emp",
@@ -379,7 +544,6 @@ realtime_data <- function()
                               code_deflate = NA 
                               )
                   )
-  # hours
   df_data <- rbind(df_data, 
                    data.frame(name = "hours worked industry",
                               mnemonic = "h_ind",
@@ -392,7 +556,6 @@ realtime_data <- function()
                               )
                   )  
   
-  # hours
   df_data <- rbind(df_data, 
                    data.frame(name = "hours worked constr",
                               mnemonic = "h_constr",
@@ -404,7 +567,7 @@ realtime_data <- function()
                               code_deflate = NA 
                    )
   )  
-  # wages
+
   df_data <- rbind(df_data, 
                    data.frame(name = "wages",
                               mnemonic = "w",
@@ -415,6 +578,7 @@ realtime_data <- function()
                               code =  "BBKRT.Q.DE.S.A.DE2.CA010.V.A",
                               code_deflate = NA 
                               )
-                  )   
+                  ) 
+
   return(df_data)
 }
