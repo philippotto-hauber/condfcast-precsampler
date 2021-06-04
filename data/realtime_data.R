@@ -255,115 +255,137 @@ realtime_data <- function()
                             )
                   )
 
+  df_data <- rbind(df_data, data.frame(name = "gva finance, real estate, professional services",
+                            mnemonic = "gva_freprof",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA050.A.I",
+                            code_deflate = NA
+                            )
+                  )
+
+  df_data <- rbind(df_data, data.frame(name = "gva finance, real estate, professional services",
+                            mnemonic = "p_gva_freprof",
+                            category = "national accounts (production)",
+                            group = "activity",
+                            trafo = "log, diff",
+                            frequency = "Q",
+                            code = "BBKRT.Q.DE.Y.A.AU1.AA050.A.I",
+                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA050.V.A"
+                            )
+                  )
+  # the following series are commented out because the vintages are only available from 2011 onwards
+  #
+  # df_data <- rbind(df_data, data.frame(name = "gva finance",
+  #                           mnemonic = "gva_fin",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA052.A.I",
+  #                           code_deflate = NA
+  #                           )
+  #                 )
+  # df_data <- rbind(df_data, data.frame(name = "gva finance deflator",
+  #                           mnemonic = "p_gva_fin",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA052.A.I",
+  #                           code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA052.V.A"
+  #                           )
+  #                 )
+
+  # df_data <- rbind(df_data, data.frame(name = "gva information, communication",
+  #                           mnemonic = "gva_ic",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA051.A.I",
+  #                           code_deflate = NA
+  #                           )
+  #                 )
+
+  # df_data <- rbind(df_data, data.frame(name = "gva information communication deflator",
+  #                           mnemonic = "p_gva_ic",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA051.A.I",
+  #                           code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA051.V.A"
+  #                           )
+  #                 )
   
-  df_data <- rbind(df_data, data.frame(name = "gva finance",
-                            mnemonic = "gva_fin",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA052.A.I",
-                            code_deflate = NA
-                            )
-                  )
-  df_data <- rbind(df_data, data.frame(name = "gva finance deflator",
-                            mnemonic = "p_gva_fin",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA052.A.I",
-                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA052.V.A"
-                            )
-                  )
+  # df_data <- rbind(df_data, data.frame(name = "gva real estate",
+  #                           mnemonic = "gva_re",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA061.A.I",
+  #                           code_deflate = NA
+  #                           )
+  #                 )
 
-  df_data <- rbind(df_data, data.frame(name = "gva information, communication",
-                            mnemonic = "gva_ic",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA051.A.I",
-                            code_deflate = NA
-                            )
-                  )
+  # df_data <- rbind(df_data, data.frame(name = "gva real estate deflator",
+  #                           mnemonic = "p_gva_re",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA061.A.I",
+  #                           code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA061.V.A"
+  #                           )
+  #                 )
 
-  df_data <- rbind(df_data, data.frame(name = "gva information communication deflator",
-                            mnemonic = "p_gva_ic",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA051.A.I",
-                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA051.V.A"
-                            )
-                  )
-  
-  df_data <- rbind(df_data, data.frame(name = "gva real estate",
-                            mnemonic = "gva_re",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA061.A.I",
-                            code_deflate = NA
-                            )
-                  )
+  # df_data <- rbind(df_data, data.frame(name = "gva professional services",
+  #                           mnemonic = "gva_profserv",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA062.A.I",
+  #                           code_deflate = NA
+  #                           )
+  #                 )
 
-  df_data <- rbind(df_data, data.frame(name = "gva real estate deflator",
-                            mnemonic = "p_gva_re",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA061.A.I",
-                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA061.V.A"
-                            )
-                  )
+  # df_data <- rbind(df_data, data.frame(name = "gva professional services deflator",
+  #                           mnemonic = "p_gva_profserv",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA062.A.I",
+  #                           code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA062.V.A"
+  #                           )
+  #                 )
 
-  df_data <- rbind(df_data, data.frame(name = "gva professional services",
-                            mnemonic = "gva_profserv",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA062.A.I",
-                            code_deflate = NA
-                            )
-                  )
+  # df_data <- rbind(df_data, data.frame(name = "gva public services",
+  #                           mnemonic = "gva_pub",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA063.A.I",
+  #                           code_deflate = NA
+  #                           )
+  #                 )
 
-  df_data <- rbind(df_data, data.frame(name = "gva professional services deflator",
-                            mnemonic = "p_gva_profserv",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA062.A.I",
-                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA062.V.A"
-                            )
-                  )
-
-  df_data <- rbind(df_data, data.frame(name = "gva public services",
-                            mnemonic = "gva_pub",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA063.A.I",
-                            code_deflate = NA
-                            )
-                  )
-
-  df_data <- rbind(df_data, data.frame(name = "gva public services deflator",
-                            mnemonic = "p_gva_pub",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA063.A.I",
-                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA063.V.A"
-                            )
-                  )
+  # df_data <- rbind(df_data, data.frame(name = "gva public services deflator",
+  #                           mnemonic = "p_gva_pub",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA063.A.I",
+  #                           code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA063.V.A"
+  #                           )
+  #                 )
 
   #######################################################################################
   # prices
