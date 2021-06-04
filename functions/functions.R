@@ -87,3 +87,23 @@ aggregate_to_Q <- function(df, freq_code)
   
   return(df)
 }
+
+wrap_logs_sample <- function(y, dat)
+# wrapper for logs_sample to use with dplyr::mutate
+{
+
+  logs <- scoringRules::logs_sample(y[1], dat)
+  return(logs)
+}
+
+wrap_crps_sample <- function(y, dat)
+# wrapper for crps_sample to use with dplyr::mutate
+{
+  crps <- scoringRules::crps_sample(y[1], dat)
+  return(crps)
+}
+
+determine_horizon <- function(quarter, vintage)
+{
+  floor(lubridate::day(lubridate::days(quarter)-lubridate::days(vintage))/90)
+}
