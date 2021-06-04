@@ -4,7 +4,7 @@ setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/data")
 # SOURCE FUNCTIONS ----
 source("realtime_data.R") # spec details for real-time data from Bbk
 source("financial_data.R") # spec details for financial data from Bbk
-source("./../functions.R") # helper functions
+source("./../functions/functions.R") # helper functions
 
 
 # MAIN FUNCTIONS----
@@ -208,10 +208,12 @@ add_ReutersPoll_forecasts <- function(df_data, df_fore, sample_start, v_star)
 # PACKAGES----
 library(bundesbank)
 library(lubridate)
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(readxl)
 library(readr)
+
+options(dplyr.summarise.inform = FALSE) # turn off annoying summarise warning!
 
 # SET-UP----
 dir_out <- paste0(getwd(), "/vintages/")
@@ -223,9 +225,9 @@ load("ReutersPoll_data.Rda")
 sample_start <- "1996-01-01"
 
 # LOOP OVER VINTAGES----
-for (v_star in list_vintages[1])
+for (v_star in list_vintages)
 {
-    
+    print(v_star)
     df_data <- data.frame()
     for (i in seq(1, nrow(realtime_data_spec)))
     {
@@ -236,11 +238,11 @@ for (v_star in list_vintages[1])
     {
           df_data <- rbind(df_data, get_financial_data(financial_data_spec[i, ], v_star))
     }
-    
+
     df_data <- rbind(df_data, get_survey_data(v_star))
-    
+
     df_export <- add_ReutersPoll_forecasts(df_data, df_out, sample_start, v_star)
-    
+
     name <- paste0("vintage", v_star, ".csv")
     write.csv(df_export, paste0(dir_out, name), row.names = F, na = "NaN", quote=F)
 }
