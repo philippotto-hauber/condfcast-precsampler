@@ -30,18 +30,7 @@ mnemonic_select <- setdiff(mnemonic_select, c("gdp", "cpi", "inv"))
 rm(tmp)
 
 # Functions----
-
-# wrapper for logS_sample
-wrap_logs_sample <- function(y, dat){
-  logs <- logs_sample(y[1], dat)
-  return(logs)
-}
-
-# wrapper for crps_sample
-wrap_crps_sample <- function(y, dat){
-  crps <- crps_sample(y[1], dat)
-  return(crps)
-}
+source("./../functions/functions.R")
 
 # Releases----
 
