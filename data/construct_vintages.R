@@ -4,7 +4,7 @@ setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/data")
 # SOURCE FUNCTIONS ----
 source("realtime_data.R") # spec details for real-time data from Bbk
 source("financial_data.R") # spec details for financial data from Bbk
-source("functions.R") # helper functions
+source("./../functions.R") # helper functions
 
 
 # MAIN FUNCTIONS----
