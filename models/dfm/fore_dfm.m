@@ -28,7 +28,8 @@ for m = 1:Ndraws
     store_Y_fore(Nh*(m-1)+1:Nh*m, :) = Yplus(end-Nh+1:end, :);    
 end
 
-count_hs = kron(ones(Ndraws, 1), (1:Nh)');
+%count_hs = kron(ones(Ndraws, 1), (1:Nh)');
+count_hs = repmat(out_dfm.dates_fore, Ndraws);
 count_draws = kron((1:Ndraws)', ones(Nh, 1));
 % restandardize
 store_Y_fore = store_Y_fore .* out_dfm.std_y_o + out_dfm.mean_y_o;
@@ -47,7 +48,8 @@ for m = 1:Ndraws
     store_Y_fore(Nh*(m-1)+1:Nh*m, :) = Yplus(end-size(y_f, 1)+1:end, :);    
 end
 
-count_hs = kron(ones(Ndraws, 1), (1:Nh)');
+%count_hs = kron(ones(Ndraws, 1), (1:Nh)');
+count_hs = repmat(out_dfm.dates_fore, Ndraws);
 count_draws = kron((1:Ndraws)', ones(Nh, 1));
 % restandardize
 store_Y_fore = store_Y_fore .* out_dfm.std_y_o + out_dfm.mean_y_o;
@@ -89,14 +91,35 @@ if iter == iter_max
     error(mess)    
 end
 
-count_hs = kron(ones(Ndraws, 1), (1:Nh)');
+%count_hs = kron(ones(Ndraws, 1), (1:Nh)');
+count_hs = repmat(out_dfm.dates_fore, Ndraws);
 count_draws = kron((1:Ndraws)', ones(Nh, 1));
 % restandardize
 store_Y_fore = store_Y_fore .* out_dfm.std_y_o + out_dfm.mean_y_o;
 end
 
 % export to csv
-out_fore = [count_hs, count_draws, store_Y_fore];
-writetable(array2table(out_fore, 'VariableNames',[{'horizon', 'draw'}, out_dfm.mnemonics]), [dir_out,  forecast_type, '_', model_spec, '_', v '.csv'])
+fid=fopen([dir_out,  forecast_type, '_', model_spec, '_', v '.csv'], 'w');
+fprintf(fid,'%s, %s, ', 'quarter', 'draw');
+for n = 1:size(store_Y_fore, 2)
+    if n == size(store_Y_fore, 2)
+        fprintf(fid,'%s',out_dfm.mnemonics{n});
+    else
+        fprintf(fid,'%s, ',out_dfm.mnemonics{n});
+    end
+end
 
-
+    fprintf(fid,';\r\n');
+for m = 1:Ndraws
+    tmp_str = count_hs{m,1}; 
+    fprintf(fid,'%s, %d, ', tmp_str, count_draws(m));
+    for n = 1:size(store_Y_fore, 2)
+        if n == size(store_Y_fore, 2)
+            fprintf(fid,'%2.4f',store_Y_fore(m, n));
+        else
+            fprintf(fid,'%2.4f, ',store_Y_fore(m, n));
+        end
+    end
+    fprintf(fid,';\r\n');
+end
+fclose(fid);
