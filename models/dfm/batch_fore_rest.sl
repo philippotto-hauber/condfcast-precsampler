@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=8
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=3000
+#SBATCH --mem=20000
 #SBATCH --time=05:00:00
 #SBATCH --output=fore_rest.out
 #SBATCH --error=fore_rest.err
