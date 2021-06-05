@@ -61,11 +61,14 @@ function estimate_benchmark(df, v, series)
     ind_fore = findmax((1:size(data_raw, 1))[.!isnan.(data_raw)])[1] + 1 # in case there are missings at the start of the sample!
     dates_fore = df."date"[ind_fore:end] 
 
-    if length(dates_fore) > 4 || length(dates_fore) < 3
-        @show series
-        @show v
-        error("Expected Nh to lie between 3 and 4")
-    end
+    # comment out this block as I can deal with the missing vintages for h_ind and emp 
+    # when I merge with the model forecasts!
+
+    # if length(dates_fore) > 4 || length(dates_fore) < 3
+    #     @show series
+    #     @show v
+    #     error("Expected Nh to lie between 3 and 4")
+    # end
 
     ###################################################################
     # prepare estimation
@@ -84,7 +87,7 @@ function estimate_benchmark(df, v, series)
     ###################################################################
     # run Gibss Sampler
     ###################################################################
-    β, σ², yᶠ = gibbs_sampler(ar_model;Nh=Nh)
+    β, σ², yᶠ = gibbs_sampler(ar_model;Nh=Nh, Nreplic = 10_000)
 
     ###################################################################
     # compile output in DataFrame
@@ -119,15 +122,14 @@ end
 ###################################################################
 
 for v in list_vintages
-    # load vintage
     df_in = DataFrame(CSV.File("./../../data/vintages/vintage" * v * ".csv"))
 
-    # initialize DataFrame for results
     df_out = DataFrame()
 
     for series in list_series
         append!(df_out, estimate_benchmark(df_in, v, series))
     end
+    
     CSV.write("./forecasts/benchmark_" * v * ".csv", df_out)
 end 
 
