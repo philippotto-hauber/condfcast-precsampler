@@ -37,7 +37,6 @@ source("./../functions/functions.R")
 load(paste0(dir_releases, "releases.Rda"))
 df_releases %>% 
   select(quarter, realization = value, mnemonic) -> df_releases
-
 # Loop over types, models and vintages----
 tmp_out <- foreach (v = seq(1, nrow(list_vintages)), .combine = c) %dopar%
 {
@@ -49,27 +48,29 @@ tmp_out <- foreach (v = seq(1, nrow(list_vintages)), .combine = c) %dopar%
       filename <- paste0(t, "_", m, "_", list_vintages[v, 1], ".csv")
       dat <- read.csv(paste0(dir_densities, filename))
       
+      # temporarily convert survey_eei to numeric manually -> fix by not writing ; to end of line when exporting csv!
+      tmp <- dat[, "survey_eei."]
+      tmp2 <- substr(tmp, start= 1, stop = nchar(tmp)-1)
+      tmp3 <- as.numeric(tmp2)
+      
+      dat$survey_eei. <- as.numeric(substr(dat$survey_eei.,
+                                           start = 1,
+                                           stop = nchar(dat$survey_eei.)-1)
+                                    )
+      
+      names(dat)[58] <- "survey_eei"
+      
+      
+      # convert quarter to date and calculate horizon
+      dat$quarter <- as_date(dat$quarter)
+      dat$horizon <- determine_horizon(dat$quarter, as_date(list_vintages[v, 1]))
+      
       # convert to long format and select only a few variables
       dat %>% 
-        pivot_longer(-c(horizon, draw), names_to = "mnemonic", values_to = "value") %>%
+        pivot_longer(-c(horizon, quarter, draw), names_to = "mnemonic", values_to = "value") %>%
         filter(mnemonic %in% mnemonic_select) %>%
         mutate(model = m,
                type = t) -> dat
-      
-      # convert horizon to quarter
-      v_date <- as_date(list_vintages[v, 1])
-      
-      convert_horizon <- data.frame(horizon_new = c(seq(-1, 2)),
-                                    horizon = c(seq(1, 4)))
-      dat <- merge(dat, convert_horizon, by = "horizon") %>%
-        select(-horizon) %>% 
-        rename(horizon = horizon_new) -> dat
-      
-      quarter_tmp <- v_date + months(dat$horizon * 3) # given new horizon, calculate quarter
-      dat %>%
-        mutate(quarter = make_date(year = year(quarter_tmp), 
-                                   month = month(quarter_tmp) + 2, 
-                                   day = 1L)) -> dat
       
       # merge with releases
       dat <- merge(dat, df_releases, by= c("quarter", "mnemonic"))
