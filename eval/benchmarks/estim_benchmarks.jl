@@ -20,19 +20,6 @@ prior_σ² = InverseGamma(3, 0.1)
 list_vintages = readdlm("./../../data/list_vintages.csv", ',', String)
 
 # list of variables
-list_series =  ["p_gdp",         "c_priv",       
-                "p_c_priv",      "c_gov",         "p_c_gov",      
-                "gfcf_equip",    "p_gfcf_equip",  "gfcf_constr",  
-                "p_gfcf_constr", "gfcf_other",    "p_gfcf_other", 
-                "x",             "p_x",           "m",            
-                "p_m",           "inv",              
-                "cpi_core",      "ppi",           "ppi_core",     
-                "ppi_constr",    "ppi_agri",      "prod_ind",     
-                "prod_constr",   "ord",           "ord_constr",   
-                "to",            "to_retail",     "to_constr",    
-                "h_constr",     
-                "w"] 
-
 # list_series =  ["p_gdp",         "c_priv",       
 #                 "p_c_priv",      "c_gov",         "p_c_gov",      
 #                 "gfcf_equip",    "p_gfcf_equip",  "gfcf_constr",  
@@ -43,8 +30,16 @@ list_series =  ["p_gdp",         "c_priv",
 #                 "ppi_constr",    "ppi_agri",      "prod_ind",     
 #                 "prod_constr",   "ord",           "ord_constr",   
 #                 "to",            "to_retail",     "to_constr",    
-#                 "emp",           "h_ind",         "h_constr",     
+#                 "h_constr",     
 #                 "w"] 
+
+list_series = ["gdp",           "p_gdp",         "c_priv",        "p_c_priv",      "c_gov",         "p_c_gov",      
+                "gfcf_equip",    "p_gfcf_equip",  "gfcf_constr",   "p_gfcf_constr", "gfcf_other",    "p_gfcf_other", 
+                "x",             "p_x",           "m",             "p_m",           "inv",           "gva_ind",      
+                "p_gva_ind",     "gva_constr",    "p_gva_constr",  "gva_tth",       "p_gva_tth",     "gva_freprof",  
+                "p_gva_freprof", "cpi",           "cpi_core",      "ppi",           "ppi_core",      "ppi_constr",   
+                "ppi_agri",      "prod_ind",      "prod_constr",   "ord",           "ord_constr",    "to",           
+                "to_retail",     "to_constr",     "emp",           "h_ind",         "h_constr",      "w"]  
 
 ###################################################################
 # function to estimate model given vintage and series
@@ -87,7 +82,7 @@ function estimate_benchmark(df, v, series)
     ###################################################################
     # run Gibss Sampler
     ###################################################################
-    β, σ², yᶠ = gibbs_sampler(ar_model;Nh=Nh, Nreplic = 10_000)
+    β, σ², yᶠ = gibbs_sampler(ar_model;Nh=Nh)
 
     ###################################################################
     # compile output in DataFrame
