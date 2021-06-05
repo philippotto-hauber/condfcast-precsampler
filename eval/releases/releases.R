@@ -10,7 +10,7 @@ library(dplyr)
 
 # FUNCTIONS----
 
-source("../../data/functions.R")
+source("../../functions/functions.R")
 
 calc_first_release <- function(df_in, yys, qqs)
 {
@@ -72,16 +72,20 @@ calc_first_release <- function(df_in, yys, qqs)
       ind_row <- which(dates == period)
       ind_col <- sum(is.na(dat[ind_row, ])) + 1
       first_release <- dat[ind_row, ind_col, drop=T] / dat[ind_row - 1, ind_col, drop=T] * 100 - 100
-      df_out <- rbind(df_out, 
-                      data.frame(quarter = dates[ind_row],
-                                 vintage = vintages[ind_col],
-                                 release = "first",
-                                 value = first_release,
-                                 mnemonic = df_in$mnemonic,
-                                 variable = df_in$name,
-                                 group = df_in$group,
-                                 category = df_in$category)
-      )
+      if (length(first_release) == 0)
+        next
+      else {
+        df_out <- rbind(df_out, 
+                        data.frame(quarter = dates[ind_row],
+                                   vintage = vintages[ind_col],
+                                   release = "first",
+                                   value = first_release,
+                                   mnemonic = df_in$mnemonic,
+                                   variable = df_in$name,
+                                   group = df_in$group,
+                                   category = df_in$category)
+                        )
+      }
     }
   }
   return(df_out)
