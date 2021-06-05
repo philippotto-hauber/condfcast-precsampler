@@ -1,5 +1,5 @@
 rm(list = ls())
-#setwd("C:\Users\Philipp\Documents\GitHub\condfcast-precsampler\eval\benchmarks")
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval/benchmarks")
 
 # Set-up----
 library(tidyr)
@@ -49,21 +49,21 @@ df <- filter(df, series != "inv")
 df %>% 
   group_by(series, quarter, vintage) %>% 
   summarise(logs = wrap_logs_sample(realization, value),
-            crps = wrap_crps_sample(realization, value)) -> df_eval_tmp
+            crps = wrap_crps_sample(realization, value)) -> df_benchmark
 
 # calculate horizon from quarter and vintage
-df_eval_tmp$horizon <- determine_horizon(df_eval_tmp$quarter, df_eval_tmp$vintage)
+df_benchmark$horizon <- determine_horizon(df_benchmark$quarter, df_benchmark$vintage)
 
 # calculate mean log score and crps
-df_eval_tmp %>%
-  group_by(series, horizon) %>%
-  summarise(mean_logs = mean(logs),
-            mean_crps = mean(crps),
-            n_quarters = n()) -> df_eval
+# df_eval %>%
+#   group_by(series, horizon) %>%
+#   summarise(mean_logs = mean(logs),
+#             mean_crps = mean(crps),
+#             n_quarters = n()) -> df_benchmark
 
 
 # Output file as Rda----
-save(file = "df_benchmark.Rda", df_eval)
+save(file = "df_benchmark.Rda", df_benchmark)
 
 
 
