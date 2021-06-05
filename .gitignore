@@ -12,10 +12,10 @@ figures
 *.asv
 
 # ignore benchmark forecast output
-./eval/benchmarks/forecasts
+eval/benchmarks/forecasts
 
 # ignore model forecast output
-./models/dfm/forecasts
+models/dfm/forecasts
 
 # ignore model estimation output
-./models/dfm/draws
+models/dfm/draws
