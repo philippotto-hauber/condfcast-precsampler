@@ -1,0 +1,127 @@
+---
+title: "Forecast evaluation - Analysis and plots"
+output: html_notebook
+---
+
+This notebook analyses the performance of unconditional and conditional forecasts for a large number of macroeconomic time series. 
+
+## Set-up
+
+```{r}
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval")
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(lubridate)
+```
+
+## Load model and benchmark forecasts
+
+```{r}
+# models
+load("df_eval.Rda")
+df_eval$quarter <- as_date(df_eval$quarter)
+df_eval$vintage <- as_date(df_eval$vintage)
+
+# benchmarks
+load("benchmarks/df_benchmark.Rda")
+```
+
+## Manually remove some vintages
+
+For two labor market series, there are some missing vintages. These lead to an information set that is inconsistent with the rest of the evaluation period. For example, because of the missing vintages and data, a calendar-based forecast horizon of $-1$, say, does not reflect the same horizon in terms of observations. 
+
+The series are
+
+- `h_ind`: For hours worked in the manufacturing sector, several vintages in the year 2009 are missing. Specifically, no vintages are published between March 16 2009 and March 4 2010. However, it seems that the usual release pattern is only followed from March 15 2010 onwards. On March 4, only the values up to December 2009 are published. Therefore, all vintages between March 16 2009 and March 15 2010 are excluded from the analysis
+
+```{r}
+df_eval <- filter(df_eval, 
+                  !(mnemonic == "h_ind" &
+                        vintage < "2010-03-15" &
+                          vintage > "2009-03-16")
+            )
+
+df_benchmark <- filter(df_benchmark, 
+                       !(series == "h_ind" & 
+                           vintage < "2010-03-15" & 
+                              vintage > "2009-03-16")
+                      )
+```
+
+
+- `emp`: For total employment, the "December 2013" vintage was released in early January 2014 (quite likely due to the original or usual publication date falling on a bank holiday). The previous vintage was published on November 28. Any vintages in between those two dates are removed! 
+
+```{r}
+df_eval <- filter(df_eval, 
+                  !(mnemonic == "emp" &
+                        vintage < "2014-01-07" &
+                          vintage > "2013-11-28")
+            )
+
+df_benchmark <- filter(df_benchmark, 
+                       !(series == "emp" &
+                            vintage < "2014-01-07" &
+                              vintage > "2013-11-28")
+                      )
+```
+
+## Calculate RMSFE, average log score, CRPS
+
+For both the models and the benchmark, calculate the RMSFE and average log score, CRPS. 
+
+```{r}
+df_eval %>% 
+  group_by(mnemonic, horizon, type, model) %>%
+  summarise(rmsfe = sqrt(mean(sfe)), 
+            mean_logs = mean(logs),
+            mean_crps = mean(crps)) -> df_eval_avg
+
+df_benchmark %>% 
+  group_by(series, horizon) %>%
+  summarise(rmsfe = sqrt(mean(sfe)), 
+            mean_logs = mean(logs),
+            mean_crps = mean(crps)) -> df_benchmark_avg
+```
+Then calculate the relative performance of the models by dividing with the benchmark. 
+
+```{r}
+df_eval_avg %>% 
+  merge(select(df_benchmark_avg, 
+                horizon,
+                mnemonic = series, 
+                rmsfe_ar = rmsfe,
+                logs_ar = mean_logs, 
+                crps_ar = mean_crps
+              ), 
+        by = c("horizon", "mnemonic")) %>%
+  mutate(rel_rmsfe = rmsfe / rmsfe_ar,
+         rel_logs = mean_logs / logs_ar,
+         rel_crps = mean_crps / crps_ar) -> df_rel
+  
+```
+
+## Merge with categories
+
+```{r}
+source("../data/realtime_data.R")
+tmp <- realtime_data()
+tmp <- select(tmp, mnemonic, category)
+df_rel <- merge(df_rel, tmp, by = "mnemonic")
+rm(tmp)
+
+```
+
+
+## Analysis
+
+### Point forecast accuracy
+
+### Density forecast accuracy
+
+## Robustness
+
+### Different models
+
+### Different subsamples
+
