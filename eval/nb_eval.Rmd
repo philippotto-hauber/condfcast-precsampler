@@ -19,12 +19,12 @@ library(lubridate)
 
 ```{r}
 # models
-load("df_eval.Rda")
-df_eval$quarter <- as_date(df_eval$quarter)
-df_eval$vintage <- as_date(df_eval$vintage)
+load("df_eval_models.Rda")
+df_eval_models$quarter <- as_date(df_eval_models$quarter)
+df_eval_models$vintage <- as_date(df_eval_models$vintage)
 
 # benchmarks
-load("benchmarks/df_benchmark.Rda")
+load("benchmarks/df_eval_benchmark.Rda")
 ```
 
 ## Manually remove some vintages
@@ -36,84 +36,142 @@ The series are
 - `h_ind`: For hours worked in the manufacturing sector, several vintages in the year 2009 are missing. Specifically, no vintages are published between March 16 2009 and March 4 2010. However, it seems that the usual release pattern is only followed from March 15 2010 onwards. On March 4, only the values up to December 2009 are published. Therefore, all vintages between March 16 2009 and March 15 2010 are excluded from the analysis
 
 ```{r}
-df_eval <- filter(df_eval, 
-                  !(mnemonic == "h_ind" &
-                        vintage < "2010-03-15" &
-                          vintage > "2009-03-16")
+df_eval_models <- filter(df_eval_models, 
+                        !(mnemonic == "h_ind" &
+                              vintage < "2010-03-15" &
+                                vintage > "2009-03-16")
             )
 
-df_benchmark <- filter(df_benchmark, 
-                       !(series == "h_ind" & 
-                           vintage < "2010-03-15" & 
-                              vintage > "2009-03-16")
-                      )
+df_eval_benchmark <- filter(df_eval_benchmark, 
+                           !(series == "h_ind" & 
+                               vintage < "2010-03-15" & 
+                                  vintage > "2009-03-16")
+                          )
 ```
 
 
 - `emp`: For total employment, the "December 2013" vintage was released in early January 2014 (quite likely due to the original or usual publication date falling on a bank holiday). The previous vintage was published on November 28. Any vintages in between those two dates are removed! 
 
 ```{r}
-df_eval <- filter(df_eval, 
-                  !(mnemonic == "emp" &
-                        vintage < "2014-01-07" &
-                          vintage > "2013-11-28")
-            )
+df_eval_models <- filter(df_eval_models, 
+                        !(mnemonic == "emp" &
+                              vintage < "2014-01-07" &
+                                vintage > "2013-11-28")
+                  )
 
-df_benchmark <- filter(df_benchmark, 
-                       !(series == "emp" &
-                            vintage < "2014-01-07" &
-                              vintage > "2013-11-28")
-                      )
+df_eval_benchmark <- filter(df_eval_benchmark, 
+                           !(series == "emp" &
+                                vintage < "2014-01-07" &
+                                  vintage > "2013-11-28")
+                          )
 ```
 
-## Calculate RMSFE, average log score, CRPS
+## Function to calculate relative RMSFE, average log score, CRPS
 
-For both the models and the benchmark, calculate the RMSFE and average log score, CRPS. 
-
+Function that calculates the forecast accuracy of a selected **model** in a selected **subsample** relative to the benchmark. Output is dataframe `df_eval`
 ```{r}
-df_eval %>% 
+calc_relative_forecast_accuracy <- function(df_eval_models, df_eval_benchmark, str_model, subsample)
+{
+  # calculate RMSFE, log score and CRPS over subsample for chosen model and benchmark
+  df_eval_models %>% 
+  filter(model == str_model,
+         quarter >= subsample[1],
+         quarter <= subsample[2]) %>%
   group_by(mnemonic, horizon, type, model) %>%
   summarise(rmsfe = sqrt(mean(sfe)), 
             mean_logs = mean(logs),
-            mean_crps = mean(crps)) -> df_eval_avg
+            mean_crps = mean(crps)) -> df_eval_models_avg
 
-df_benchmark %>% 
+  df_eval_benchmark %>% 
   group_by(series, horizon) %>%
   summarise(rmsfe = sqrt(mean(sfe)), 
             mean_logs = mean(logs),
-            mean_crps = mean(crps)) -> df_benchmark_avg
+            mean_crps = mean(crps)) -> df_eval_benchmark_avg
+  
+  # relative RMSFE, log score and CRPS
+  df_eval_models_avg %>% 
+    merge(select(df_eval_benchmark_avg, 
+                  horizon,
+                  mnemonic = series, 
+                  rmsfe_ar = rmsfe,
+                  logs_ar = mean_logs, 
+                  crps_ar = mean_crps
+                ), 
+          by = c("horizon", "mnemonic")) %>%
+    mutate(rel_rmsfe = rmsfe / rmsfe_ar,
+           rel_logs = mean_logs / logs_ar,
+           rel_crps = mean_crps / crps_ar) -> df_eval
+  
+  # merge with categories
+  source("../data/realtime_data.R")
+  tmp <- realtime_data()
+  tmp <- select(tmp, mnemonic, category)
+  df_eval <- merge(df_eval, tmp, by = "mnemonic")
+  rm(tmp)
+  
+  # select columns
+  df_eval <- select(df_eval, mnemonic, horizon, type, rel_rmsfe, rel_logs, rel_crps)
+  
+  return(df_eval)
+}
 ```
-Then calculate the relative performance of the models by dividing with the benchmark. 
+
+
 
 ```{r}
-df_eval_avg %>% 
-  merge(select(df_benchmark_avg, 
-                horizon,
-                mnemonic = series, 
-                rmsfe_ar = rmsfe,
-                logs_ar = mean_logs, 
-                crps_ar = mean_crps
-              ), 
-        by = c("horizon", "mnemonic")) %>%
-  mutate(rel_rmsfe = rmsfe / rmsfe_ar,
-         rel_logs = mean_logs / logs_ar,
-         rel_crps = mean_crps / crps_ar) -> df_rel
+# df_eval %>% 
+#   group_by(mnemonic, horizon, type, model) %>%
+#   summarise(rmsfe = sqrt(mean(sfe)), 
+#             mean_logs = mean(logs),
+#             mean_crps = mean(crps)) -> df_eval_avg
+# 
+# df_benchmark %>% 
+#   group_by(series, horizon) %>%
+#   summarise(rmsfe = sqrt(mean(sfe)), 
+#             mean_logs = mean(logs),
+#             mean_crps = mean(crps)) -> df_benchmark_avg
+```
+ 
+
+```{r}
+# df_eval_avg %>% 
+#   merge(select(df_benchmark_avg, 
+#                 horizon,
+#                 mnemonic = series, 
+#                 rmsfe_ar = rmsfe,
+#                 logs_ar = mean_logs, 
+#                 crps_ar = mean_crps
+#               ), 
+#         by = c("horizon", "mnemonic")) %>%
+#   mutate(rel_rmsfe = rmsfe / rmsfe_ar,
+#          rel_logs = mean_logs / logs_ar,
+#          rel_crps = mean_crps / crps_ar) -> df_rel
   
 ```
 
-## Merge with categories
 
 ```{r}
-source("../data/realtime_data.R")
-tmp <- realtime_data()
-tmp <- select(tmp, mnemonic, category)
-df_rel <- merge(df_rel, tmp, by = "mnemonic")
-rm(tmp)
+# source("../data/realtime_data.R")
+# tmp <- realtime_data()
+# tmp <- select(tmp, mnemonic, category)
+# df_rel <- merge(df_rel, tmp, by = "mnemonic")
+# rm(tmp)
 
 ```
 
 
 ## Analysis
+
+```{r}
+str_model <- "Nr4_Nj1_Np2_Ns0"
+subsample <- c(min(df_eval_models$quarter), max(df_eval_models$quarter))
+
+df_eval <- calc_relative_forecast_accuracy(df_eval_models, 
+                                           df_eval_benchmark, 
+                                           str_model, 
+                                           subsample)
+```
+
 
 ### Point forecast accuracy
 

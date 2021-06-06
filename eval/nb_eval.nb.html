@@ -1781,14 +1781,14 @@ library(lubridate)</code></pre>
 <h2>Load model and benchmark forecasts</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBtb2RlbHNcbmxvYWQoXCJkZl9ldmFsLlJkYVwiKVxuZGZfZXZhbCRxdWFydGVyIDwtIGFzX2RhdGUoZGZfZXZhbCRxdWFydGVyKVxuZGZfZXZhbCR2aW50YWdlIDwtIGFzX2RhdGUoZGZfZXZhbCR2aW50YWdlKVxuXG4jIGJlbmNobWFya3NcbmxvYWQoXCJiZW5jaG1hcmtzL2RmX2JlbmNobWFyay5SZGFcIilcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBtb2RlbHNcbmxvYWQoXCJkZl9ldmFsX21vZGVscy5SZGFcIilcbmRmX2V2YWxfbW9kZWxzJHF1YXJ0ZXIgPC0gYXNfZGF0ZShkZl9ldmFsX21vZGVscyRxdWFydGVyKVxuZGZfZXZhbF9tb2RlbHMkdmludGFnZSA8LSBhc19kYXRlKGRmX2V2YWxfbW9kZWxzJHZpbnRhZ2UpXG5cbiMgYmVuY2htYXJrc1xubG9hZChcImJlbmNobWFya3MvZGZfZXZhbF9iZW5jaG1hcmsuUmRhXCIpXG5gYGAifQ== -->
 <pre class="r"><code># models
-load(&quot;df_eval.Rda&quot;)
-df_eval$quarter &lt;- as_date(df_eval$quarter)
-df_eval$vintage &lt;- as_date(df_eval$vintage)
+load(&quot;df_eval_models.Rda&quot;)
+df_eval_models$quarter &lt;- as_date(df_eval_models$quarter)
+df_eval_models$vintage &lt;- as_date(df_eval_models$vintage)
 
 # benchmarks
-load(&quot;benchmarks/df_benchmark.Rda&quot;)</code></pre>
+load(&quot;benchmarks/df_eval_benchmark.Rda&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -1802,18 +1802,18 @@ load(&quot;benchmarks/df_benchmark.Rda&quot;)</code></pre>
 </ul>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbCA8LSBmaWx0ZXIoZGZfZXZhbCwgXG4gICAgICAgICAgICAgICAgICAhKG1uZW1vbmljID09IFwiaF9pbmRcIiAmXG4gICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlIDwgXCIyMDEwLTAzLTE1XCIgJlxuICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gXCIyMDA5LTAzLTE2XCIpXG4gICAgICAgICAgICApXG5cbmRmX2JlbmNobWFyayA8LSBmaWx0ZXIoZGZfYmVuY2htYXJrLCBcbiAgICAgICAgICAgICAgICAgICAgICAgIShzZXJpZXMgPT0gXCJoX2luZFwiICYgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlIDwgXCIyMDEwLTAzLTE1XCIgJiBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPiBcIjIwMDktMDMtMTZcIilcbiAgICAgICAgICAgICAgICAgICAgICApXG5gYGAifQ== -->
-<pre class="r"><code>df_eval &lt;- filter(df_eval, 
-                  !(mnemonic == &quot;h_ind&quot; &amp;
-                        vintage &lt; &quot;2010-03-15&quot; &amp;
-                          vintage &gt; &quot;2009-03-16&quot;)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbF9tb2RlbHMgPC0gZmlsdGVyKGRmX2V2YWxfbW9kZWxzLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICEobW5lbW9uaWMgPT0gXCJoX2luZFwiICZcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCBcIjIwMTAtMDMtMTVcIiAmXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPiBcIjIwMDktMDMtMTZcIilcbiAgICAgICAgICAgIClcblxuZGZfZXZhbF9iZW5jaG1hcmsgPC0gZmlsdGVyKGRmX2V2YWxfYmVuY2htYXJrLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICEoc2VyaWVzID09IFwiaF9pbmRcIiAmIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCBcIjIwMTAtMDMtMTVcIiAmIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPiBcIjIwMDktMDMtMTZcIilcbiAgICAgICAgICAgICAgICAgICAgICAgICAgKVxuYGBgIn0= -->
+<pre class="r"><code>df_eval_models &lt;- filter(df_eval_models, 
+                        !(mnemonic == &quot;h_ind&quot; &amp;
+                              vintage &lt; &quot;2010-03-15&quot; &amp;
+                                vintage &gt; &quot;2009-03-16&quot;)
             )
 
-df_benchmark &lt;- filter(df_benchmark, 
-                       !(series == &quot;h_ind&quot; &amp; 
-                           vintage &lt; &quot;2010-03-15&quot; &amp; 
-                              vintage &gt; &quot;2009-03-16&quot;)
-                      )</code></pre>
+df_eval_benchmark &lt;- filter(df_eval_benchmark, 
+                           !(series == &quot;h_ind&quot; &amp; 
+                               vintage &lt; &quot;2010-03-15&quot; &amp; 
+                                  vintage &gt; &quot;2009-03-16&quot;)
+                          )</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -1822,80 +1822,119 @@ df_benchmark &lt;- filter(df_benchmark,
 </ul>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbCA8LSBmaWx0ZXIoZGZfZXZhbCwgXG4gICAgICAgICAgICAgICAgICAhKG1uZW1vbmljID09IFwiZW1wXCIgJlxuICAgICAgICAgICAgICAgICAgICAgICAgdmludGFnZSA8IFwiMjAxNC0wMS0wN1wiICZcbiAgICAgICAgICAgICAgICAgICAgICAgICAgdmludGFnZSA+IFwiMjAxMy0xMS0yOFwiKVxuICAgICAgICAgICAgKVxuXG5kZl9iZW5jaG1hcmsgPC0gZmlsdGVyKGRmX2JlbmNobWFyaywgXG4gICAgICAgICAgICAgICAgICAgICAgICEoc2VyaWVzID09IFwiZW1wXCIgJlxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCBcIjIwMTQtMDEtMDdcIiAmXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gXCIyMDEzLTExLTI4XCIpXG4gICAgICAgICAgICAgICAgICAgICAgKVxuYGBgIn0= -->
-<pre class="r"><code>df_eval &lt;- filter(df_eval, 
-                  !(mnemonic == &quot;emp&quot; &amp;
-                        vintage &lt; &quot;2014-01-07&quot; &amp;
-                          vintage &gt; &quot;2013-11-28&quot;)
-            )
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbF9tb2RlbHMgPC0gZmlsdGVyKGRmX2V2YWxfbW9kZWxzLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICEobW5lbW9uaWMgPT0gXCJlbXBcIiAmXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlIDwgXCIyMDE0LTAxLTA3XCIgJlxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gXCIyMDEzLTExLTI4XCIpXG4gICAgICAgICAgICAgICAgICApXG5cbmRmX2V2YWxfYmVuY2htYXJrIDwtIGZpbHRlcihkZl9ldmFsX2JlbmNobWFyaywgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAhKHNlcmllcyA9PSBcImVtcFwiICZcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmludGFnZSA8IFwiMjAxNC0wMS0wN1wiICZcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gXCIyMDEzLTExLTI4XCIpXG4gICAgICAgICAgICAgICAgICAgICAgICAgIClcbmBgYCJ9 -->
+<pre class="r"><code>df_eval_models &lt;- filter(df_eval_models, 
+                        !(mnemonic == &quot;emp&quot; &amp;
+                              vintage &lt; &quot;2014-01-07&quot; &amp;
+                                vintage &gt; &quot;2013-11-28&quot;)
+                  )
 
-df_benchmark &lt;- filter(df_benchmark, 
-                       !(series == &quot;emp&quot; &amp;
-                            vintage &lt; &quot;2014-01-07&quot; &amp;
-                              vintage &gt; &quot;2013-11-28&quot;)
-                      )</code></pre>
+df_eval_benchmark &lt;- filter(df_eval_benchmark, 
+                           !(series == &quot;emp&quot; &amp;
+                                vintage &lt; &quot;2014-01-07&quot; &amp;
+                                  vintage &gt; &quot;2013-11-28&quot;)
+                          )</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="calculate-rmsfe-average-log-score-crps" class="section level2">
-<h2>Calculate RMSFE, average log score, CRPS</h2>
-<p>For both the models and the benchmark, calculate the RMSFE and average log score, CRPS.</p>
+<div id="function-to-calculate-relative-rmsfe-average-log-score-crps" class="section level2">
+<h2>Function to calculate relative RMSFE, average log score, CRPS</h2>
+<p>Function that calculates the forecast accuracy of a selected <strong>model</strong> in a selected <strong>subsample</strong> relative to the benchmark. Output is dataframe <code>df_eval</code></p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbCAlPiUgXG4gIGdyb3VwX2J5KG1uZW1vbmljLCBob3Jpem9uLCB0eXBlLCBtb2RlbCkgJT4lXG4gIHN1bW1hcmlzZShybXNmZSA9IHNxcnQobWVhbihzZmUpKSwgXG4gICAgICAgICAgICBtZWFuX2xvZ3MgPSBtZWFuKGxvZ3MpLFxuICAgICAgICAgICAgbWVhbl9jcnBzID0gbWVhbihjcnBzKSkgLT4gZGZfZXZhbF9hdmdcbmBgYCJ9 -->
-<pre class="r"><code>df_eval %&gt;% 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2FsY19yZWxhdGl2ZV9mb3JlY2FzdF9hY2N1cmFjeSA8LSBmdW5jdGlvbihkZl9ldmFsX21vZGVscywgZGZfZXZhbF9iZW5jaG1hcmssIHN0cl9tb2RlbCwgc3Vic2FtcGxlKVxue1xuICAjIGNhbGN1bGF0ZSBSTVNGRSwgbG9nIHNjb3JlIGFuZCBDUlBTIG92ZXIgc3Vic2FtcGxlIGZvciBjaG9zZW4gbW9kZWwgYW5kIGJlbmNobWFya1xuICBkZl9ldmFsX21vZGVscyAlPiUgXG4gIGZpbHRlcihtb2RlbCA9PSBzdHJfbW9kZWwsXG4gICAgICAgICBxdWFydGVyID49IHN1YnNhbXBsZVsxXSxcbiAgICAgICAgIHF1YXJ0ZXIgPD0gc3Vic2FtcGxlWzJdKSAlPiVcbiAgZ3JvdXBfYnkobW5lbW9uaWMsIGhvcml6b24sIHR5cGUsIG1vZGVsKSAlPiVcbiAgc3VtbWFyaXNlKHJtc2ZlID0gc3FydChtZWFuKHNmZSkpLCBcbiAgICAgICAgICAgIG1lYW5fbG9ncyA9IG1lYW4obG9ncyksXG4gICAgICAgICAgICBtZWFuX2NycHMgPSBtZWFuKGNycHMpKSAtPiBkZl9ldmFsX21vZGVsc19hdmdcblxuICBkZl9ldmFsX2JlbmNobWFyayAlPiUgXG4gIGdyb3VwX2J5KHNlcmllcywgaG9yaXpvbikgJT4lXG4gIHN1bW1hcmlzZShybXNmZSA9IHNxcnQobWVhbihzZmUpKSwgXG4gICAgICAgICAgICBtZWFuX2xvZ3MgPSBtZWFuKGxvZ3MpLFxuICAgICAgICAgICAgbWVhbl9jcnBzID0gbWVhbihjcnBzKSkgLT4gZGZfZXZhbF9iZW5jaG1hcmtfYXZnXG4gIFxuICAjIHJlbGF0aXZlIFJNU0ZFLCBsb2cgc2NvcmUgYW5kIENSUFNcbiAgZGZfZXZhbF9tb2RlbHNfYXZnICU+JSBcbiAgICBtZXJnZShzZWxlY3QoZGZfZXZhbF9iZW5jaG1hcmtfYXZnLCBcbiAgICAgICAgICAgICAgICAgIGhvcml6b24sXG4gICAgICAgICAgICAgICAgICBtbmVtb25pYyA9IHNlcmllcywgXG4gICAgICAgICAgICAgICAgICBybXNmZV9hciA9IHJtc2ZlLFxuICAgICAgICAgICAgICAgICAgbG9nc19hciA9IG1lYW5fbG9ncywgXG4gICAgICAgICAgICAgICAgICBjcnBzX2FyID0gbWVhbl9jcnBzXG4gICAgICAgICAgICAgICAgKSwgXG4gICAgICAgICAgYnkgPSBjKFwiaG9yaXpvblwiLCBcIm1uZW1vbmljXCIpKSAlPiVcbiAgICBtdXRhdGUocmVsX3Jtc2ZlID0gcm1zZmUgLyBybXNmZV9hcixcbiAgICAgICAgICAgcmVsX2xvZ3MgPSBtZWFuX2xvZ3MgLyBsb2dzX2FyLFxuICAgICAgICAgICByZWxfY3JwcyA9IG1lYW5fY3JwcyAvIGNycHNfYXIpIC0+IGRmX2V2YWxcbiAgXG4gICMgbWVyZ2Ugd2l0aCBjYXRlZ29yaWVzXG4gIHNvdXJjZShcIi4uL2RhdGEvcmVhbHRpbWVfZGF0YS5SXCIpXG4gIHRtcCA8LSByZWFsdGltZV9kYXRhKClcbiAgdG1wIDwtIHNlbGVjdCh0bXAsIG1uZW1vbmljLCBjYXRlZ29yeSlcbiAgZGZfZXZhbCA8LSBtZXJnZShkZl9ldmFsLCB0bXAsIGJ5ID0gXCJtbmVtb25pY1wiKVxuICBybSh0bXApXG4gIFxuICAjIHNlbGVjdCBjb2x1bW5zXG4gIGRmX2V2YWwgPC0gc2VsZWN0KGRmX2V2YWwsIG1uZW1vbmljLCBob3Jpem9uLCB0eXBlLCByZWxfcm1zZmUsIHJlbF9sb2dzLCByZWxfY3JwcylcbiAgXG4gIHJldHVybihkZl9ldmFsKVxufVxuYGBgIn0= -->
+<pre class="r"><code>calc_relative_forecast_accuracy &lt;- function(df_eval_models, df_eval_benchmark, str_model, subsample)
+{
+  # calculate RMSFE, log score and CRPS over subsample for chosen model and benchmark
+  df_eval_models %&gt;% 
+  filter(model == str_model,
+         quarter &gt;= subsample[1],
+         quarter &lt;= subsample[2]) %&gt;%
   group_by(mnemonic, horizon, type, model) %&gt;%
   summarise(rmsfe = sqrt(mean(sfe)), 
             mean_logs = mean(logs),
-            mean_crps = mean(crps)) -&gt; df_eval_avg</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCByZWdyb3VwaW5nIG91dHB1dCBieSAnbW5lbW9uaWMnLCAnaG9yaXpvbicsICd0eXBlJyAob3ZlcnJpZGUgd2l0aCBgLmdyb3Vwc2AgYXJndW1lbnQpXG4ifQ== -->
-<pre><code>`summarise()` regrouping output by &#39;mnemonic&#39;, &#39;horizon&#39;, &#39;type&#39; (override with `.groups` argument)</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfYmVuY2htYXJrICU+JSBcbiAgZ3JvdXBfYnkoc2VyaWVzLCBob3Jpem9uKSAlPiVcbiAgc3VtbWFyaXNlKHJtc2ZlID0gc3FydChtZWFuKHNmZSkpLCBcbiAgICAgICAgICAgIG1lYW5fbG9ncyA9IG1lYW4obG9ncyksXG4gICAgICAgICAgICBtZWFuX2NycHMgPSBtZWFuKGNycHMpKSAtPiBkZl9iZW5jaG1hcmtfYXZnXG5gYGAifQ== -->
-<pre class="r"><code>df_benchmark %&gt;% 
+            mean_crps = mean(crps)) -&gt; df_eval_models_avg
+
+  df_eval_benchmark %&gt;% 
   group_by(series, horizon) %&gt;%
   summarise(rmsfe = sqrt(mean(sfe)), 
             mean_logs = mean(logs),
-            mean_crps = mean(crps)) -&gt; df_benchmark_avg</code></pre>
+            mean_crps = mean(crps)) -&gt; df_eval_benchmark_avg
+  
+  # relative RMSFE, log score and CRPS
+  df_eval_models_avg %&gt;% 
+    merge(select(df_eval_benchmark_avg, 
+                  horizon,
+                  mnemonic = series, 
+                  rmsfe_ar = rmsfe,
+                  logs_ar = mean_logs, 
+                  crps_ar = mean_crps
+                ), 
+          by = c(&quot;horizon&quot;, &quot;mnemonic&quot;)) %&gt;%
+    mutate(rel_rmsfe = rmsfe / rmsfe_ar,
+           rel_logs = mean_logs / logs_ar,
+           rel_crps = mean_crps / crps_ar) -&gt; df_eval
+  
+  # merge with categories
+  source(&quot;../data/realtime_data.R&quot;)
+  tmp &lt;- realtime_data()
+  tmp &lt;- select(tmp, mnemonic, category)
+  df_eval &lt;- merge(df_eval, tmp, by = &quot;mnemonic&quot;)
+  rm(tmp)
+  
+  # select columns
+  df_eval &lt;- select(df_eval, mnemonic, horizon, type, rel_rmsfe, rel_logs, rel_crps)
+  
+  return(df_eval)
+}</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCByZWdyb3VwaW5nIG91dHB1dCBieSAnc2VyaWVzJyAob3ZlcnJpZGUgd2l0aCBgLmdyb3Vwc2AgYXJndW1lbnQpXG4ifQ== -->
-<pre><code>`summarise()` regrouping output by &#39;series&#39; (override with `.groups` argument)</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Then calculate the relative performance of the models by dividing with the benchmark.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbF9hdmcgJT4lIFxuICBtZXJnZShzZWxlY3QoZGZfYmVuY2htYXJrX2F2ZywgXG4gICAgICAgICAgICAgICAgaG9yaXpvbixcbiAgICAgICAgICAgICAgICBtbmVtb25pYyA9IHNlcmllcywgXG4gICAgICAgICAgICAgICAgcm1zZmVfYXIgPSBybXNmZSxcbiAgICAgICAgICAgICAgICBsb2dzX2FyID0gbWVhbl9sb2dzLCBcbiAgICAgICAgICAgICAgICBjcnBzX2FyID0gbWVhbl9jcnBzXG4gICAgICAgICAgICAgICksIFxuICAgICAgICBieSA9IGMoXCJob3Jpem9uXCIsIFwibW5lbW9uaWNcIikpICU+JVxuICBtdXRhdGUocmVsX3Jtc2ZlID0gcm1zZmUgLyBybXNmZV9hcixcbiAgICAgICAgIHJlbF9sb2dzID0gbWVhbl9sb2dzIC8gbG9nc19hcixcbiAgICAgICAgIHJlbF9jcnBzID0gbWVhbl9jcnBzIC8gY3Jwc19hcikgLT4gdG1wXG4gIFxuYGBgIn0= -->
-<pre class="r"><code>df_eval_avg %&gt;% 
-  merge(select(df_benchmark_avg, 
-                horizon,
-                mnemonic = series, 
-                rmsfe_ar = rmsfe,
-                logs_ar = mean_logs, 
-                crps_ar = mean_crps
-              ), 
-        by = c(&quot;horizon&quot;, &quot;mnemonic&quot;)) %&gt;%
-  mutate(rel_rmsfe = rmsfe / rmsfe_ar,
-         rel_logs = mean_logs / logs_ar,
-         rel_crps = mean_crps / crps_ar) -&gt; tmp
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBkZl9ldmFsICU+JSBcbiMgICBncm91cF9ieShtbmVtb25pYywgaG9yaXpvbiwgdHlwZSwgbW9kZWwpICU+JVxuIyAgIHN1bW1hcmlzZShybXNmZSA9IHNxcnQobWVhbihzZmUpKSwgXG4jICAgICAgICAgICAgIG1lYW5fbG9ncyA9IG1lYW4obG9ncyksXG4jICAgICAgICAgICAgIG1lYW5fY3JwcyA9IG1lYW4oY3JwcykpIC0+IGRmX2V2YWxfYXZnXG4jIFxuIyBkZl9iZW5jaG1hcmsgJT4lIFxuIyAgIGdyb3VwX2J5KHNlcmllcywgaG9yaXpvbikgJT4lXG4jICAgc3VtbWFyaXNlKHJtc2ZlID0gc3FydChtZWFuKHNmZSkpLCBcbiMgICAgICAgICAgICAgbWVhbl9sb2dzID0gbWVhbihsb2dzKSxcbiMgICAgICAgICAgICAgbWVhbl9jcnBzID0gbWVhbihjcnBzKSkgLT4gZGZfYmVuY2htYXJrX2F2Z1xuYGBgIn0= -->
+<pre class="r"><code># df_eval %&gt;% 
+#   group_by(mnemonic, horizon, type, model) %&gt;%
+#   summarise(rmsfe = sqrt(mean(sfe)), 
+#             mean_logs = mean(logs),
+#             mean_crps = mean(crps)) -&gt; df_eval_avg
+# 
+# df_benchmark %&gt;% 
+#   group_by(series, horizon) %&gt;%
+#   summarise(rmsfe = sqrt(mean(sfe)), 
+#             mean_logs = mean(logs),
+#             mean_crps = mean(crps)) -&gt; df_benchmark_avg</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBkZl9ldmFsX2F2ZyAlPiUgXG4jICAgbWVyZ2Uoc2VsZWN0KGRmX2JlbmNobWFya19hdmcsIFxuIyAgICAgICAgICAgICAgICAgaG9yaXpvbixcbiMgICAgICAgICAgICAgICAgIG1uZW1vbmljID0gc2VyaWVzLCBcbiMgICAgICAgICAgICAgICAgIHJtc2ZlX2FyID0gcm1zZmUsXG4jICAgICAgICAgICAgICAgICBsb2dzX2FyID0gbWVhbl9sb2dzLCBcbiMgICAgICAgICAgICAgICAgIGNycHNfYXIgPSBtZWFuX2NycHNcbiMgICAgICAgICAgICAgICApLCBcbiMgICAgICAgICBieSA9IGMoXCJob3Jpem9uXCIsIFwibW5lbW9uaWNcIikpICU+JVxuIyAgIG11dGF0ZShyZWxfcm1zZmUgPSBybXNmZSAvIHJtc2ZlX2FyLFxuIyAgICAgICAgICByZWxfbG9ncyA9IG1lYW5fbG9ncyAvIGxvZ3NfYXIsXG4jICAgICAgICAgIHJlbF9jcnBzID0gbWVhbl9jcnBzIC8gY3Jwc19hcikgLT4gZGZfcmVsXG4gIFxuYGBgIn0= -->
+<pre class="r"><code># df_eval_avg %&gt;% 
+#   merge(select(df_benchmark_avg, 
+#                 horizon,
+#                 mnemonic = series, 
+#                 rmsfe_ar = rmsfe,
+#                 logs_ar = mean_logs, 
+#                 crps_ar = mean_crps
+#               ), 
+#         by = c(&quot;horizon&quot;, &quot;mnemonic&quot;)) %&gt;%
+#   mutate(rel_rmsfe = rmsfe / rmsfe_ar,
+#          rel_logs = mean_logs / logs_ar,
+#          rel_crps = mean_crps / crps_ar) -&gt; df_rel
   </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-</div>
-<div id="merge-with-categories" class="section level2">
-<h2>Merge with categories</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc291cmNlKFwiLi4vZGF0YS9yZWFsdGltZV9kYXRhLlJcIilcbnRtcCA8LSByZWFsdGltZV9kYXRhKClcbnRtcCA8LSBzZWxlY3QodG1wLCBtbmVtb25pYywgY2F0ZWdvcnkpXG5kZl9yZWwgPC0gbWVyZ2UoZGZfcmVsLCB0bXAsIGJ5ID0gXCJtbmVtb25pY1wiKVxucm0odG1wKVxuXG5gYGAifQ== -->
-<pre class="r"><code>source(&quot;../data/realtime_data.R&quot;)
-tmp &lt;- realtime_data()
-tmp &lt;- select(tmp, mnemonic, category)
-df_rel &lt;- merge(df_rel, tmp, by = &quot;mnemonic&quot;)
-rm(tmp)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBzb3VyY2UoXCIuLi9kYXRhL3JlYWx0aW1lX2RhdGEuUlwiKVxuIyB0bXAgPC0gcmVhbHRpbWVfZGF0YSgpXG4jIHRtcCA8LSBzZWxlY3QodG1wLCBtbmVtb25pYywgY2F0ZWdvcnkpXG4jIGRmX3JlbCA8LSBtZXJnZShkZl9yZWwsIHRtcCwgYnkgPSBcIm1uZW1vbmljXCIpXG4jIHJtKHRtcClcblxuYGBgIn0= -->
+<pre class="r"><code># source(&quot;../data/realtime_data.R&quot;)
+# tmp &lt;- realtime_data()
+# tmp &lt;- select(tmp, mnemonic, category)
+# df_rel &lt;- merge(df_rel, tmp, by = &quot;mnemonic&quot;)
+# rm(tmp)
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -1903,6 +1942,23 @@ rm(tmp)
 </div>
 <div id="analysis" class="section level2">
 <h2>Analysis</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RyX21vZGVsIDwtIFwiTnI0X05qMV9OcDJfTnMwXCJcbnN1YnNhbXBsZSA8LSBjKG1pbihkZl9ldmFsX21vZGVscyRxdWFydGVyKSwgbWF4KGRmX2V2YWxfbW9kZWxzJHF1YXJ0ZXIpKVxuXG5kZl9ldmFsIDwtIGNhbGNfcmVsYXRpdmVfZm9yZWNhc3RfYWNjdXJhY3koZGZfZXZhbF9tb2RlbHMsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGRmX2V2YWxfYmVuY2htYXJrLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJfbW9kZWwsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN1YnNhbXBsZSlcbmBgYCJ9 -->
+<pre class="r"><code>str_model &lt;- &quot;Nr4_Nj1_Np2_Ns0&quot;
+subsample &lt;- c(min(df_eval_models$quarter), max(df_eval_models$quarter))
+
+df_eval &lt;- calc_relative_forecast_accuracy(df_eval_models, 
+                                           df_eval_benchmark, 
+                                           str_model, 
+                                           subsample)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCByZWdyb3VwaW5nIG91dHB1dCBieSAnbW5lbW9uaWMnLCAnaG9yaXpvbicsICd0eXBlJyAob3ZlcnJpZGUgd2l0aCBgLmdyb3Vwc2AgYXJndW1lbnQpXG5gc3VtbWFyaXNlKClgIHJlZ3JvdXBpbmcgb3V0cHV0IGJ5ICdzZXJpZXMnIChvdmVycmlkZSB3aXRoIGAuZ3JvdXBzYCBhcmd1bWVudClcbiJ9 -->
+<pre><code>`summarise()` regrouping output by &#39;mnemonic&#39;, &#39;horizon&#39;, &#39;type&#39; (override with `.groups` argument)
+`summarise()` regrouping output by &#39;series&#39; (override with `.groups` argument)</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
 <div id="point-forecast-accuracy" class="section level3">
 <h3>Point forecast accuracy</h3>
 </div>
@@ -1921,7 +1977,7 @@ rm(tmp)
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkZvcmVjYXN0IGV2YWx1YXRpb24gLSBBbmFseXNpcyBhbmQgcGxvdHMiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpUaGlzIG5vdGVib29rIGFuYWx5c2VzIHRoZSBwZXJmb3JtYW5jZSBvZiB1bmNvbmRpdGlvbmFsIGFuZCBjb25kaXRpb25hbCBmb3JlY2FzdHMgZm9yIGEgbGFyZ2UgbnVtYmVyIG9mIG1hY3JvZWNvbm9taWMgdGltZSBzZXJpZXMuIA0KDQojIyBTZXQtdXANCg0KYGBge3J9DQpzZXR3ZCgiQzovVXNlcnMvUGhpbGlwcC9Eb2N1bWVudHMvR2l0SHViL2NvbmRmY2FzdC1wcmVjc2FtcGxlci9ldmFsIikNCmxpYnJhcnkoZ2dwbG90MikNCmxpYnJhcnkodGlkeXIpDQpsaWJyYXJ5KGRwbHlyKQ0KbGlicmFyeShsdWJyaWRhdGUpDQpgYGANCg0KIyMgTG9hZCBtb2RlbCBhbmQgYmVuY2htYXJrIGZvcmVjYXN0cw0KDQpgYGB7cn0NCiMgbW9kZWxzDQpsb2FkKCJkZl9ldmFsLlJkYSIpDQpkZl9ldmFsJHF1YXJ0ZXIgPC0gYXNfZGF0ZShkZl9ldmFsJHF1YXJ0ZXIpDQpkZl9ldmFsJHZpbnRhZ2UgPC0gYXNfZGF0ZShkZl9ldmFsJHZpbnRhZ2UpDQoNCiMgYmVuY2htYXJrcw0KbG9hZCgiYmVuY2htYXJrcy9kZl9iZW5jaG1hcmsuUmRhIikNCmBgYA0KDQojIyBNYW51YWxseSByZW1vdmUgc29tZSB2aW50YWdlcw0KDQpGb3IgdHdvIGxhYm9yIG1hcmtldCBzZXJpZXMsIHRoZXJlIGFyZSBzb21lIG1pc3NpbmcgdmludGFnZXMuIFRoZXNlIGxlYWQgdG8gYW4gaW5mb3JtYXRpb24gc2V0IHRoYXQgaXMgaW5jb25zaXN0ZW50IHdpdGggdGhlIHJlc3Qgb2YgdGhlIGV2YWx1YXRpb24gcGVyaW9kLiBGb3IgZXhhbXBsZSwgYmVjYXVzZSBvZiB0aGUgbWlzc2luZyB2aW50YWdlcyBhbmQgZGF0YSwgYSBjYWxlbmRhci1iYXNlZCBmb3JlY2FzdCBob3Jpem9uIG9mICQtMSQsIHNheSwgZG9lcyBub3QgcmVmbGVjdCB0aGUgc2FtZSBob3Jpem9uIGluIHRlcm1zIG9mIG9ic2VydmF0aW9ucy4gDQoNClRoZSBzZXJpZXMgYXJlDQoNCi0gYGhfaW5kYDogRm9yIGhvdXJzIHdvcmtlZCBpbiB0aGUgbWFudWZhY3R1cmluZyBzZWN0b3IsIHNldmVyYWwgdmludGFnZXMgaW4gdGhlIHllYXIgMjAwOSBhcmUgbWlzc2luZy4gU3BlY2lmaWNhbGx5LCBubyB2aW50YWdlcyBhcmUgcHVibGlzaGVkIGJldHdlZW4gTWFyY2ggMTYgMjAwOSBhbmQgTWFyY2ggNCAyMDEwLiBIb3dldmVyLCBpdCBzZWVtcyB0aGF0IHRoZSB1c3VhbCByZWxlYXNlIHBhdHRlcm4gaXMgb25seSBmb2xsb3dlZCBmcm9tIE1hcmNoIDE1IDIwMTAgb253YXJkcy4gT24gTWFyY2ggNCwgb25seSB0aGUgdmFsdWVzIHVwIHRvIERlY2VtYmVyIDIwMDkgYXJlIHB1Ymxpc2hlZC4gVGhlcmVmb3JlLCBhbGwgdmludGFnZXMgYmV0d2VlbiBNYXJjaCAxNiAyMDA5IGFuZCBNYXJjaCAxNSAyMDEwIGFyZSBleGNsdWRlZCBmcm9tIHRoZSBhbmFseXNpcw0KDQpgYGB7cn0NCmRmX2V2YWwgPC0gZmlsdGVyKGRmX2V2YWwsIA0KICAgICAgICAgICAgICAgICAgIShtbmVtb25pYyA9PSAiaF9pbmQiICYNCiAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCAiMjAxMC0wMy0xNSIgJg0KICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gIjIwMDktMDMtMTYiKQ0KICAgICAgICAgICAgKQ0KDQpkZl9iZW5jaG1hcmsgPC0gZmlsdGVyKGRmX2JlbmNobWFyaywgDQogICAgICAgICAgICAgICAgICAgICAgICEoc2VyaWVzID09ICJoX2luZCIgJiANCiAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCAiMjAxMC0wMy0xNSIgJiANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPiAiMjAwOS0wMy0xNiIpDQogICAgICAgICAgICAgICAgICAgICAgKQ0KYGBgDQoNCg0KLSBgZW1wYDogRm9yIHRvdGFsIGVtcGxveW1lbnQsIHRoZSAiRGVjZW1iZXIgMjAxMyIgdmludGFnZSB3YXMgcmVsZWFzZWQgaW4gZWFybHkgSmFudWFyeSAyMDE0IChxdWl0ZSBsaWtlbHkgZHVlIHRvIHRoZSBvcmlnaW5hbCBvciB1c3VhbCBwdWJsaWNhdGlvbiBkYXRlIGZhbGxpbmcgb24gYSBiYW5rIGhvbGlkYXkpLiBUaGUgcHJldmlvdXMgdmludGFnZSB3YXMgcHVibGlzaGVkIG9uIE5vdmVtYmVyIDI4LiBBbnkgdmludGFnZXMgaW4gYmV0d2VlbiB0aG9zZSB0d28gZGF0ZXMgYXJlIHJlbW92ZWQhIA0KDQpgYGB7cn0NCmRmX2V2YWwgPC0gZmlsdGVyKGRmX2V2YWwsIA0KICAgICAgICAgICAgICAgICAgIShtbmVtb25pYyA9PSAiZW1wIiAmDQogICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlIDwgIjIwMTQtMDEtMDciICYNCiAgICAgICAgICAgICAgICAgICAgICAgICAgdmludGFnZSA+ICIyMDEzLTExLTI4IikNCiAgICAgICAgICAgICkNCg0KZGZfYmVuY2htYXJrIDwtIGZpbHRlcihkZl9iZW5jaG1hcmssIA0KICAgICAgICAgICAgICAgICAgICAgICAhKHNlcmllcyA9PSAiZW1wIiAmDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgdmludGFnZSA8ICIyMDE0LTAxLTA3IiAmDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gIjIwMTMtMTEtMjgiKQ0KICAgICAgICAgICAgICAgICAgICAgICkNCmBgYA0KDQojIyBDYWxjdWxhdGUgUk1TRkUsIGF2ZXJhZ2UgbG9nIHNjb3JlLCBDUlBTDQoNCkZvciBib3RoIHRoZSBtb2RlbHMgYW5kIHRoZSBiZW5jaG1hcmssIGNhbGN1bGF0ZSB0aGUgUk1TRkUgYW5kIGF2ZXJhZ2UgbG9nIHNjb3JlLCBDUlBTLiANCg0KYGBge3J9DQpkZl9ldmFsICU+JSANCiAgZ3JvdXBfYnkobW5lbW9uaWMsIGhvcml6b24sIHR5cGUsIG1vZGVsKSAlPiUNCiAgc3VtbWFyaXNlKHJtc2ZlID0gc3FydChtZWFuKHNmZSkpLCANCiAgICAgICAgICAgIG1lYW5fbG9ncyA9IG1lYW4obG9ncyksDQogICAgICAgICAgICBtZWFuX2NycHMgPSBtZWFuKGNycHMpKSAtPiBkZl9ldmFsX2F2Zw0KDQpkZl9iZW5jaG1hcmsgJT4lIA0KICBncm91cF9ieShzZXJpZXMsIGhvcml6b24pICU+JQ0KICBzdW1tYXJpc2Uocm1zZmUgPSBzcXJ0KG1lYW4oc2ZlKSksIA0KICAgICAgICAgICAgbWVhbl9sb2dzID0gbWVhbihsb2dzKSwNCiAgICAgICAgICAgIG1lYW5fY3JwcyA9IG1lYW4oY3JwcykpIC0+IGRmX2JlbmNobWFya19hdmcNCmBgYA0KVGhlbiBjYWxjdWxhdGUgdGhlIHJlbGF0aXZlIHBlcmZvcm1hbmNlIG9mIHRoZSBtb2RlbHMgYnkgZGl2aWRpbmcgd2l0aCB0aGUgYmVuY2htYXJrLiANCg0KYGBge3J9DQpkZl9ldmFsX2F2ZyAlPiUgDQogIG1lcmdlKHNlbGVjdChkZl9iZW5jaG1hcmtfYXZnLCANCiAgICAgICAgICAgICAgICBob3Jpem9uLA0KICAgICAgICAgICAgICAgIG1uZW1vbmljID0gc2VyaWVzLCANCiAgICAgICAgICAgICAgICBybXNmZV9hciA9IHJtc2ZlLA0KICAgICAgICAgICAgICAgIGxvZ3NfYXIgPSBtZWFuX2xvZ3MsIA0KICAgICAgICAgICAgICAgIGNycHNfYXIgPSBtZWFuX2NycHMNCiAgICAgICAgICAgICAgKSwgDQogICAgICAgIGJ5ID0gYygiaG9yaXpvbiIsICJtbmVtb25pYyIpKSAlPiUNCiAgbXV0YXRlKHJlbF9ybXNmZSA9IHJtc2ZlIC8gcm1zZmVfYXIsDQogICAgICAgICByZWxfbG9ncyA9IG1lYW5fbG9ncyAvIGxvZ3NfYXIsDQogICAgICAgICByZWxfY3JwcyA9IG1lYW5fY3JwcyAvIGNycHNfYXIpIC0+IGRmX3JlbA0KICANCmBgYA0KDQojIyBNZXJnZSB3aXRoIGNhdGVnb3JpZXMNCg0KYGBge3J9DQpzb3VyY2UoIi4uL2RhdGEvcmVhbHRpbWVfZGF0YS5SIikNCnRtcCA8LSByZWFsdGltZV9kYXRhKCkNCnRtcCA8LSBzZWxlY3QodG1wLCBtbmVtb25pYywgY2F0ZWdvcnkpDQpkZl9yZWwgPC0gbWVyZ2UoZGZfcmVsLCB0bXAsIGJ5ID0gIm1uZW1vbmljIikNCnJtKHRtcCkNCg0KYGBgDQoNCg0KIyMgQW5hbHlzaXMNCg0KIyMjIFBvaW50IGZvcmVjYXN0IGFjY3VyYWN5DQoNCiMjIyBEZW5zaXR5IGZvcmVjYXN0IGFjY3VyYWN5DQoNCiMjIFJvYnVzdG5lc3MNCg0KIyMjIERpZmZlcmVudCBtb2RlbHMNCg0KIyMjIERpZmZlcmVudCBzdWJzYW1wbGVzDQoNCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkZvcmVjYXN0IGV2YWx1YXRpb24gLSBBbmFseXNpcyBhbmQgcGxvdHMiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpUaGlzIG5vdGVib29rIGFuYWx5c2VzIHRoZSBwZXJmb3JtYW5jZSBvZiB1bmNvbmRpdGlvbmFsIGFuZCBjb25kaXRpb25hbCBmb3JlY2FzdHMgZm9yIGEgbGFyZ2UgbnVtYmVyIG9mIG1hY3JvZWNvbm9taWMgdGltZSBzZXJpZXMuIA0KDQojIyBTZXQtdXANCg0KYGBge3J9DQpzZXR3ZCgiQzovVXNlcnMvUGhpbGlwcC9Eb2N1bWVudHMvR2l0SHViL2NvbmRmY2FzdC1wcmVjc2FtcGxlci9ldmFsIikNCmxpYnJhcnkoZ2dwbG90MikNCmxpYnJhcnkodGlkeXIpDQpsaWJyYXJ5KGRwbHlyKQ0KbGlicmFyeShsdWJyaWRhdGUpDQpgYGANCg0KIyMgTG9hZCBtb2RlbCBhbmQgYmVuY2htYXJrIGZvcmVjYXN0cw0KDQpgYGB7cn0NCiMgbW9kZWxzDQpsb2FkKCJkZl9ldmFsX21vZGVscy5SZGEiKQ0KZGZfZXZhbF9tb2RlbHMkcXVhcnRlciA8LSBhc19kYXRlKGRmX2V2YWxfbW9kZWxzJHF1YXJ0ZXIpDQpkZl9ldmFsX21vZGVscyR2aW50YWdlIDwtIGFzX2RhdGUoZGZfZXZhbF9tb2RlbHMkdmludGFnZSkNCg0KIyBiZW5jaG1hcmtzDQpsb2FkKCJiZW5jaG1hcmtzL2RmX2V2YWxfYmVuY2htYXJrLlJkYSIpDQpgYGANCg0KIyMgTWFudWFsbHkgcmVtb3ZlIHNvbWUgdmludGFnZXMNCg0KRm9yIHR3byBsYWJvciBtYXJrZXQgc2VyaWVzLCB0aGVyZSBhcmUgc29tZSBtaXNzaW5nIHZpbnRhZ2VzLiBUaGVzZSBsZWFkIHRvIGFuIGluZm9ybWF0aW9uIHNldCB0aGF0IGlzIGluY29uc2lzdGVudCB3aXRoIHRoZSByZXN0IG9mIHRoZSBldmFsdWF0aW9uIHBlcmlvZC4gRm9yIGV4YW1wbGUsIGJlY2F1c2Ugb2YgdGhlIG1pc3NpbmcgdmludGFnZXMgYW5kIGRhdGEsIGEgY2FsZW5kYXItYmFzZWQgZm9yZWNhc3QgaG9yaXpvbiBvZiAkLTEkLCBzYXksIGRvZXMgbm90IHJlZmxlY3QgdGhlIHNhbWUgaG9yaXpvbiBpbiB0ZXJtcyBvZiBvYnNlcnZhdGlvbnMuIA0KDQpUaGUgc2VyaWVzIGFyZQ0KDQotIGBoX2luZGA6IEZvciBob3VycyB3b3JrZWQgaW4gdGhlIG1hbnVmYWN0dXJpbmcgc2VjdG9yLCBzZXZlcmFsIHZpbnRhZ2VzIGluIHRoZSB5ZWFyIDIwMDkgYXJlIG1pc3NpbmcuIFNwZWNpZmljYWxseSwgbm8gdmludGFnZXMgYXJlIHB1Ymxpc2hlZCBiZXR3ZWVuIE1hcmNoIDE2IDIwMDkgYW5kIE1hcmNoIDQgMjAxMC4gSG93ZXZlciwgaXQgc2VlbXMgdGhhdCB0aGUgdXN1YWwgcmVsZWFzZSBwYXR0ZXJuIGlzIG9ubHkgZm9sbG93ZWQgZnJvbSBNYXJjaCAxNSAyMDEwIG9ud2FyZHMuIE9uIE1hcmNoIDQsIG9ubHkgdGhlIHZhbHVlcyB1cCB0byBEZWNlbWJlciAyMDA5IGFyZSBwdWJsaXNoZWQuIFRoZXJlZm9yZSwgYWxsIHZpbnRhZ2VzIGJldHdlZW4gTWFyY2ggMTYgMjAwOSBhbmQgTWFyY2ggMTUgMjAxMCBhcmUgZXhjbHVkZWQgZnJvbSB0aGUgYW5hbHlzaXMNCg0KYGBge3J9DQpkZl9ldmFsX21vZGVscyA8LSBmaWx0ZXIoZGZfZXZhbF9tb2RlbHMsIA0KICAgICAgICAgICAgICAgICAgICAgICAgIShtbmVtb25pYyA9PSAiaF9pbmQiICYNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCAiMjAxMC0wMy0xNSIgJg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gIjIwMDktMDMtMTYiKQ0KICAgICAgICAgICAgKQ0KDQpkZl9ldmFsX2JlbmNobWFyayA8LSBmaWx0ZXIoZGZfZXZhbF9iZW5jaG1hcmssIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIShzZXJpZXMgPT0gImhfaW5kIiAmIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCAiMjAxMC0wMy0xNSIgJiANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2aW50YWdlID4gIjIwMDktMDMtMTYiKQ0KICAgICAgICAgICAgICAgICAgICAgICAgICApDQpgYGANCg0KDQotIGBlbXBgOiBGb3IgdG90YWwgZW1wbG95bWVudCwgdGhlICJEZWNlbWJlciAyMDEzIiB2aW50YWdlIHdhcyByZWxlYXNlZCBpbiBlYXJseSBKYW51YXJ5IDIwMTQgKHF1aXRlIGxpa2VseSBkdWUgdG8gdGhlIG9yaWdpbmFsIG9yIHVzdWFsIHB1YmxpY2F0aW9uIGRhdGUgZmFsbGluZyBvbiBhIGJhbmsgaG9saWRheSkuIFRoZSBwcmV2aW91cyB2aW50YWdlIHdhcyBwdWJsaXNoZWQgb24gTm92ZW1iZXIgMjguIEFueSB2aW50YWdlcyBpbiBiZXR3ZWVuIHRob3NlIHR3byBkYXRlcyBhcmUgcmVtb3ZlZCEgDQoNCmBgYHtyfQ0KZGZfZXZhbF9tb2RlbHMgPC0gZmlsdGVyKGRmX2V2YWxfbW9kZWxzLCANCiAgICAgICAgICAgICAgICAgICAgICAgICEobW5lbW9uaWMgPT0gImVtcCIgJg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmludGFnZSA8ICIyMDE0LTAxLTA3IiAmDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPiAiMjAxMy0xMS0yOCIpDQogICAgICAgICAgICAgICAgICApDQoNCmRmX2V2YWxfYmVuY2htYXJrIDwtIGZpbHRlcihkZl9ldmFsX2JlbmNobWFyaywgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAhKHNlcmllcyA9PSAiZW1wIiAmDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPCAiMjAxNC0wMS0wNyIgJg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZpbnRhZ2UgPiAiMjAxMy0xMS0yOCIpDQogICAgICAgICAgICAgICAgICAgICAgICAgICkNCmBgYA0KDQojIyBGdW5jdGlvbiB0byBjYWxjdWxhdGUgcmVsYXRpdmUgUk1TRkUsIGF2ZXJhZ2UgbG9nIHNjb3JlLCBDUlBTDQoNCkZ1bmN0aW9uIHRoYXQgY2FsY3VsYXRlcyB0aGUgZm9yZWNhc3QgYWNjdXJhY3kgb2YgYSBzZWxlY3RlZCAqKm1vZGVsKiogaW4gYSBzZWxlY3RlZCAqKnN1YnNhbXBsZSoqIHJlbGF0aXZlIHRvIHRoZSBiZW5jaG1hcmsuIE91dHB1dCBpcyBkYXRhZnJhbWUgYGRmX2V2YWxgDQpgYGB7cn0NCmNhbGNfcmVsYXRpdmVfZm9yZWNhc3RfYWNjdXJhY3kgPC0gZnVuY3Rpb24oZGZfZXZhbF9tb2RlbHMsIGRmX2V2YWxfYmVuY2htYXJrLCBzdHJfbW9kZWwsIHN1YnNhbXBsZSkNCnsNCiAgIyBjYWxjdWxhdGUgUk1TRkUsIGxvZyBzY29yZSBhbmQgQ1JQUyBvdmVyIHN1YnNhbXBsZSBmb3IgY2hvc2VuIG1vZGVsIGFuZCBiZW5jaG1hcmsNCiAgZGZfZXZhbF9tb2RlbHMgJT4lIA0KICBmaWx0ZXIobW9kZWwgPT0gc3RyX21vZGVsLA0KICAgICAgICAgcXVhcnRlciA+PSBzdWJzYW1wbGVbMV0sDQogICAgICAgICBxdWFydGVyIDw9IHN1YnNhbXBsZVsyXSkgJT4lDQogIGdyb3VwX2J5KG1uZW1vbmljLCBob3Jpem9uLCB0eXBlLCBtb2RlbCkgJT4lDQogIHN1bW1hcmlzZShybXNmZSA9IHNxcnQobWVhbihzZmUpKSwgDQogICAgICAgICAgICBtZWFuX2xvZ3MgPSBtZWFuKGxvZ3MpLA0KICAgICAgICAgICAgbWVhbl9jcnBzID0gbWVhbihjcnBzKSkgLT4gZGZfZXZhbF9tb2RlbHNfYXZnDQoNCiAgZGZfZXZhbF9iZW5jaG1hcmsgJT4lIA0KICBncm91cF9ieShzZXJpZXMsIGhvcml6b24pICU+JQ0KICBzdW1tYXJpc2Uocm1zZmUgPSBzcXJ0KG1lYW4oc2ZlKSksIA0KICAgICAgICAgICAgbWVhbl9sb2dzID0gbWVhbihsb2dzKSwNCiAgICAgICAgICAgIG1lYW5fY3JwcyA9IG1lYW4oY3JwcykpIC0+IGRmX2V2YWxfYmVuY2htYXJrX2F2Zw0KICANCiAgIyByZWxhdGl2ZSBSTVNGRSwgbG9nIHNjb3JlIGFuZCBDUlBTDQogIGRmX2V2YWxfbW9kZWxzX2F2ZyAlPiUgDQogICAgbWVyZ2Uoc2VsZWN0KGRmX2V2YWxfYmVuY2htYXJrX2F2ZywgDQogICAgICAgICAgICAgICAgICBob3Jpem9uLA0KICAgICAgICAgICAgICAgICAgbW5lbW9uaWMgPSBzZXJpZXMsIA0KICAgICAgICAgICAgICAgICAgcm1zZmVfYXIgPSBybXNmZSwNCiAgICAgICAgICAgICAgICAgIGxvZ3NfYXIgPSBtZWFuX2xvZ3MsIA0KICAgICAgICAgICAgICAgICAgY3Jwc19hciA9IG1lYW5fY3Jwcw0KICAgICAgICAgICAgICAgICksIA0KICAgICAgICAgIGJ5ID0gYygiaG9yaXpvbiIsICJtbmVtb25pYyIpKSAlPiUNCiAgICBtdXRhdGUocmVsX3Jtc2ZlID0gcm1zZmUgLyBybXNmZV9hciwNCiAgICAgICAgICAgcmVsX2xvZ3MgPSBtZWFuX2xvZ3MgLyBsb2dzX2FyLA0KICAgICAgICAgICByZWxfY3JwcyA9IG1lYW5fY3JwcyAvIGNycHNfYXIpIC0+IGRmX2V2YWwNCiAgDQogICMgbWVyZ2Ugd2l0aCBjYXRlZ29yaWVzDQogIHNvdXJjZSgiLi4vZGF0YS9yZWFsdGltZV9kYXRhLlIiKQ0KICB0bXAgPC0gcmVhbHRpbWVfZGF0YSgpDQogIHRtcCA8LSBzZWxlY3QodG1wLCBtbmVtb25pYywgY2F0ZWdvcnkpDQogIGRmX2V2YWwgPC0gbWVyZ2UoZGZfZXZhbCwgdG1wLCBieSA9ICJtbmVtb25pYyIpDQogIHJtKHRtcCkNCiAgDQogICMgc2VsZWN0IGNvbHVtbnMNCiAgZGZfZXZhbCA8LSBzZWxlY3QoZGZfZXZhbCwgbW5lbW9uaWMsIGhvcml6b24sIHR5cGUsIHJlbF9ybXNmZSwgcmVsX2xvZ3MsIHJlbF9jcnBzKQ0KICANCiAgcmV0dXJuKGRmX2V2YWwpDQp9DQpgYGANCg0KDQoNCmBgYHtyfQ0KIyBkZl9ldmFsICU+JSANCiMgICBncm91cF9ieShtbmVtb25pYywgaG9yaXpvbiwgdHlwZSwgbW9kZWwpICU+JQ0KIyAgIHN1bW1hcmlzZShybXNmZSA9IHNxcnQobWVhbihzZmUpKSwgDQojICAgICAgICAgICAgIG1lYW5fbG9ncyA9IG1lYW4obG9ncyksDQojICAgICAgICAgICAgIG1lYW5fY3JwcyA9IG1lYW4oY3JwcykpIC0+IGRmX2V2YWxfYXZnDQojIA0KIyBkZl9iZW5jaG1hcmsgJT4lIA0KIyAgIGdyb3VwX2J5KHNlcmllcywgaG9yaXpvbikgJT4lDQojICAgc3VtbWFyaXNlKHJtc2ZlID0gc3FydChtZWFuKHNmZSkpLCANCiMgICAgICAgICAgICAgbWVhbl9sb2dzID0gbWVhbihsb2dzKSwNCiMgICAgICAgICAgICAgbWVhbl9jcnBzID0gbWVhbihjcnBzKSkgLT4gZGZfYmVuY2htYXJrX2F2Zw0KYGBgDQogDQoNCmBgYHtyfQ0KIyBkZl9ldmFsX2F2ZyAlPiUgDQojICAgbWVyZ2Uoc2VsZWN0KGRmX2JlbmNobWFya19hdmcsIA0KIyAgICAgICAgICAgICAgICAgaG9yaXpvbiwNCiMgICAgICAgICAgICAgICAgIG1uZW1vbmljID0gc2VyaWVzLCANCiMgICAgICAgICAgICAgICAgIHJtc2ZlX2FyID0gcm1zZmUsDQojICAgICAgICAgICAgICAgICBsb2dzX2FyID0gbWVhbl9sb2dzLCANCiMgICAgICAgICAgICAgICAgIGNycHNfYXIgPSBtZWFuX2NycHMNCiMgICAgICAgICAgICAgICApLCANCiMgICAgICAgICBieSA9IGMoImhvcml6b24iLCAibW5lbW9uaWMiKSkgJT4lDQojICAgbXV0YXRlKHJlbF9ybXNmZSA9IHJtc2ZlIC8gcm1zZmVfYXIsDQojICAgICAgICAgIHJlbF9sb2dzID0gbWVhbl9sb2dzIC8gbG9nc19hciwNCiMgICAgICAgICAgcmVsX2NycHMgPSBtZWFuX2NycHMgLyBjcnBzX2FyKSAtPiBkZl9yZWwNCiAgDQpgYGANCg0KDQpgYGB7cn0NCiMgc291cmNlKCIuLi9kYXRhL3JlYWx0aW1lX2RhdGEuUiIpDQojIHRtcCA8LSByZWFsdGltZV9kYXRhKCkNCiMgdG1wIDwtIHNlbGVjdCh0bXAsIG1uZW1vbmljLCBjYXRlZ29yeSkNCiMgZGZfcmVsIDwtIG1lcmdlKGRmX3JlbCwgdG1wLCBieSA9ICJtbmVtb25pYyIpDQojIHJtKHRtcCkNCg0KYGBgDQoNCg0KIyMgQW5hbHlzaXMNCg0KYGBge3J9DQpzdHJfbW9kZWwgPC0gIk5yNF9OajFfTnAyX05zMCINCnN1YnNhbXBsZSA8LSBjKG1pbihkZl9ldmFsX21vZGVscyRxdWFydGVyKSwgbWF4KGRmX2V2YWxfbW9kZWxzJHF1YXJ0ZXIpKQ0KDQpkZl9ldmFsIDwtIGNhbGNfcmVsYXRpdmVfZm9yZWNhc3RfYWNjdXJhY3koZGZfZXZhbF9tb2RlbHMsIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGRmX2V2YWxfYmVuY2htYXJrLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJfbW9kZWwsIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN1YnNhbXBsZSkNCmBgYA0KDQoNCiMjIyBQb2ludCBmb3JlY2FzdCBhY2N1cmFjeQ0KDQojIyMgRGVuc2l0eSBmb3JlY2FzdCBhY2N1cmFjeQ0KDQojIyBSb2J1c3RuZXNzDQoNCiMjIyBEaWZmZXJlbnQgbW9kZWxzDQoNCiMjIyBEaWZmZXJlbnQgc3Vic2FtcGxlcw0KDQo=</div>
 
 
 

@@ -12,7 +12,7 @@ df_eval$quarter <- as_date(df_eval$quarter)
 df_eval$vintage <- as_date(df_eval$vintage)
 
 # relative log score and crps 
-load("benchmarks/df_benchmark.Rda")
+load("benchmarks/df_eval_benchmark.Rda")
 
 df_eval %>% merge(select(df_benchmark, 
                                       quarter, 
@@ -27,8 +27,9 @@ df_eval %>% merge(select(df_benchmark,
             select(-logs_ar, -crps_ar, -logs, -crps) -> df_eval
 
 
-# calculate average log score and crps
+# calculate average lore and crps
 df_eval %>% 
+  filter(quarter >= "2010-01-01")%>%
   group_by(mnemonic, horizon, type, model) %>%
   summarise(mean_logs = mean(rel_logs),
             mean_crps = mean(rel_crps)) -> df_eval
@@ -41,21 +42,24 @@ df_eval <- merge(df_eval, tmp, by = "mnemonic")
 rm(tmp)
 
 # plot crps of conditional versus unconditional forecasts
+str_title <- "CRPS"
 df_eval %>%
-  filter(horizon >=1, model == "Nr4_Nj1_Np2_Ns0") %>%
-  select(-mean_logs) %>%
-  pivot_longer(mean_crps, names_to = "score", values_to = "value") %>%
-  filter(value != Inf) %>%
+  filter(horizon >=-1) %>%
+  pivot_longer(c(mean_crps, mean_logs), names_to = "score", values_to = "value") %>%
+  filter(value != Inf, score == "mean_crps") %>%
   pivot_wider(names_from = type, values_from = value) -> df_plot # data-dependent lims!
 
 
 ggplot(df_plot, aes(x = unconditional, 
                     y = conditional_hard, 
-                    color = category)
+                    color = category,
+                    shape = model)
        )+
   geom_point(size = 2)+
   geom_abline()+
-  facet_wrap(~factor(horizon), nrow = 2)+
+  geom_vline(xintercept = 0,  alpha = 0.5)+
+  geom_hline(yintercept = 0, alpha = 0.5)+
+  facet_wrap(~factor(horizon), nrow = 1)+
   xlim(c(
          min(min(df_plot$unconditional), min(df_plot$conditional_hard)), 
          max(max(df_plot$unconditional), max(df_plot$conditional_hard))
@@ -65,4 +69,40 @@ ggplot(df_plot, aes(x = unconditional,
          min(min(df_plot$unconditional), min(df_plot$conditional_hard)), 
          max(max(df_plot$unconditional), max(df_plot$conditional_hard))
          )
-       )
+       )+
+  theme_minimal()+
+  theme(legend.position="bottom")+
+  labs(title = str_title)
+
+# plot logs of conditional versus unconditional forecasts
+str_title <- "log score"
+df_eval %>%
+  filter(horizon >=-1) %>%
+  pivot_longer(c(mean_crps, mean_logs), names_to = "score", values_to = "value") %>%
+  filter(value != Inf, score == "mean_logs") %>%
+  pivot_wider(names_from = type, values_from = value) -> df_plot # data-dependent lims!
+
+
+ggplot(df_plot, aes(x = unconditional, 
+                    y = conditional_hard, 
+                    color = category,
+                    shape = model)
+)+
+  geom_point(size = 2)+
+  geom_abline()+
+  geom_vline(xintercept = 0,  alpha = 0.5)+
+  geom_hline(yintercept = 0, alpha = 0.5)+
+  facet_wrap(~factor(horizon), nrow = 1)+
+  xlim(c(
+    min(min(df_plot$unconditional), min(df_plot$conditional_hard)), 
+    max(max(df_plot$unconditional), max(df_plot$conditional_hard))
+  )
+  )+
+  ylim(c(
+    min(min(df_plot$unconditional), min(df_plot$conditional_hard)), 
+    max(max(df_plot$unconditional), max(df_plot$conditional_hard))
+  )
+  )+
+  theme_minimal()+
+  theme(legend.position="bottom")+
+  labs(title = str_title)
