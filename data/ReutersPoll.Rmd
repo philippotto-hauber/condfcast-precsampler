@@ -46,7 +46,7 @@ dropNA_first <- function(df)
 Source some other functions
 
 ```{r}
-source("functions.R")
+source("../functions/functions.R")
 ```
 
 
@@ -298,7 +298,7 @@ df_plot %>%
     geom_ribbon(aes(ymin = min, ymax = max), fill = "red", alpha = 0.2)+
     geom_line(aes(y = med), color = "red")+
     facet_wrap(~horizon, scales = "free", ncol = 2)+
-    labs(title = "CPI inflation (y/y)")
+    labs(title = "CPI inflation (q/q)")
 ```
 ## Export data
 
@@ -334,7 +334,7 @@ Check that for these vintages we have all available forecasts, i.e. no missing o
 ```{r}
 h_start_gdp <- -1
 h_start_cpi <- 0
-h_max <- 4
+h_max <- 2
 counter <- 1
 complete_vintage <- matrix(FALSE, nrow = length(vintages), ncol = 2) # col1 = cpi, col2 = gdp
 for (v in vintages)
@@ -343,16 +343,20 @@ for (v in vintages)
   
   if (nrow(df_tmp) != 0)
   {
-    diff_cpi <- setdiff(seq(h_start_cpi, max(h_max, max(df_tmp$horizon))), df_tmp$horizon)
-    if (length(diff_cpi) == 0)
+    #diff_cpi <- setdiff(seq(h_start_cpi, max(h_max, max(df_tmp$horizon))), df_tmp$horizon)
+    df_tmp <- filter(df_tmp, horizon >=h_start_cpi, horizon <= h_max)
+    #if (length(diff_cpi) == 0)
+    if (!any(is.na(df_tmp$med)) & nrow(df_tmp) == h_max - h_start_cpi + 1)
       complete_vintage[counter, 1] = TRUE
   }
   
   df_gdp %>% filter(dates_fore == v) -> df_tmp
   if (nrow(df_tmp) != 0)
   {
-    diff_gdp <- setdiff(seq(h_start_gdp, max(h_max, max(df_tmp$horizon))), df_tmp$horizon)
-    if (length(diff_gdp) == 0)
+    #diff_gdp <- setdiff(seq(h_start_gdp, max(h_max, max(df_tmp$horizon))), df_tmp$horizon)
+    df_tmp <- filter(df_tmp, horizon >=h_start_gdp, horizon <= h_max)
+    #if (length(diff_gdp) == 0)
+    if (!any(is.na(df_tmp$med)) & nrow(df_tmp) == h_max - h_start_gdp + 1)
       complete_vintage[counter, 2] = TRUE
   }
   
