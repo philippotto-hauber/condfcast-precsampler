@@ -569,15 +569,62 @@ I simulate each model $10$ times and calculate the time it takes to draw from th
     \normalsize
 \end{figure}
 
-\section{Empirical application}
+\section{Real-time evaluation of unconditional and conditional forecasts}
+
+In this section, we detail the data used in the forecast evaluation and provide details on the Gibbs Sampler that is used to estimate the model with Bayesian methods. Furthermore, we discuss the set-up of the real-time evaluation. 
 
 \subsection{Data}
+\subsubsection{Real-time data}
+
+To estimate the factor model, we construct a large quarterly real-time dataset covering different aspects of the macroeconomy. Beyond real gross domestic product, the main building block of the dataset are other series from the national accounts such as the entire expenditure side components, e.g. private and public consumption, gross fixed capital formation, export and imports. From the production side of GDP we can only include gross value added in the industrial and construction sector as well as trade, transport and hospitality as real-time vintages for other sectors are only available from 2011 onwards.\footnote{The three mentioned sectors comprise roughly 50 percent of total gross value added.} 
+
+In addition to the chained volume indices we also include the corresponding deflators of the expenditure and production side components. Furthermore, it includes series on real activity such as industrial production, turnover or orders as well as construction, headline CPI and PPI indices as well as the corresponding core indices and a measure of prices in the construction sector as well as labor market indicators such as economy-wide employment and wages and hours worked in the industrial and construction sector.    
+
+In addition, data are supplemented with financial indicators such as interest rates, exchange rates and stock market indices. Lastly, we also include a few survey-based indicators provided by the European Commission (ESI) and covering the industrial, construction and services sectors as well as a measure of firms' employment expectations (EEI). Note that for the latter two sources, there is no real-time problem, as financial indicators are not revised subsequent to their original publication. Similarly, for the European Commission's survey indicators, we rely on the non-seasonally adjusted indices which are also not revised. 
+
+Altogether, our dataset contains XX series. All of them are transformed to stationarity prior to estimaton. In most cases, this involves taking the first difference of the logarithm of the original series, though in some cases, e.g. interest rates or survey indicators, we take simple differences. \footnote{The Deutsche Bundesbank's real-time database includes vintages of chained volume indices and nominal values for the national accounts. The implicit deflators are calculated by dividing the nominal series with the chained volume index and taking the first differenc of the logarithm of the resulting series.} Details of the time series, their sources as well as the transformation employed  can be found in Appendix XXX.
+
+\subsubsection{Professional forecasts from the Reuters Poll}
+
+As conditioning information, we rely on the Reuters Poll of forecasts for German GDP and CPI inflation. The survey is conducted once a quarter, typically during the first weeks of the  and compiles the views of around twenty different professional forecasters from the private sector and research institutes. 
+
+For GDP, the forecasts are given in terms of quarter-on-quarter (q/q) growth rates and we can thus use the median forecast directly to obtain conditional forecasts from the model outlined above. The inflation forecasts, however, are reported as year-over-year (y/y) growth rates of the consumer price index. To bring the forecasts in line with the treatment of CPI inflation in the model, we have to transform the individual forecasts. Specifically, we interpret the y/y forecasts of inflation, $x_t^{y/y}$, as describing the four-quarter change in the quarterly consumper price index $X$, i.e. $ x_t^{y/y} = log(X_t/X_{t-4}$. Thus, given a sequence of y/y forecasts we can back out the implicit forecasts of the (log of the) consumer price index and derive the corresponding q/q forecasts, i.e. $ x_t^{q/q} = log(X_t/X_{t-1}$ for each participant in the survey. We then use the median of these transformed values in the conditional forecasting exercise.
+
+\begin{figure}[htbp] \centering
+    \caption{GDP growth and CPI inflation forecasts from the Reuters poll of professional forecasters \label{fig:reuterspoll}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+    \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_ReutersPoll.pdf}} \\
+    {
+    \footnotesize \textbf{Note:} 
+    }
+    \end{tabular}
+    \newline
+    \normalsize
+\end{figure}
+
+Figure \ref{fig:reuterspoll} plots the median forecast of q/q CPI inflation (top row) and GDP growth (bottom row). The lines correspond to different forecast horizons relative to the reference period and are given in quarters. That is to say, the $h=1$ forecast for the first quarter in 2010 was made in October 2009. For CPI inflation, there are no backcasts ($h=-1$) as a flash estimate for the previous quarter is already available at the time.  
+ 
 
 \subsection{Estimation}
 
-\subsection{Results}
+The factor model outlined above is estimated with Bayesian methods. Draws from the joint posterior distribution of factors and parameters are obtained via a Gibbs Sampler which alternately draws from the conditional posterior of the factors (parameters) given the parameters (factors). In more detail, the Gibbs Sampler cylces through the following blocks: 
 
-\section{Conclusion}
+\begin{itemize}
+    \item p(f| )
+    
+\end{itemize}
+
+The priors used in the estimation as well as the resulting conditional distributions are standard in the literature and are therefore relegated to Appendix.
+
+\subsection{Evaluation set-up}
+
+For CPI inflation in the first quarter of 2013 there are no forecasts available. In the following forecast evaluation, I therefore exclude. Note also that 
+
+Missing vintages for hours industry
+
+\section{Results}
+
 
 \bibliographystyle{aernobold}
 \bibliography{papers}
