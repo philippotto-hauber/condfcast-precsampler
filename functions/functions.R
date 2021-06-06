@@ -103,6 +103,13 @@ wrap_crps_sample <- function(y, dat)
   return(crps)
 }
 
+wrap_sfe <- function(y, dat)
+# calculate squared forecast error when using dplyr::mutate
+{
+  sfe <- (mean(dat) - y[1]) ^ 2
+  return(sfe)
+}
+
 determine_horizon <- function(quarter, vintage)
 {
   floor(lubridate::day(lubridate::days(quarter)-lubridate::days(vintage))/90)

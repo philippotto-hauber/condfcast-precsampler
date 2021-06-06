@@ -75,10 +75,11 @@ tmp_out <- foreach (v = seq(1, nrow(list_vintages)), .combine = c) %dopar%
       # merge with releases
       dat <- merge(dat, df_releases, by= c("quarter", "mnemonic"))
       
-      # calculate log score and crps
+      # calculate sfe, log score and crps
       dat %>% 
         group_by(mnemonic, quarter, horizon, type, model) %>% 
-        summarise(logs = wrap_logs_sample(realization, value),
+        summarise(sfe = wrap_sfe(realization, value),
+                  logs = wrap_logs_sample(realization, value),
                   crps = wrap_crps_sample(realization, value)) -> dat
       
       # add vintage to data.frame
