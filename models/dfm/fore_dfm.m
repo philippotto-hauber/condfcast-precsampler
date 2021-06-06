@@ -109,7 +109,7 @@ for n = 1:size(store_Y_fore, 2)
     end
 end
 
-    fprintf(fid,';\r\n');
+fprintf(fid,'\r\n');
 for m = 1:Ndraws
     tmp_str = count_hs{m,1}; 
     fprintf(fid,'%s, %d, ', tmp_str, count_draws(m));
@@ -120,6 +120,6 @@ for m = 1:Ndraws
             fprintf(fid,'%2.4f, ',store_Y_fore(m, n));
         end
     end
-    fprintf(fid,';\r\n');
+    fprintf(fid,'\r\n');
 end
 fclose(fid);
