@@ -62,6 +62,15 @@ tmp_out <- foreach (v = seq(1, nrow(list_vintages)), .combine = c) %dopar%
       # merge with releases
       dat <- merge(dat, df_releases, by= c("quarter", "mnemonic"))
       
+      if (any(is.na(dat$realization)) || any(is.na(dat$value)))
+      {
+        print(list_vintages[v, 1])
+        print(t)
+        print(m)
+        filter(dat, is.na(realization) || is.na(value))
+        stop("Missings in either realizations or draws from the pred dens!")
+      }
+      
       # calculate sfe, log score and crps
       dat %>% 
         group_by(mnemonic, quarter, horizon, type, model) %>% 
