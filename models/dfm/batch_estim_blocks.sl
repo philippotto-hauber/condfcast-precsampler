@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --job-name=fore_blocks  
+#SBATCH --job-name=estim_blocks  
 #SBATCH --array=1-5
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=32
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=100000
 #SBATCH --time=20:00:00
-#SBATCH --output=fore_blocks.out
-#SBATCH --error=fore_blocks.err
+#SBATCH --output=estim_blocks.out
+#SBATCH --error=estim_blocks.err
 #SBATCH --partition=cluster
 
 module load matlab/2020b
