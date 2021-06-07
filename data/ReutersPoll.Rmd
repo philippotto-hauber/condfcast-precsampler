@@ -17,6 +17,8 @@ library(lubridate)
 library(tidyr)
 library(ggplot2)
 library(bundesbank)
+library(scales)
+library(ggsci)
 
 # directories
 dir_forecasts <- "/raw/Reuters Poll/"
