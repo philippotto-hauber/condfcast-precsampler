@@ -48,19 +48,6 @@ tmp_out <- foreach (v = seq(1, nrow(list_vintages)), .combine = c) %dopar%
       filename <- paste0(t, "_", m, "_", list_vintages[v, 1], ".csv")
       dat <- read.csv(paste0(dir_densities, filename))
       
-      # temporarily convert survey_eei to numeric manually -> fix by not writing ; to end of line when exporting csv!
-      tmp <- dat[, "survey_eei."]
-      tmp2 <- substr(tmp, start= 1, stop = nchar(tmp)-1)
-      tmp3 <- as.numeric(tmp2)
-      
-      dat$survey_eei. <- as.numeric(substr(dat$survey_eei.,
-                                           start = 1,
-                                           stop = nchar(dat$survey_eei.)-1)
-                                    )
-      
-      names(dat)[58] <- "survey_eei"
-      
-      
       # convert quarter to date and calculate horizon
       dat$quarter <- as_date(dat$quarter)
       dat$horizon <- determine_horizon(dat$quarter, as_date(list_vintages[v, 1]))
