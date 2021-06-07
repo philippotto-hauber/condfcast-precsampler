@@ -8,7 +8,7 @@ vintages = importdata([dir_in, 'list_vintages.csv']);
 dir_in = '';
 model_specs = readmatrix([dir_in, 'model_specs.csv']);
 
-ind_vs = repmat(1:length(vintages), 1, length(model_specs));
+ind_vs = repmat(1:length(vintages), 1, size(model_specs, 2));
 ind_specs = kron(1:size(model_specs, 2), ones(1, length(vintages)));
 
 v = vintages{ind_vs(n_spec)};
