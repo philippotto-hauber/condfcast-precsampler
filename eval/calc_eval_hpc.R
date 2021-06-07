@@ -4,12 +4,12 @@ suppressMessages(library(iterators, lib.loc = "~/R_libs"))
 suppressMessages(library(foreach, lib.loc = "~/R_libs"))
 suppressMessages(library(doParallel, lib.loc = "~/R_libs"))
 suppressMessages(library(crayon, lib.loc = "~/R_libs"))
-suppressMessages(library(dplyr, lib.loc = "~/R_libs"))
+suppressMessages(library(dplyr, warn.conflicts = F, lib.loc = "~/R_libs"))
 suppressMessages(library(lubridate, lib.loc = "~/R_libs"))
 suppressMessages(library(scoringRules, lib.loc = "~/R_libs"))
 suppressMessages(library(tidyr, lib.loc = "~/R_libs"))
 getwd()
-
+options(dplyr.summarise.inform = F)
 # parallel set-up
 registerDoParallel(cores=8)
 print(getDoParWorkers())
@@ -19,9 +19,9 @@ dir_releases <- "./releases/"
 dir_vintages <- "./../data/"
 
 list_vintages <- read.csv(paste0(dir_vintages, "list_vintages.csv"), header=F)
+list_vintages <- list_vintages[seq(1, nrow(list_vintages)-2), , drop = F] # exclude 2018!
 models <- c("Nr2_Nj1_Np2_Ns0", "Nr1_Nj1_Np2_Ns0","Nr5_Nj1_Np2_Ns0","Nr8_Nj1_Np2_Ns0") 
 types <- c("unconditional", "conditional_hard")
-
 # select variables
 source("../data/realtime_data.R")
 tmp <- realtime_data()
