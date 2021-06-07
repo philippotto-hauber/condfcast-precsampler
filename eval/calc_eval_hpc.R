@@ -19,7 +19,7 @@ dir_releases <- "./releases/"
 dir_vintages <- "./../data/"
 
 list_vintages <- read.csv(paste0(dir_vintages, "list_vintages.csv"), header=F)
-models <- c("Nr4_Nj1_Np2_Ns0", "Nr1_Nj1_Np2_Ns3") 
+models <- c("Nr2_Nj1_Np2_Ns0", "Nr1_Nj1_Np2_Ns0","Nr5_Nj1_Np2_Ns0","Nr8_Nj1_Np2_Ns0") 
 types <- c("unconditional", "conditional_hard")
 
 # select variables
