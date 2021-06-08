@@ -1,12 +1,11 @@
 # Test **BayesianARs** module
 
-
-
 This document tests the **BayesianARs** module.
 
 To run
 
-- make sure pwd() is set to benchmarks/test/
+- make sure pwd() is set to benchmarks/test/ -> cd(".../test/")
+- load the Weave package -> using Weave
 - weave using the command weave("test_module.jmd"; out_path=:pwd, fig_path = "figures")
 
 
@@ -27,7 +26,7 @@ Nt = 300
 Nh = 4
 Np = 2
 
-y, yᶠ_true, β, σ² = simulate_data(Nt, Nh)
+y, yᶠ_true, β, σ² = simulate_data(Nt, Nh);
 ```
 
 ## Prepare estimation
@@ -63,7 +62,7 @@ ar_model = BayesianAR(y, X, Np, β_ols, σ²_ols, prior_β, prior_σ²);
 ### Parameters $\beta$ and $\sigma^2$
 
 ```julia
-histogram(hcat(β_hat', σ²_hat), bins = 100, label = "", title=["bet0" "bet1" "bet2" "sigma"], layout = (2,2))
+histogram(hcat(β_hat', σ²_hat), bins = 100, label = "", title=["\$\\beta_0\$" "\$\\beta_1\$" "\$\\beta_2\$" "\$\\sigma^2\$"], layout = (2,2))
 vline!([vcat(β, σ²)'], linewidth = 4, label = "", linecolor = :black, layout = (2, 2))
 ```
 
@@ -72,4 +71,35 @@ vline!([vcat(β, σ²)'], linewidth = 4, label = "", linecolor = :black, layout 
 ```julia
 histogram(yᶠ', bins = 100, label = "", title=["h=1" "h=2" "h=3" "h=4"], layout = (2, 2))
 vline!([yᶠ_true'], linewidth = 4, linecolor = :black, layout = (2, 2), label = "")
+```
+
+## Compare performance of mutable and immutable structs
+
+The immutable struct immutBayesianAR basically does exactly the same thing as BayesianAR but instead of updating the parameters of the initial struct, it creates a new instance at every draw!
+
+Time execution of Gibbs Sampler with the mutable struct...
+```julia
+using BenchmarkTools
+@benchmark gibbs_sampler(ar_model; Nh = 4)
+```
+
+... and with the immutable one
+
+```julia
+ar_immut = immutBayesianAR(y, X, Np, β_ols, σ²_ols, prior_β, prior_σ²);
+@benchmark gibbs_sampler(ar_immut; Nh = 4)
+```
+
+Getting very high values for total memory allocation! Check components of Gibbs Sampler to see where this is coming from: 
+
+```julia
+@benchmark sample_β!(ar_model)
+```
+
+```julia
+@benchmark sample_σ²!(ar_model)
+```
+
+```julia
+@benchmark forecast(ar_model; Nh = 4)
 ```
