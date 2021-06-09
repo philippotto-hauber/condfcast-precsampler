@@ -75,31 +75,39 @@ vline!([yᶠ_true'], linewidth = 4, linecolor = :black, layout = (2, 2), label =
 
 ## Compare performance of mutable and immutable structs
 
-The immutable struct immutBayesianAR basically does exactly the same thing as BayesianAR but instead of updating the parameters of the initial struct, it creates a new instance at every draw!
-
 Time execution of Gibbs Sampler with the mutable struct...
+
 ```julia
 using BenchmarkTools
-@benchmark gibbs_sampler(ar_model; Nh = 4)
+BenchmarkTools.DEFAULT_PARAMETERS.seconds = 200
+@benchmark gibbs_sampler($ar_model; Nh = 4, Nreplic = 10, Nburnin = 10) samples = 100
 ```
 
 ... and with the immutable one
 
 ```julia
-ar_immut = immutBayesianAR(y, X, Np, β_ols, σ²_ols, prior_β, prior_σ²);
-@benchmark gibbs_sampler(ar_immut; Nh = 4)
+ar_immut = immutBayesianAR(y, X, Np, β_ols, [σ²_ols], prior_β, prior_σ²);
+@benchmark gibbs_sampler($ar_immut; Nh = 4, Nreplic = 10, Nburnin = 10) samples = 100
 ```
+
+The immutable struct is somewhat faster. Note also that they behave almost identically as it is possible to change the values of an array contained in an immutable struct, just not the entire array itself. E.g. one can overwrite the draw of β in the struct ar by ar.β[:] = Vector{typeof(β)0}! The only syntactic problems this causes is that σ² can no longer be of type Float64 but rather needs to be Vector{Float64} (of length 1) so that σ²[1] can be accessed and changed! In other cases, σ² needs to be "converted" to a scalar, e.g. when constructing the diagonal prior matrix Qₑ or when taking √σ². This is done by simply indexing, i.e. σ²[1]. In the case of √, sqrt.(σ²) would also work. 
+
+This seems to be a nice work-around. However, one might consider putting in checks that σ² is actually a vector of length 1! 
+
+## High memory allocation
 
 Getting very high values for total memory allocation! Check components of Gibbs Sampler to see where this is coming from: 
 
 ```julia
-@benchmark sample_β!(ar_model)
+BenchmarkTools.DEFAULT_PARAMETERS.seconds = 5 # set back to default value
+@benchmark sample_β!($ar_model)
 ```
 
 ```julia
-@benchmark sample_σ²!(ar_model)
+@benchmark sample_σ²!($ar_model)
 ```
 
 ```julia
-@benchmark forecast(ar_model; Nh = 4)
+@benchmark forecast($ar_model; Nh = 4)
 ```
+
