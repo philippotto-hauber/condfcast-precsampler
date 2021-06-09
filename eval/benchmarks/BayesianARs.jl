@@ -27,7 +27,7 @@ struct immutBayesianAR
     X::Array{Float64, 2}
     Np::Int
     β::Array{Float64, 1}
-    σ²::Float64
+    σ²::Vector{Float64} # Vector{64} of length 1 so that it is mutable!
     prior_β::FullNormalCanon
     prior_σ²::InverseGamma{Float64}
 end
@@ -36,17 +36,14 @@ end
 function sample_β!(ar::BayesianAR)
     Nt = size(ar.X, 1)
     Qₑ = diagm(ones(Nt) * 1 / ar.σ²)
-    β_draw =  f_lin_reg(ar.y[ar.Np+1:end], ar.X, ar.prior_β.μ, ar.prior_β.J, Qₑ)
-    ar.β = β_draw
+    ar.β =  f_lin_reg(ar.y[ar.Np+1:end], ar.X, ar.prior_β.μ, ar.prior_β.J, Qₑ)
 end
 
-function sample_β(ar::immutBayesianAR)
+function sample_β!(ar::immutBayesianAR)
     Nt = size(ar.X, 1)
-    Qₑ = diagm(ones(Nt) * 1 / ar.σ²)
-    β_draw =  f_lin_reg(ar.y[ar.Np+1:end], ar.X, ar.prior_β.μ, ar.prior_β.J, Qₑ)
-    return(β_draw)
+    Qₑ = diagm(ones(Nt) * 1 / ar.σ²[1])
+    ar.β[:] =  f_lin_reg(ar.y[ar.Np+1:end], ar.X, ar.prior_β.μ, ar.prior_β.J, Qₑ)
 end
-
 
 function sample_σ²!(ar::BayesianAR)
     e = ar.y[ar.Np+1:end] - ar.X * ar.β
@@ -54,11 +51,10 @@ function sample_σ²!(ar::BayesianAR)
                                     scale(ar.prior_σ²) + 0.5 * dot(e, e)))
 end
 
-function sample_σ²(ar::immutBayesianAR)
+function sample_σ²!(ar::immutBayesianAR)
     e = ar.y[ar.Np+1:end] - ar.X * ar.β
-    σ² = rand(InverseGamma(shape(ar.prior_σ²) + 0.5 * length(e), 
+    ar.σ²[1] = rand(InverseGamma(shape(ar.prior_σ²) + 0.5 * length(e), 
                                     scale(ar.prior_σ²) + 0.5 * dot(e, e)))
-    return(σ²)
 end
 
 function forecast(ar::BayesianAR; Nh)
@@ -83,7 +79,7 @@ function forecast(ar::immutBayesianAR; Nh)
         m = ar.β[1]
         for p in 1:ar.Np
             m += ar.β[1+p] * tmp[ar.Np+h-p]            
-            tmp[ar.Np+h] = randn() * sqrt(ar.σ²) + m
+            tmp[ar.Np+h] = randn() * sqrt(ar.σ²[1]) + m
         end
     end
     return(tmp[ar.Np+1:end])
@@ -110,24 +106,24 @@ function gibbs_sampler(ar::immutBayesianAR;Nh=0, Nburnin=1000, Nreplic=1000, Nth
     β = Matrix{Float64}(undef, size(ar.X, 2), Nreplic ÷ Nthin)
     σ² = Vector{Float64}(undef, Nreplic ÷ Nthin)    
     for m in 1:(Nreplic+Nburnin)
-        β_draw = sample_β(ar)
-        σ²_draw = sample_σ²(ar)
+        sample_β!(ar)
+        sample_σ²!(ar)
         # given draws construct a new immutBayesianAR instance
-        ar = immutBayesianAR(ar.y, ar.X, ar.Np, β_draw, σ²_draw, ar.prior_β, ar.prior_σ²)
+        #ar = immutBayesianAR(ar.y, ar.X, ar.Np, β_draw, σ²_draw, ar.prior_β, ar.prior_σ²)
         if m > Nburnin && m % Nthin == 0
             yᶠ[:, (m - Nburnin) ÷ Nthin] = forecast(ar; Nh)
             β[:, (m - Nburnin) ÷ Nthin] = ar.β
-            σ²[(m - Nburnin) ÷ Nthin] = ar.σ²
+            σ²[(m - Nburnin) ÷ Nthin] = ar.σ²[1]
         end
     end
     return(β, σ², yᶠ)
 end
 
 function f_lin_reg(y::Array{Float64, 1}, 
-    X::AbstractArray, 
-    m₀::Array{Float64, 1},
-    Q₀::AbstractArray{Float64, 2},
-    Qₑ::Array{Float64, 2})
+                   X::AbstractArray, 
+                   m₀::Array{Float64, 1},
+                   Q₀::AbstractArray{Float64, 2},
+                   Qₑ::Array{Float64, 2})
 
     XtQₑ = X'Qₑ
     Q_bet = Q₀ + XtQₑ*X
