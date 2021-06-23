@@ -28,7 +28,14 @@ df_eval_models$vintage <- as_date(df_eval_models$vintage)
 load("benchmarks/df_eval_benchmark.Rda")
 ```
 
-## Manually remove some vintages
+## Manually remove some series and vintages
+
+For **gross value added in finance, rent and professional servies** there are only vintages up until 2012, after which disaggregate series for the different sector are available. I therefore do not consider the series
+
+```{r}
+df_eval_models <- filter(df_eval_models, !(mnemonic == "gva_freprof"))
+```
+
 
 For two labor market series, there are some missing vintages. These lead to an information set that is inconsistent with the rest of the evaluation period. For example, because of the missing vintages and data, a calendar-based forecast horizon of $-1$, say, does not reflect the same horizon in terms of observations. 
 
@@ -228,7 +235,7 @@ ggplot(df_plot, aes(x = unconditional,
 
 ```{r}
 str_model <- "Nr2_Nj1_Np2_Ns0"
-subsample <- c(as.Date("2010-01-01"), max(df_eval_models$quarter))
+subsample <- c(as.Date("2011-01-01"), max(df_eval_models$quarter))
 
 df_eval <- calc_relative_forecast_accuracy(df_eval_models, 
                                            df_eval_benchmark, 
@@ -274,8 +281,6 @@ ggplot(df_plot, aes(x = unconditional,
         legend.title = element_blank())+
   labs(title = str_title, x = "unconditional forecasts", y = "conditional forecasts")
 ```
-
-
 
 ### Different models
 
