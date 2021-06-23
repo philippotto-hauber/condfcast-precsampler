@@ -1,5 +1,7 @@
 # This code estimates BayesianAR models as benchmarks for the forecast
 # evaluation.
+import Pkg
+Pkg.activate("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval/benchmarks/Project.toml")
 include("./BayesianARs.jl")
 using CSV, DelimitedFiles, DataFrames, LinearAlgebra, Distributions, Statistics, .BayesianARs  
 
