@@ -14,6 +14,7 @@ library(tidyr)
 library(dplyr)
 library(lubridate)
 library(ggsci)
+library(latex2exp)
 ```
 
 ## Load model and benchmark forecasts
@@ -186,9 +187,57 @@ ggplot(df_plot, aes(x = unconditional,
   theme(legend.position="bottom", 
         legend.text = element_text(size = 8),
         legend.title = element_blank())+
-  labs(title = str_title, x = "unconditional forecasts", y = "conditional forecasts")
+  labs(title = "", x = "unconditional forecasts", y = "conditional forecasts")
 ```
 
+#### Export plot to pdf
+
+```{r}
+ggsave(filename = "../figures/fig_eval_rmsfe.pdf", 
+       width = 10, height = 6, units = "in")
+```
+
+
+#### Analysis
+
+
+```{r}
+df_plot %>% 
+  filter(horizon == 0) %>% 
+  select(mnemonic, unconditional, horizon) %>% 
+  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
+  arrange(`0`) %>% 
+  head(10)
+
+df_plot %>% 
+  filter(horizon == 1) %>% 
+  select(mnemonic, unconditional, horizon) %>% 
+  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
+  arrange(`1`) %>% 
+  head(10)
+
+df_plot %>% 
+  filter(horizon == 2) %>% 
+  select(mnemonic, unconditional, horizon) %>% 
+  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
+  arrange(`2`) %>% 
+  head(10)
+```
+
+```{r}
+df_plot %>% 
+  mutate(diff_fore = conditional_hard - unconditional) %>% 
+  group_by(category, horizon) %>% 
+  summarise(mean_diff = mean(diff_fore)) %>% 
+  pivot_wider(values_from = mean_diff, names_from = horizon)
+```
+#### Results
+
+> Figure XX illustrates the results for point forecasts. Turning to the peformance of the unconditional forecasts first, we see that for all horizons and the majority of variables, the factor model produces forecasts that perform similar to the autoregressive benchmark with relative RMSFE between 0.9 and 1.1. Noteworthy outliers in this context are the two price series - XX and YY- at $h=0$ where the performanc is considerably worse than the benchmark. Conversely, for a few series there are noticeable gains over the simple univariate AR(2) model and these persist or even increase for larger horizons. For example, for $h=0$ the relative RMSFE for the construction price index and gross value added in the industrial sector is around 0.6. Smaller but still noteworthy improvements can also be found for two series from the expenditure side of the national accounts: equipment investment as well as the deflator for residential investment. For larger $h$, these relative gains even increase: the relative RMSFE for the construction subcomponent of the PPI reaches 0.35; for gross value added in the industrial sector is 0.4. In addition to these variables, at $h=2$ there also noteworthy improvements for series that are likely highly correlated to gross industrial value added like production in the industrial and construction sector as well as industrial turnover. Note, however, that these improvements are relative to the benchmark, the performance of which considerably worsens as the forecast horizon increases. Indeed, for all series discussed above, the (absolute) RMSFE increases in $h$. Focusing on how the forecast performance increases when we condition on professional forecasters' views on GDP growth and CPI inflation, we see that there are only large differences in the relative RMSFE between the unconditional and conditional forecasts for $h=0$. Perhaps not surprisingly gains to conditioning  arise for those series for which the models already produce decent forecasts (relative to autoregressive benchmarks) and are mainly concentrated to series from the national accounts group and - to some extent - indicators capturing real activity (but not part of the national accounts). For the labor market indicators and CPI and PPI inflation, we find much smaller gains from conditioning.  
+
+#### Notes for figure
+
+> The figure shows the root mean squared forecast errors (RMSFE) r corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. For details, see the main text.Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
 
 ### Density forecast accuracy
 
@@ -226,8 +275,51 @@ ggplot(df_plot, aes(x = unconditional,
   theme(legend.position="bottom", 
         legend.text = element_text(size = 8),
         legend.title = element_blank())+
-  labs(title = str_title, x = "unconditional forecasts", y = "conditional forecasts")
+  labs(title = "", x = "unconditional forecasts", y = "conditional forecasts")
 ```
+
+#### Export plot to pdf
+
+```{r}
+ggsave(filename = "../figures/fig_eval_crps.pdf", 
+       width = 10, height = 6, units = "in")
+```
+
+#### Analyis
+
+```{r}
+df_plot %>% 
+  filter(horizon == 0) %>% 
+  select(mnemonic, unconditional, horizon) %>% 
+  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
+  arrange(`0`) %>% 
+  head(10)
+
+df_plot %>% 
+  filter(horizon == 1) %>% 
+  select(mnemonic, unconditional, horizon) %>% 
+  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
+  arrange(`1`) %>% 
+  head(10)
+
+df_plot %>% 
+  filter(horizon == 2) %>% 
+  select(mnemonic, unconditional, horizon) %>% 
+  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
+  arrange(`2`) %>% 
+  head(10)
+```
+
+
+#### Results
+
+> Regarding density forecast accuracy, the overall results are very similar (Figure XX). The gains in unconditional forecast accuracy are less pronounced at the extremes for $h=2$ but nevertheless sizeable. In terms of the gains from conditioning the results are virtually identical to those obtained for point forecasts. 
+
+
+#### Notes for figure
+
+> The figure shows the continous rank probability score (CRPS) corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the CRPS is relative to an autoregressive benchmark. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
+
 
 ## Robustness
 
@@ -283,6 +375,89 @@ ggplot(df_plot, aes(x = unconditional,
 ```
 
 ### Different models
+
+Compare the models' performance when $R\neq 2$
+```{r}
+subsample <- c(min(df_eval_models$quarter), max(df_eval_models$quarter))
+df_compare_R <- data.frame()
+
+for (nr in c(2, 1, 5, 8))
+{
+  str_model <- paste0("Nr", nr, "_Nj1_Np2_Ns0")
+
+  calc_relative_forecast_accuracy(df_eval_models, 
+                               df_eval_benchmark, 
+                               str_model, 
+                               subsample) %>% 
+  mutate(Nr = paste0(nr)) %>% 
+  rbind(df_compare_R) -> df_compare_R
+}
+```
+```{r}
+df_compare_R %>% 
+  filter(horizon >= 0) %>%
+  pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
+  filter(value != Inf, score %in% c("rel_rmsfe")) %>%
+  select(-category, -score) %>%
+  pivot_wider(id_cols = c(mnemonic, type, horizon), names_from = "Nr", values_from = "value")%>%
+  rename(base_model = `2`) %>%
+  pivot_longer(cols = c(`1`, `5`, `8`), 
+               names_to = "Nr", 
+               values_to = "other_models") -> df_plot
+
+# data-dependent lims!
+ylims <- c(min(min(df_plot$base_model), min(df_plot$other_models)),
+           max(max(df_plot$base_model), max(df_plot$other_models)))
+xlims <- ylims
+
+
+ggplot(df_plot, aes(x = base_model, y = other_models, color = Nr, shape = type))+
+  geom_point(size = 2, alpha = 0.7)+
+  geom_abline()+
+  geom_vline(xintercept = 0,  size = 0.2)+
+  geom_hline(yintercept = 0, size = 0.2)+
+  facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
+  scale_x_continuous(limits = xlims, 
+                     breaks = seq(0.5, 1.5, by = 0.5))+
+  scale_y_continuous(limits = ylims, 
+                     breaks = seq(0.5, 1.5, by = 0.5))+
+  scale_shape_discrete(name = element_blank())+
+  scale_color_jco(name = "R")+
+  theme(legend.position="bottom", 
+        legend.text = element_text(size = 8))+
+  guides(shape = guide_legend(order = 2),col = guide_legend(order = 1))+
+  labs(title = "", x = "rel. RMSFE, R=2", 
+       y = paste0("rel. RMSFE, R≠2"))
+```
+
+#### Analysis
+
+For which series do the forecasts improve at $h=0$? 
+
+```{r}
+df_plot %>% 
+  filter(Nr == 8) %>% 
+  mutate(diff_models = base_model - other_models) %>% 
+  arrange(desc(diff_models)) %>% 
+  select(mnemonic, type, diff_models, horizon) %>% 
+  head(20)
+```
+
+
+#### Results
+
+> Besides the evaluation period, the results presented above may also be sensitive to the model specification. In particular, they were obtained under a given number of factors, $R=2$. However, differently specified models yield similar forecast performance. Figure XX shows the relative RMSFE of the model with $R=2$ on which the results above are based as well as both smaller ($R=1$) and larger ($R = {5,8}$) models. There is little indication that model specification systematically alters the forecast performance. Conditional forecasts at $h=0$ for the change in the producer index improve substantially when $R=8$ with the relative RMSFE decreasing by 0.25. To a lesser extent this also holds for the unconditional forecasts with the relative RMSFE dropping by around 0.1. However, this is the exception and for other horizons and variables we find much smaller differences in either way. Consequently, the points corresponding to the relative RMSFE for $R={1, 5, 8}$ in Figure XX all hug the 45-degree line, which indicates identical forecast performance, quite closely. 
+
+#### Notes for figure
+
+> Note: The figure shows the root mean squared forecast error (RMSFE) relative to the autoregressive benchmarks for different number of factors. On the x-axis are the values of the RMSFE for the model with 2 factors on which the main results are based. On the y-axis are the RMSFE for alternative model specifications, differentiated by colors. Entries above (below) the 45-degree line indicate that the model with 2 factors performs better (worse) than the alternative models.  
+
+#### Export plot to pdf
+
+```{r}
+ggsave(filename = "../figures/fig_eval_robustness_Nr.pdf", 
+       width = 10, height = 6, units = "in", device=cairo_pdf)
+```
 
 
 
