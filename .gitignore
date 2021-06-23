@@ -3,7 +3,7 @@ latex/condfcast_precsampler.*
 !latex/condfcast_precsampler.tex
 
 # ignore all files in figures folder
-figures
+#figures
 
 # ignore .Rhistory
 .Rhistory
