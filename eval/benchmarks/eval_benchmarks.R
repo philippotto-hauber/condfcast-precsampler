@@ -19,7 +19,6 @@ source("./../../functions/functions.R")
 # Read in benchmark forecasts for each vintage----
 df_fore <- data.frame()
 for (v in list_vintages[, 1])
-#for (v in list_vintages[1, 1])
 {
   df_fore <- rbind(df_fore, 
                    read.csv(paste0(dir_fore, "benchmark_", v, ".csv"))
@@ -55,13 +54,6 @@ df %>%
 # calculate horizon from quarter and vintage
 df_eval_benchmark$horizon <- determine_horizon(df_eval_benchmark$quarter, 
                                                df_eval_benchmark$vintage)
-
-# calculate mean log score and crps
-# df_eval %>%
-#   group_by(series, horizon) %>%
-#   summarise(mean_logs = mean(logs),
-#             mean_crps = mean(crps),
-#             n_quarters = n()) -> df_benchmark
 
 
 # Output file as Rda----
