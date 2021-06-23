@@ -13,6 +13,7 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(lubridate)
+library(ggsci)
 ```
 
 ## Load model and benchmark forecasts
@@ -80,13 +81,17 @@ calc_relative_forecast_accuracy <- function(df_eval_models, df_eval_benchmark, s
   group_by(mnemonic, horizon, type, model) %>%
   summarise(rmsfe = sqrt(mean(sfe)), 
             mean_logs = mean(logs),
-            mean_crps = mean(crps)) -> df_eval_models_avg
+            mean_crps = mean(crps)) %>%
+  ungroup() -> df_eval_models_avg
 
   df_eval_benchmark %>% 
+  filter(quarter >= subsample[1],
+         quarter <= subsample[2]) %>%
   group_by(series, horizon) %>%
   summarise(rmsfe = sqrt(mean(sfe)), 
             mean_logs = mean(logs),
-            mean_crps = mean(crps)) -> df_eval_benchmark_avg
+            mean_crps = mean(crps)) %>%
+  ungroup() -> df_eval_benchmark_avg
   
   # relative RMSFE, log score and CRPS
   df_eval_models_avg %>% 
@@ -110,76 +115,169 @@ calc_relative_forecast_accuracy <- function(df_eval_models, df_eval_benchmark, s
   rm(tmp)
   
   # select columns
-  df_eval <- select(df_eval, mnemonic, horizon, type, rel_rmsfe, rel_logs, rel_crps)
+  df_eval <- select(df_eval, mnemonic, horizon, type, category, rel_rmsfe, rel_logs, rel_crps)
   
   return(df_eval)
 }
 ```
 
 
-
-```{r}
-# df_eval %>% 
-#   group_by(mnemonic, horizon, type, model) %>%
-#   summarise(rmsfe = sqrt(mean(sfe)), 
-#             mean_logs = mean(logs),
-#             mean_crps = mean(crps)) -> df_eval_avg
-# 
-# df_benchmark %>% 
-#   group_by(series, horizon) %>%
-#   summarise(rmsfe = sqrt(mean(sfe)), 
-#             mean_logs = mean(logs),
-#             mean_crps = mean(crps)) -> df_benchmark_avg
-```
- 
-
-```{r}
-# df_eval_avg %>% 
-#   merge(select(df_benchmark_avg, 
-#                 horizon,
-#                 mnemonic = series, 
-#                 rmsfe_ar = rmsfe,
-#                 logs_ar = mean_logs, 
-#                 crps_ar = mean_crps
-#               ), 
-#         by = c("horizon", "mnemonic")) %>%
-#   mutate(rel_rmsfe = rmsfe / rmsfe_ar,
-#          rel_logs = mean_logs / logs_ar,
-#          rel_crps = mean_crps / crps_ar) -> df_rel
-  
-```
-
-
-```{r}
-# source("../data/realtime_data.R")
-# tmp <- realtime_data()
-# tmp <- select(tmp, mnemonic, category)
-# df_rel <- merge(df_rel, tmp, by = "mnemonic")
-# rm(tmp)
-
-```
-
-
 ## Analysis
 
 ```{r}
-str_model <- "Nr4_Nj1_Np2_Ns0"
+horizon_as_factor <- function(x)
+{
+  return(factor(paste0("h=", x)))
+}
+```
+
+
+
+```{r}
+str_model <- "Nr2_Nj1_Np2_Ns0"
 subsample <- c(min(df_eval_models$quarter), max(df_eval_models$quarter))
 
 df_eval <- calc_relative_forecast_accuracy(df_eval_models, 
                                            df_eval_benchmark, 
                                            str_model, 
                                            subsample)
+
+```
+### Point forecast accuracy
+
+```{r}
+# df_plot
+str_title <- "rel. RMSFE"
+df_eval %>%
+  filter(horizon >= 0) %>%
+  pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
+  filter(value != Inf, score == "rel_rmsfe") %>%
+  pivot_wider(names_from = type, values_from = value) -> df_plot 
+
+# data-dependent lims!
+ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
+           max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
+xlims <- ylims
+
+# manually set lims, excluding "outliers"
+# ylims <- c(0.8, 1.2)
+# xlims <- ylims
+
+ggplot(df_plot, aes(x = unconditional, 
+                    y = conditional_hard, 
+                    color = category)
+       )+
+  geom_point(size = 2, alpha = 0.7)+
+  geom_abline()+
+  geom_vline(xintercept = 0,  size = 0.2)+
+  geom_hline(yintercept = 0, size = 0.2)+
+  facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
+  xlim(xlims)+
+  ylim(ylims)+
+  scale_color_jco()+
+  #theme_minimal()+
+  theme(legend.position="bottom", 
+        legend.text = element_text(size = 8),
+        legend.title = element_blank())+
+  labs(title = str_title, x = "unconditional forecasts", y = "conditional forecasts")
 ```
 
 
-### Point forecast accuracy
-
 ### Density forecast accuracy
+
+```{r}
+# df_plot
+str_title <- "rel. CRPS"
+df_eval %>%
+  filter(horizon >= 0) %>%
+  pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
+  filter(value != Inf, score == "rel_crps") %>%
+  pivot_wider(names_from = type, values_from = value) -> df_plot 
+
+# data-dependent lims!
+ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
+           max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
+xlims <- ylims
+
+# manually set lims, excluding "outliers"
+# ylims <- c(0.8, 1.2)
+# xlims <- ylims
+
+ggplot(df_plot, aes(x = unconditional, 
+                    y = conditional_hard, 
+                    color = category)
+       )+
+  geom_point(size = 2)+
+  geom_abline()+
+  geom_vline(xintercept = 0,  size = 0.2)+
+  geom_hline(yintercept = 0, size = 0.2)+
+  facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
+  xlim(xlims)+
+  ylim(ylims)+
+  scale_color_jco()+
+  #theme_minimal()+
+  theme(legend.position="bottom", 
+        legend.text = element_text(size = 8),
+        legend.title = element_blank())+
+  labs(title = str_title, x = "unconditional forecasts", y = "conditional forecasts")
+```
 
 ## Robustness
 
+### Different subsamples
+
+```{r}
+str_model <- "Nr2_Nj1_Np2_Ns0"
+subsample <- c(as.Date("2010-01-01"), max(df_eval_models$quarter))
+
+df_eval <- calc_relative_forecast_accuracy(df_eval_models, 
+                                           df_eval_benchmark, 
+                                           str_model, 
+                                           subsample)
+
+```
+
+```{r}
+# df_plot
+str_title <- "post-crisis sample: RMSFE and CRPS"
+df_eval %>%
+  filter(horizon >= 0) %>%
+  pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
+  filter(value != Inf, score %in% c("rel_rmsfe", "rel_crps")) %>%
+  pivot_wider(names_from = type, values_from = value) -> df_plot 
+
+# data-dependent lims!
+ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
+           max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
+xlims <- ylims
+
+# manually set lims, excluding "outliers"
+# ylims <- c(0.8, 1.2)
+# xlims <- ylims
+
+ggplot(df_plot, aes(x = unconditional, 
+                    y = conditional_hard, 
+                    color = category,
+                    shape = score)
+       )+
+  geom_point(size = 2, alpha = 0.7)+
+  geom_abline()+
+  geom_vline(xintercept = 0,  size = 0.2)+
+  geom_hline(yintercept = 0, size = 0.2)+
+  facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
+  xlim(xlims)+
+  ylim(ylims)+
+  scale_color_jco()+
+  #theme_minimal()+
+  theme(legend.position="bottom", 
+        legend.text = element_text(size = 8),
+        legend.title = element_blank())+
+  labs(title = str_title, x = "unconditional forecasts", y = "conditional forecasts")
+```
+
+
+
 ### Different models
 
-### Different subsamples
+
 
