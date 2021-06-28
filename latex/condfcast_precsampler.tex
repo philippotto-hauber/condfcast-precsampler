@@ -22,6 +22,7 @@
 %\usepackage{tgpagella}
 %\usepackage[T1]{fontenc}
 \usepackage{xfrac}
+\usepackage{listings}
 
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
 
@@ -608,20 +609,38 @@ Figure \ref{fig:reuterspoll} plots the median forecast of q/q CPI inflation (top
 
 \subsection{Estimation}
 
-The factor model outlined above is estimated with Bayesian methods. Draws from the joint posterior distribution of factors and parameters are obtained via a Gibbs Sampler which alternately draws from the conditional posterior of the factors (parameters) given the parameters (factors). In more detail, the Gibbs Sampler cylces through the following blocks: 
-
-\begin{itemize}
-    \item p(f| )
-    
-\end{itemize}
-
-The priors used in the estimation as well as the resulting conditional distributions are standard in the literature and are therefore relegated to Appendix.
+The parameters of the factor model outlined above are estimated with Bayesian methods. Draws from the joint posterior distribution of factors and parameters are obtained via a Gibbs Sampler which alternately draws from the conditional posterior of the factors given the parameters and \textit{vice versa}. For the estimation, we set $J=1$ and $S=0$ and $R=2$ and run the Gibbs Sampler for a total of 20000 iterations. We discard the first 10000 as burn-in and of the remaining, store every second draw, yielding 5000 from the posterior distribution of the parameters, $\Theta$. As the priors used in the estimation as well as the resulting conditional posterior distributions are standard in the literature and are therefore relegated to Appendix XXX. Draws from the predictive density of the variables of interest are obtained as described in Section \ref{subsec:precsampler}.
 
 \subsection{Evaluation set-up}
 
 For CPI inflation in the first quarter of 2013 there are no forecasts available. In the following forecast evaluation, I therefore exclude. Note also that 
 
 Missing vintages for hours industry
+
+\subsubsection{Benchmark model}
+
+To benchmark the performance of the different priors, we consider a simple univariate Bayesian autoregressive model of order 2 for all the series.  i.e. 
+
+\begin{equation}\label{eqn:benchmark}
+y_{i,t} = \beta_0 + \beta_1 y_{i,t-1} + \beta_2 y_{i,t-2} + \epsilon_t; \, \epsilon_t \sim \mathcal{N}(0, \sigma^2)
+\end{equation}
+
+The parameters $\beta = [\beta_0, \beta_1, \beta_2]$  and $\sigma^2$ are estimated via a Gibbs Sampler with diffuse priors given by $\beta \sim \mathcal{N}(0,10 \cdot I_3)$  and $\sigma^2 \sim \mathcal{G}^{-1}(3,0.01)$. Draws from the h-step ahead predicitve density are obtained by plugging in draws from the posterior distribution of the coefficients and iterating Equation \ref{eqn:benchmark} forward. 
+
+\subsubsection{Point and density forecast evaluation}
+
+Both the point and density forecast performance is evaluated. For the former, we compute the root mean squared forecast error (RMSFE) defined as
+\begin{equation*}
+\text{RMSFE} = \frac{1}{G} \sum_{g=1}^G\left( \frac{1}{S} \sum_{s=1}^S ({y}^{(g)}_{i, T+s}|\Omega_{v_{s}} - y'_{i, T+s})^2 \right)^{\frac{1}{2}}
+\end{equation*}
+for a sequence of S nowcasts, where ${y}^{(g)}_{i, T+s}|\Omega_{v_{s}}$ is the $g$-th draw from the predictive density of variable i at time $T+s$, conditional on the information set $\Omega_{v_s}$ available in real-time at date $v_s$ when the forecast for period $T+s$ was made. The corresponding realization, given by the first release, is denoted by $y'_{i,T+s}$ 
+
+Density forecasts are evaluated by the continuous ranked probability score (CRPS) which is given by as \citep[see][]{Gneitingetal2016}:
+\begin{equation*}
+\text{CRPS} = \frac{1}{S} \sum_{s=1}^{S} \left( \frac{1}{G} \sum_{k=1}^G \left\lvert {y}^{(k)}_{i,T+s}|\Omega_{v_{s}} - y'_{i, T+s} \right\rvert - \sum_{k=1}^G \sum_{j=1}^G \left\lvert {y}^{(k)}_{i,T+s}|\Omega_{v_{s}} - {y}^{(j)}_{i,T+s}|\Omega_{v_{s}} \right\rvert \right).
+\end{equation*}
+
+To calculate the CRPS given draws from the predictive density as well a realization, we use the R package \texttt{scoringRules} \citep{jkl_2019_jss}.
 
 \section{Results}
 
@@ -673,6 +692,70 @@ Additional draws from the (conditional) predictive density given the same set of
 
 \subsubsection{Initialisation}
 In the case of a dynamic factor model, the Kalman filter is initialized by setting $a_{1|0}$ and $P_{1|0}$ equal to the unconditional mean and variance, respectively, of the factor VAR. Vector autoregression applications only require the simulation smoother to run over the sample with missing observations, i.e. $t\geq T+1$. The recursions are therefore initialized with $a_{T+1|T} = \mathbf{T} \, \transpose{[\transpose{\mathbf{y}}_T, \dots, \transpose{\mathbf{y}}_{T-P+1}]}$ and $P_{T+1|T} = \Sigma$, unless the more efficient one-step algorithm in \citet{durbinkoopman2002_biomtr} is employed, in which case $a_{T+1|T} = 0$ is required \citep[see][]{jarocinski2015csda}.
+
+\pagebreak
+
+\section{Data}
+
+\pagebreak
+\section{Gibbs Sampler}
+
+This Appendix details the estimation of the factor model. For the reader's convenience, I repeat the model description before discussing the blocks of the Gibbs Sampler. Setting $J=1$, $P=2$ and $S=0$, the following equations describe the model: 
+
+\begin{subequations}
+    \label{eqn:app_model}
+    \begin{align}
+        \mathbf{y}_t &=  \lambda \, \mathbf{f}_{t} + \mathbf{e}_t \label{eqn:app_facmod_obs}\\ 
+        \mathbf{f}_t &= \phi_1 \, \mathbf{f}_{t-1} + \phi_2 \mathbf{f}_{t-2} + \boldsymbol{\upsilon}_t \label{eqn:app_facmod_factors}\\
+        \mathbf{e}_t &= \psi \, \mathbf{e}_{t-1} + \boldsymbol{\varepsilon}_t \label{eqn:app_facmod_idios}
+    \end{align}
+\end{subequations}
+
+The Gibbs Sampler then cycles through the following blocks to draw from the conditional posterior distributions:
+\newline
+\linebreak
+\textbf{Step 1:}$p(f|y, \Theta)$
+\newline
+Conditional on the parameters, the factors are drawn from their posterior distribution following the precision sampler outlined in Section \ref{subsec:precsampler} of the main text.
+\newline
+\linebreak
+\textbf{Step 2:} $p(\lambda| y, f, \psi, \Sigma)$
+\newline
+Given the factors, the loadings can be sampled variable by variable. Let the prior for the $R$  loadings corresponding to the i-th variable, $\lambda_i$, be given by $\mathcal{N}(0, P_{\lambda}^{-1})$. Using standard linear regression results (see XXX), the conditional posterior is given by
+\begin{eqnarray}\label{eq:posterior_lambda}
+    \lambda_{i \boldsymbol{\cdot} } | \cdot &\sim& \mathcal{N}\left( m^{\lambda}_i,M^{\lambda}_i \right) \\
+    M^{\lambda}_i &=& \left( P_{\lambda} +  \frac{1}{\sigma^2_i} \sum\nolimits_{t=1}^T f_t^{\prime} f_t \right)^{-1}\\
+    m^{\lambda}_i &=& M^{\lambda}_i \left( \frac{1}{\sigma^2_i}\sum\nolimits_{t=1}^T f_t^{\prime} y_{i,t} \right)
+\end{eqnarray}  
+\newline
+\linebreak
+\textbf{Step 3:} $p(\psi| y, f, \lambda, \Sigma)$
+\newline       
+ Conditional on a draw of the loadings, for each series we can back out the idiosyncratic components $e$ and update $\psi$. Given a Normal prior for $\psi_i$ with mean 0 and precision matrix $P_{\psi}$, the resulting posterior is given by 
+    \begin{eqnarray}\label{eq:posterior_psi}
+        \psi_{i \boldsymbol{\cdot} } | \cdot &\sim& \mathcal{N}\left( m^{\psi}_i,M^{\psi}_i \right) \\
+        M^{\psi}_i &=& \left( P_{\psi} +  \frac{1}{\sigma^2_i} \sum\nolimits_{t=1}^{T-1} e_{i, t}^2 \right)^{-1}\\
+        m^{\psi}_i &=& M^{\psi}_i \left( \frac{1}{\sigma^2_i}\sum\nolimits_{t=2}^T e_{i, t-1}^{\prime} e_{i,t} \right)
+    \end{eqnarray}
+\newline
+\linebreak
+\textbf{Step 4:} $p(\Sigma| y, f, \lambda, \psi)$
+\newline       
+Each diagonal elements of $\Sigma$ can be sampled by drawing from 
+\begin{equation*}
+\sigma^2_i \sim \mathcal{G}^{-1} \left( \frac{u + T-1}{2},\frac{U + \sum_{t=2}^T \varepsilon_{i,t}^2}{2} \right)
+\end{equation*}  where $u$ and $U$ are the prior shape and rate.
+\newline
+\linebreak
+\textbf{Step 5:} $p(\phi_1, \phi_2| f, \Omega)$
+\newline  
+Let $X_t = I_R \otimes [f'_{t-1}, f'_{t-2}]$ denote the lags of the factors and $X = [X_1, \dots, X_t]$. Then given a Normal prior $p(\phi) \sim \mathcal{N}(0, P_{\phi}^{-1})$, the coefficients of the factor VAR can be sampled by drawing from $\phi | \cdot \sim \mathcal{N}(m^{\phi}, M^{\phi})$ where
+$$
+M^{\phi} = (P_{\phi} + X' (I_T \otimes \Omega^{-1})X)^{-1}, \: m^{\phi} = M^{\phi} (X' (I_T \otimes \Omega^{-1})f)
+$$
+\newline
+
+
 
 
 
