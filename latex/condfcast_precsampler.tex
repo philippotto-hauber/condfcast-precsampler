@@ -26,6 +26,9 @@
 \usepackage{longtable}
 \usepackage[table]{xcolor}  
 \usepackage{lscape}
+\usepackage{threeparttablex}
+\usepackage{booktabs}
+
 
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
 
@@ -701,17 +704,22 @@ In the case of a dynamic factor model, the Kalman filter is initialized by setti
 In this Appenix, we list the data series used in the empirical application, their source as well as any transformation applied to the series prior to estimation. 
 
 \begingroup\fontsize{8}{10}\selectfont
+\begin{ThreePartTable}
+    \begin{TableNotes}
+    \item[s] seasonally adjusted
+    \item[c] calendar adjusted
+    \end{TableNotes}
 \begin{landscape}
-\begin{longtable}{| l | c | c | c | l | l |} 
+\begin{longtable}{| l | c | l | l | l | l |} 
     \caption{Description of the dataset} \\% needs to go inside longtable environment
-    \label{tab:data}\\
+    \toprule
     \rowcolor{gray!50}
     \textbf{Series} & \textbf{Mnem.} &  \textbf{Group} & \textbf{Transf.} & \textbf{Source} & \textbf{Notes} \\
-    \hline
-    gross domestic product, chain index\textsuperscript{sc} & gdp &  nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
-    gross domestic product, deflator\textsuperscript{sc} & p\_gdp &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
-    private consumption expenditure, chain index\textsuperscript{sc} & c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
-    private consumption expenditure, deflator\textsuperscript{sc} & p\_c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    \midrule
+    gross domestic product, chain index\tnote{s, c} & gdp &  nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
+    gross domestic product, deflator\tnote{s, c} & p\_gdp &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    private consumption expenditure, chain index\tnote{s, c} & c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
+    private consumption expenditure, deflator\tnote{s, c} & p\_c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
     foo & bar \\ \hline
     foo & bar \\ \hline
     foo & bar \\ \hline
@@ -783,6 +791,9 @@ In this Appenix, we list the data series used in the empirical application, thei
     foo & bar \\ \hline
     foo & bar \\ \hline
     foo & bar \\ \hline
+    \bottomrule
+\insertTableNotes
+\label{tab:data}
 \end{longtable}
 \end{landscape}
 \endgroup
