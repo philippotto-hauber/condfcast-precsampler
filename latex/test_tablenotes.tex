@@ -1,0 +1,29 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{threeparttablex}
+\begin{document}
+\begin{ThreePartTable}
+\begin{TableNotes}
+\item[a] A note
+\item[b] Another note
+\end{TableNotes}
+\begin{longtable}{l l}
+\toprule
+Column 1 & Column 2 \\
+\midrule
+\endhead
+\cmidrule{2-2}
+\multicolumn{2}{r}{\textit{continued}}
+\endfoot
+\bottomrule
+\insertTableNotes
+\endlastfoot
+% the contents of the table
+A
+ & B\tnote{a} \\
+C\tnote{b} & D
+ \\
+\end{longtable}
+\end{ThreePartTable}
+\end{document}

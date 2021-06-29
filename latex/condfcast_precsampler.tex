@@ -23,6 +23,9 @@
 %\usepackage[T1]{fontenc}
 \usepackage{xfrac}
 \usepackage{listings}
+\usepackage{longtable}
+\usepackage[table]{xcolor}  
+\usepackage{lscape}
 
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
 
@@ -654,8 +657,6 @@ To calculate the CRPS given draws from the predictive density as well a realizat
 
 This appendix provides details on the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers that are used in the simulations in Section \ref{sec:models}
 
-
-
 In this section we highlight how we implement the Kalman-filter based simulation smoothers and show how to obtain draws from the predictive densities. Although both the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers rely on the Kalman filter and smoother to produce a draw from the conditional distribution of the states, there are important conceptual differences between the two. Let $a_{t|s} = E[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ and $P_{t|s} = Var[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ denote the conditional mean and variance of the state at time $t$ conditional on information up to time $s$ which can be obtainted from the Kalman filter or smoother. In addition, let $a_t$ denote a draw from the conditional distribution $p(\alpha_t | \mathbf{y}_1, \dots, \mathbf{y}_{T+H})$. 
 
 \subsubsection{\citet{carterkohn1994_biomtr} simulation smoother}
@@ -697,10 +698,99 @@ In the case of a dynamic factor model, the Kalman filter is initialized by setti
 
 \section{Data}
 
+In this Appenix, we list the data series used in the empirical application, their source as well as any transformation applied to the series prior to estimation. 
+
+\begingroup\fontsize{8}{10}\selectfont
+\begin{landscape}
+\begin{longtable}{| l | c | c | c | l | l |} 
+    \caption{Description of the dataset} \\% needs to go inside longtable environment
+    \label{tab:data}\\
+    \rowcolor{gray!50}
+    \textbf{Series} & \textbf{Mnem.} &  \textbf{Group} & \textbf{Transf.} & \textbf{Source} & \textbf{Notes} \\
+    \hline
+    gross domestic product, chain index\textsuperscript{sc} & gdp &  nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
+    gross domestic product, deflator\textsuperscript{sc} & p\_gdp &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    private consumption expenditure, chain index\textsuperscript{sc} & c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
+    private consumption expenditure, deflator\textsuperscript{sc} & p\_c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline 
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline 
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline 
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline 
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline 
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline 
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+    foo & bar \\ \hline
+\end{longtable}
+\end{landscape}
+\endgroup
+
 \pagebreak
 \section{Gibbs Sampler}
 
-This Appendix details the estimation of the factor model. For the reader's convenience, I repeat the model description before discussing the blocks of the Gibbs Sampler. Setting $J=1$, $P=2$ and $S=0$, the following equations describe the model: 
+This Appendix details how to sample from the posterior distribution of the parameters of the factor model, $p(\Theta|\mathbf{y})$. For the reader's convenience, I repeat the model description before discussing the blocks of the Gibbs Sampler. Setting $J=1$, $P=2$ and $S=0$, the following equations constitute the model:
 
 \begin{subequations}
     \label{eqn:app_model}
@@ -711,51 +801,73 @@ This Appendix details the estimation of the factor model. For the reader's conve
     \end{align}
 \end{subequations}
 
-The Gibbs Sampler then cycles through the following blocks to draw from the conditional posterior distributions:
+The Gibbs Sampler then cycles through the following blocks to draw from the conditional posterior distributions\footnote{Initial values for the coefficients  $\Theta$ are obtained from principal component estimates of the factors. 
+}:
 \newline
 \linebreak
-\textbf{Step 1:}$p(f|y, \Theta)$
+\textbf{Step 1:}$p(\mathbf{f}|\mathbf{y}, \Theta)$
 \newline
 Conditional on the parameters, the factors are drawn from their posterior distribution following the precision sampler outlined in Section \ref{subsec:precsampler} of the main text.
 \newline
 \linebreak
-\textbf{Step 2:} $p(\lambda| y, f, \psi, \Sigma)$
+\textbf{Step 2:} $p(\lambda| \mathbf{y}, \mathbf{f}, \psi, \Sigma)$
 \newline
-Given the factors, the loadings can be sampled variable by variable. Let the prior for the $R$  loadings corresponding to the i-th variable, $\lambda_i$, be given by $\mathcal{N}(0, P_{\lambda}^{-1})$. Using standard linear regression results (see XXX), the conditional posterior is given by
+Given the factors, the observation equations of the model are independent and the loadings can be sampled variable by variable. Let the prior on the loadings be given by $\mathcal{N}(0, P_{\lambda}^{-1})$ and let $P_{e_i} = (H^{\sf{T}}_{\psi} \sigma^{-2}_i H_{\psi})^{-1}$ denote the $T \times T$ precision matrix of $e_i$, where 
+$$
+\begin{bmatrix}
+    I_N &  \\
+    \shortminus \psi_i & I_N &  \\
+     & \shortminus \psi_i & I_N &  \\
+     &  &  &  &  & \\
+    & \dots & \dots & \shortminus \psi_i & I_N \\
+     &  &  &  &  & \\
+    & &  & \dots & \dots & \shortminus \psi_i & I_N.
+\end{bmatrix}
+$$
+Using standard linear regression results \citep[see][]{chankroese_2013}, the conditional posterior for the i-th equation is given by
 \begin{eqnarray}\label{eq:posterior_lambda}
-    \lambda_{i \boldsymbol{\cdot} } | \cdot &\sim& \mathcal{N}\left( m^{\lambda}_i,M^{\lambda}_i \right) \\
-    M^{\lambda}_i &=& \left( P_{\lambda} +  \frac{1}{\sigma^2_i} \sum\nolimits_{t=1}^T f_t^{\prime} f_t \right)^{-1}\\
-    m^{\lambda}_i &=& M^{\lambda}_i \left( \frac{1}{\sigma^2_i}\sum\nolimits_{t=1}^T f_t^{\prime} y_{i,t} \right)
-\end{eqnarray}  
+    \lambda_{i} | \cdot &\sim& \mathcal{N}\left(\mathbf{m}^{\lambda}_i,\mathbf{M}^{\lambda}_i \right) \\
+    \mathbf{M}^{\lambda}_i &=& (\mathbf{P}_{\lambda} + \mathbf{f}^{\sf{T}} \mathbf{P}_{e_i} \mathbf{f})^{-1} \\ 
+    \mathbf{m}^{\lambda}_i &=& \mathbf{M}^{\lambda}_i (\mathbf{f}^{\sf{T}} \mathbf{P}_{e_i} \mathbf{y}_i).
+\end{eqnarray} 
+We set $\mathbf{P}_{\psi} = \mathbf{I}_R$ for all variables. 
 \newline
 \linebreak
-\textbf{Step 3:} $p(\psi| y, f, \lambda, \Sigma)$
+\textbf{Step 3:} $p(\psi| \mathbf{y}, \mathbf{f}, \lambda, \Sigma)$
 \newline       
- Conditional on a draw of the loadings, for each series we can back out the idiosyncratic components $e$ and update $\psi$. Given a Normal prior for $\psi_i$ with mean 0 and precision matrix $P_{\psi}$, the resulting posterior is given by 
+ Conditional on a draw of the loadings, for each series we can back out the idiosyncratic components $\mathbf{e}$ and update $\psi$. Given a Normal prior for $\psi_i$ with mean 0 and precision matrix $P_{\psi}$, the resulting posterior is given by 
     \begin{eqnarray}\label{eq:posterior_psi}
         \psi_{i \boldsymbol{\cdot} } | \cdot &\sim& \mathcal{N}\left( m^{\psi}_i,M^{\psi}_i \right) \\
         M^{\psi}_i &=& \left( P_{\psi} +  \frac{1}{\sigma^2_i} \sum\nolimits_{t=1}^{T-1} e_{i, t}^2 \right)^{-1}\\
-        m^{\psi}_i &=& M^{\psi}_i \left( \frac{1}{\sigma^2_i}\sum\nolimits_{t=2}^T e_{i, t-1}^{\prime} e_{i,t} \right)
+        m^{\psi}_i &=& M^{\psi}_i \left( \frac{1}{\sigma^2_i}\sum\nolimits_{t=2}^T e_{i, t-1}^{\prime} e_{i,t} \right).
     \end{eqnarray}
+For all variables, we set $P_{\psi} = 1$.
 \newline
 \linebreak
-\textbf{Step 4:} $p(\Sigma| y, f, \lambda, \psi)$
+\textbf{Step 4:} $p(\Sigma| \mathbf{y}, \mathbf{f}, \lambda, \psi)$
 \newline       
 Each diagonal elements of $\Sigma$ can be sampled by drawing from 
 \begin{equation*}
 \sigma^2_i \sim \mathcal{G}^{-1} \left( \frac{u + T-1}{2},\frac{U + \sum_{t=2}^T \varepsilon_{i,t}^2}{2} \right)
-\end{equation*}  where $u$ and $U$ are the prior shape and rate.
+\end{equation*}  where $u$ and $U$ are the prior shape and rate. We set $u=3, \, U = 0.5$ so that the prior mean and standard deviation equal 0.25. 
 \newline
 \linebreak
-\textbf{Step 5:} $p(\phi_1, \phi_2| f, \Omega)$
+\textbf{Step 5:} $p(\phi_1, \phi_2| \mathbf{f}, \Omega)$
 \newline  
-Let $X_t = I_R \otimes [f'_{t-1}, f'_{t-2}]$ denote the lags of the factors and $X = [X_1, \dots, X_t]$. Then given a Normal prior $p(\phi) \sim \mathcal{N}(0, P_{\phi}^{-1})$, the coefficients of the factor VAR can be sampled by drawing from $\phi | \cdot \sim \mathcal{N}(m^{\phi}, M^{\phi})$ where
+Let $\mathbf{X}_t = I_R \otimes [\mathbf{f}^{\sf{T}}_{t-1}, \mathbf{f}^{\sf{T}}_{t-2}]$ denote the lags of the factors and $\mathbf{X} = [\mathbf{X}_1, \dots, \mathbf{X}_t]$. Then given a Normal prior $p(\phi) \sim \mathcal{N}(0, \mathbf{P}_{\phi}^{-1})$, the coefficients of the factor VAR can be sampled by drawing from $\phi | \cdot \sim \mathcal{N}(\mathbf{m}^{\phi}, \mathbf{M}^{\phi})$ where
 $$
-M^{\phi} = (P_{\phi} + X' (I_T \otimes \Omega^{-1})X)^{-1}, \: m^{\phi} = M^{\phi} (X' (I_T \otimes \Omega^{-1})f)
+\mathbf{M}^{\phi} = (\mathbf{P}_{\phi} + X^{\sf{T}}(\mathbf{I}_T \otimes \Omega^{-1})\mathbf{X})^{-1}, \: \mathbf{m}^{\phi} = \mathbf{M}^{\phi} (\mathbf{X}^{\sf{T}} (\mathbf{I}_T \otimes \Omega^{-1})\mathbf{f})
 $$
+In line with the literature on Bayesian vectorautoregressions, we impose a Minnesota-type prior on the VAR coefficients. The prior mean is set equal to 0 and the prior precision increases in the lag length. Specifically, the prior variance of the elements of $\phi$ for $p = 1:P$ is given by:
+\[
+    Var(\phi_{p,ij}) = 
+	\begin{cases}
+    	\frac{\pi_0}{p^2},& \text{if } i=j\\
+    	\frac{\pi_1}{p^2},& \text{otherwise.}
+	\end{cases}
+  \]
+Common values in the literature are $\pi_0 = 0.2$ and $\pi_1=0.1$, thus shrinking coefficients on the lags of other factors stronger towards 0.   
 \newline
-
-
 
 
 
