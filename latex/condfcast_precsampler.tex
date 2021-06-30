@@ -28,7 +28,8 @@
 \usepackage{lscape}
 \usepackage{threeparttablex}
 \usepackage{booktabs}
-
+%\usepackage{hyperref}
+\usepackage{url}
 
 \newcommand{\transpose}[1]{{#1}^{\sf{T}}}
 
@@ -701,7 +702,7 @@ In the case of a dynamic factor model, the Kalman filter is initialized by setti
 
 \section{Data}
 
-In this Appenix, we list the data series used in the empirical application, their source as well as any transformation applied to the series prior to estimation. 
+This Appenix describes the dataset used in the empirical application. Most series are sourced from the Deutsche Bundesbank. This includes variables from the national accounts and activity indicators such as industrial production, which are downloaded from the Deutsche Bundesbank's Real-Time Database (RTD). Survey indicators are taken from the European Commission's Business and Consumer Surveys\footnote{\url{https://ec.europa.eu/economy_finance/db_indicators/surveys/documents/series/nace2_ecfin_2106/main_indicators_sa_nace2.zip}} and were downloaded on April 27th, 2021. In Table \ref{tab:data}, we list the data series used in the empirical application, the group the indicators belong to, their source as well as any transformation applied to the series prior to estimation, e.g. whether series are in logs or differenced (diff). 
 
 \begingroup\fontsize{8}{10}\selectfont
 \begin{ThreePartTable}
@@ -717,7 +718,7 @@ In this Appenix, we list the data series used in the empirical application, thei
     \textbf{Series} & \textbf{Mnem.} &  \textbf{Group} & \textbf{Transf.} & \textbf{Source} & \textbf{Notes} \\
     \midrule
     gross domestic product, chain index\tnote{s, c} & gdp &  nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
-    gross domestic product, deflator\tnote{s, c} & p\_gdp &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    gross domestic product, deflator\tnote{s, c} & p\_gdp &  nat. accounts, expenditure &  log, 1\textsuperscript{st} diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
     private consumption expenditure, chain index\tnote{s, c} & c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
     private consumption expenditure, deflator\tnote{s, c} & p\_c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
     foo & bar \\ \hline
@@ -790,7 +791,12 @@ In this Appenix, we list the data series used in the empirical application, thei
     foo & bar \\ \hline
     foo & bar \\ \hline
     foo & bar \\ \hline
-    foo & bar \\ \hline
+    industrial confidence indicator\tnote{s} & survey\_ind &  surveys & diff  & Eurp. Commission &  \textemdash \\ \hline 
+    services confidence indicator\tnote{s} & survey\_serv &  surveys & diff  & Eurp. Commission & \textemdash  \\ \hline 
+    consumer confidence indicator\tnote{s} & survey\_cond &  surveys & diff  & Eurp. Commission & \textemdash  \\ \hline 
+    retail trade confidence indicator\tnote{s} & survey\_retail &  surveys & diff  & Eurp. Commission & \textemdash  \\ \hline 
+    construction confidence indicator\tnote{s} & survey\_constr &  surveys & diff  & Eurp. Commission & \textemdash  \\ \hline 
+    employment expectation index\tnote{s} & survey\_eei &  surveys & diff  & Eurp. Commission & \textemdash  \\ \hline 
     \bottomrule
 \insertTableNotes
 \label{tab:data}
@@ -800,7 +806,7 @@ In this Appenix, we list the data series used in the empirical application, thei
 
 \pagebreak
 \section{Gibbs Sampler}
-
+\normalsize
 This Appendix details how to sample from the posterior distribution of the parameters of the factor model, $p(\Theta|\mathbf{y})$. For the reader's convenience, I repeat the model description before discussing the blocks of the Gibbs Sampler. Setting $J=1$, $P=2$ and $S=0$, the following equations constitute the model:
 
 \begin{subequations}
