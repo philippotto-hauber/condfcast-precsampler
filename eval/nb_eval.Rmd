@@ -320,6 +320,52 @@ df_plot %>%
 
 > The figure shows the continous rank probability score (CRPS) corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the CRPS is relative to an autoregressive benchmark. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
 
+### National accounts series
+
+
+```{r}
+# df_plot
+df_eval %>%
+  filter(horizon >= 0, 
+         category %in% c("national accounts (expenditure)", "national accounts (production)")) %>%
+  pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
+  filter(value != Inf, score == "rel_crps") %>%
+  pivot_wider(names_from = type, values_from = value) -> df_plot 
+
+# data-dependent lims!
+ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
+           max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
+xlims <- ylims
+
+df_plot[df_plot$category == "national accounts (expenditure)", "category"] <- "expenditure"
+df_plot[df_plot$category == "national accounts (production)", "category"] <- "production"
+
+ind_prices <- substr(df_plot$mnemonic, 1, 1) == "p"
+
+df_plot$type <- "volume"
+df_plot$type[ind_prices] <- "prices"
+
+ggplot(df_plot, aes(x = unconditional, 
+                    y = conditional_hard, 
+                    color = category,
+                    shape = type)
+       )+
+  geom_point(size = 2)+
+  geom_abline()+
+  geom_vline(xintercept = 0,  size = 0.2)+
+  geom_hline(yintercept = 0, size = 0.2)+
+  facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
+  xlim(xlims)+
+  ylim(ylims)+
+  scale_color_jco()+
+  #theme_minimal()+
+  theme(legend.position="bottom", 
+        legend.text = element_text(size = 8),
+        legend.title = element_blank())+
+  labs(title = "", x = "unconditional forecasts", y = "conditional forecasts")
+```
+
+
 
 ## Robustness
 
