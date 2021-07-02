@@ -113,3 +113,19 @@ determine_horizon <- function(quarter, vintage)
 {
   floor(lubridate::day(lubridate::days(quarter)-lubridate::days(vintage))/90)
 }
+
+dm_test <- function(e_model, e_benchmark)
+  # Diebold-Mariano test  
+  # H_0: loss of model == loss of benchmark
+  # H_1: loss of model < loss of benchmark
+  # See Diebold (2014) Comparing Predictive Accuracy, Twenty Years Later: A Personal    
+  #                    Perspective on the Use and Abuse of Diebold-Mariano Tests
+  #                    https://www.nber.org/system/files/working_papers/w18391/w18391.pdf
+  # Hyndman's forecast code: https://github.com/robjhyndman/forecast/blob/master/R/DM2.R
+{
+  d <- e_model - e_benchmark
+  var_d <- coda::spectrum0(d)$spec / length(d)
+  teststat <- mean(d) / sqrt(var_d_myfunc)
+  pval <- pt(teststat, df = length(d) - 1)
+  return(pval)
+}
