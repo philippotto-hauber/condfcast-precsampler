@@ -329,7 +329,7 @@ df_eval %>%
   filter(horizon >= 0, 
          category %in% c("national accounts (expenditure)", "national accounts (production)")) %>%
   pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
-  filter(value != Inf, score == "rel_crps") %>%
+  filter(value != Inf, score == "rel_rmsfe") %>%
   pivot_wider(names_from = type, values_from = value) -> df_plot 
 
 # data-dependent lims!
@@ -352,8 +352,8 @@ ggplot(df_plot, aes(x = unconditional,
        )+
   geom_point(size = 2)+
   geom_abline()+
-  geom_vline(xintercept = 0,  size = 0.2)+
-  geom_hline(yintercept = 0, size = 0.2)+
+  #geom_vline(xintercept = 1.0,  size = 0.2)+
+  #geom_hline(yintercept = 1.0, size = 0.2)+
   facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
   xlim(xlims)+
   ylim(ylims)+
@@ -364,7 +364,26 @@ ggplot(df_plot, aes(x = unconditional,
         legend.title = element_blank())+
   labs(title = "", x = "unconditional forecasts", y = "conditional forecasts")
 ```
+#### Export plot to pdf
 
+```{r}
+ggsave(filename = "../figures/fig_eval_natacc.pdf", 
+       width = 10, height = 6, units = "in")
+```
+
+#### Analyis
+
+```{r}
+df_plot %>% mutate(diff_fore = conditional_hard-unconditional) %>% group_by(type, horizon) %>% summarise(mean(diff_fore))
+```
+
+#### Results
+
+> The results for the national accounts merit special attention as they are arguably the series which analysts are most important to analysts. In addition, since our dataset includes both chain indices that capture price-adjusted or volume changes in consumption, investment etc. as well as the corresponding deflators, it is of interest to see if the benefits from conditioning differ across the two types of variables. On average, there are indeed sizeable differences in the reduction of the RMSFE of the conditional forecasts for quantity and price variables. For $h=0$, the RMSFE drops by roughly 0.1 for the former; for the latter the gains from conditioning are much less pronounced (-0.02). As the forecast horizons increases, the reduction in the RMSFE for the volume series drops considerably but still amounts to close to four percent on average. Conditional forecasts of the deflators for $h=\{1, 2\}$ are about as accurate (relative to unconditional forecasts) on average for higher forecasts. Figure XX plots the results for all national accounts series. 
+
+#### Notes for figure
+
+> The figure shows the root mean squared forecast error (RMSFE) corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for the national accounts series. For each series, the RMSFE is relative to an autoregressive benchmark. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
 
 
 ## Robustness
