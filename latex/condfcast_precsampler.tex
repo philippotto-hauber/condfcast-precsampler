@@ -49,15 +49,24 @@
 
 \section{Introduction}
 
-Conditional forecasting is important \citep{bgl_2015ijf}
+Factor models feature prominently in macroeconomic now- and forecasting applications \citep[e.g][]{stockwatson_2002}. Typically, however, forecast evaluations in this literature consider only a small subset of the large number of time series that are used to estimate these models. Indeed, the factor-model based nowcasting literature has almost exclusively focused on predicting the real gross domestic product (GDP) \citep[see][]{grs_2008, bok_etal_2018, breitungschumacher_2008, kms_jae_2013}. While arguably the single most important measure of economic activity, forecasts for other variables, e.g. concerning the labor market, price measures, components of GDP or activity measures like industrial production or turnover may also be of interest to analysts or policy-makers, possibly given a path of future real GDP growth. Such forecasts conditional on the future path of some of the system variables have received little attention in the factor model literature.\\
 
-Precision-based sampling algorithms have been proposed in the literature as an alternative to Kalman-filter based methods \citep{chanjeliazkov_2009}.
+This paper therefore extends the literature on factor models by broadening the horizon of the forecast evaluation dimension to other series. For example, we consider labor market indicators, price measures such as the CPI or PPI as well components of gross domestic product such as consumption, investment and exports as well gross value added of different sectors like construction or manufacturing. In addition to an evaluation of unconditional forecasts for such variables, we also investigate how the predictive accuracy increases when we incorporate external information in the form of professional forecasters' views on activity and inflation. \\
 
-This paper proposes precision-based sampling algorithms for conditional forecasting and scenario analysis as an alternative to Kalman-filter based approaches. In an empirical application involving large Bayesian dynamic factor models and vector autoregressions I demonstrate its usefulness. 
+Specifically, we rely on external information takes the form of the Reuters Poll of professional forecasters which collects the forecasts from private sector institutions and research institutes on a quarterly basis. We supplement these historical forecasts with a large real-time dataset consisting of roughly 80 time series that allows us to exactly replicate the information available at the time the forecast survey was conducted. We estimate factor models with Bayesian methods to obtain forecasts both unconditional as well as conditional on the GDP growth and CPI inflation forecasts from the Reuters Poll. This allows us to assess how predictive accuracy improves both in terms of point and density forecast accuracy when external information is included.\\
+
+As such, we also contribute to the literature on conditional forecasting which has mostly focussed on Bayesian vectorautoregressions - another class of popular macroeconmetric methods. \citet{bgl_2015ijf} consider conditional forecasts of vector autoregressions and factor models. By conditioning on realizations they shed light on the stability of dynamic relationships in the Euro area. Similarly, in their empirical application \citet{clarkmccracken_2017_jae} condition on actual future values when testing for bias, efficiency and MSE accuracy of conditional versus unconditional forecasts. Closer to the questions guiding our research are \citet{kruegerclarkravazzolo2017_jbes} and \citet{ganicsodendahl_2021_ijf} who combine model-based density forecasts with external information. However, common to both papers is the focus on only a few time series within a Bayesian vector autoregression context. \footnote{The latter also considers a medium-sized VAR with 14 variables as a robustness check and find similar results to their baseline model with four variables.} Our analysis differs in that we work with factor models rather than vector autoregressions, condition on quarterly point forecasts for GDP growth and CPI inflation and consider the impact on a much broader and more disaggregated range of variables.\\
+
+Besides the empirical contribution, this paper also proposes precision-based sampling algorithms for conditional forecasting and
+scenario analysis. Precision-based sampling algorithms (Chan, McCausland) building on the seminal work by Rue and Held on Gaussian Markov random fields, are increasingly used in macroeconomic applications. Since future values of the variables can simply be considered as missing, we draw on the work of Hauber and Schumacher (2021) who generalize the precision sampler to applications with missing data, to show how draws from the conditional predictive density can be obtained. In a simulation study we compare the performance of these algorithms to the Kalman-filter based implementations proposed by \citet{bgl_2015ijf}.\\
+
+Our results show that XXX.\\
+
+The remainder of this paper is structured as follows: Section 2 illustrates the precision-based sampling algorithms for conditional forecasting, while in Section 3 we discuss the datatset including the forecast survey used to condition the factor model forecasts as well as the evaluation set-up. Section 4 discusses the results and several robustness checks while Section 5 concludes.
 
 \section{Precision-based sampling algorithms for conditional forecasting}\label{sec:precsampler}
 
-In this section, I lay out the precision-based sampling algorithms to obtain conditional forecasts. To fix notation and ideas, I show how 
+In this sectiThis paper therefore extends the literature on factor models by broadening the horizon of the forecast evaluation dimension to other series. For example, we consider labor market indicators, price measures such as the CPI or PPI as well components of gross domestic product such as consumption, investment and exports as well gross value added of different sectors like construction or manufacturing. In addition to an evaluation of unconditional forecasts for such variables, we also investigate how the predictive accuracy increases when we incorporate external information in the form of professional forecasters' views on activity and inflation.on, I lay out the precision-based sampling algorithms to obtain conditional forecasts. To fix notation and ideas, I show how 
 \subsection{Precision-based sampling}\label{subsec:precsampler}
 
 To fix notation and ideas I outline the precision-based algorithms to sample unobserved components before turning to forecasting. The analysis is done through the lens of a dynamic factor model but can be generalized to other state space models with unobserved components.
@@ -643,10 +652,10 @@ To calculate the CRPS given draws from the predictive density as well a realizat
 
 \bibliographystyle{aernobold}
 \bibliography{papers}
-
+\pagebreak
 \appendix
 
-\section{Appendix: Kalman-filter based simulation smoothers}\label{app:kalmansimsmoothers}
+\section{Kalman-filter based simulation smoothers}\label{app:kalmansimsmoothers}
 
 This appendix provides details on the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers that are used in the simulations in Section \ref{sec:models}
 
