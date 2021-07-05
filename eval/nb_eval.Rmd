@@ -8,6 +8,7 @@ This notebook analyses the performance of unconditional and conditional forecast
 ## Set-up
 
 ```{r}
+rm(list = ls())
 setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval")
 library(ggplot2)
 library(tidyr)
@@ -15,6 +16,11 @@ library(dplyr)
 library(lubridate)
 library(ggsci)
 library(latex2exp)
+
+source("../functions/functions.R")
+
+# turn of scientific notation
+options(scipen = 999) 
 ```
 
 ## Load model and benchmark forecasts
@@ -34,7 +40,7 @@ load("benchmarks/df_eval_benchmark.Rda")
 For **gross value added in finance, rent and professional servies** there are only vintages up until 2012, after which disaggregate series for the different sector are available. I therefore do not consider the series
 
 ```{r}
-df_eval_models <- filter(df_eval_models, !(mnemonic == "gva_freprof"))
+df_eval_models <- filter(df_eval_models, !(mnemonic == "gva_freprof"), !(mnemonic == "p_gva_freprof"))
 ```
 
 
@@ -140,7 +146,6 @@ horizon_as_factor <- function(x)
 ```
 
 
-
 ```{r}
 str_model <- "Nr2_Nj1_Np2_Ns0"
 subsample <- c(min(df_eval_models$quarter), max(df_eval_models$quarter))
@@ -198,8 +203,36 @@ ggsave(filename = "../figures/fig_eval_rmsfe.pdf",
 ```
 
 
-#### Analysis
+####DM tests
 
+```{r}
+df_eval_models %>% 
+  select(-logs, -crps, -vintage) %>% 
+  filter(horizon >= 0, model == "Nr2_Nj1_Np2_Ns0") %>% 
+  pivot_wider(names_from = "type", values_from = "sfe") %>% 
+  group_by(mnemonic, model, horizon) %>% 
+  summarise(dm_pval = round(dm_test(conditional_hard, unconditional), digits = 2)) -> tmp 
+
+tmp %>% 
+  left_join(unique(select(df_eval, mnemonic, category)), by = "mnemonic") -> tmp2
+
+tmp2 %>% 
+  group_by(category, horizon, model) %>% 
+  mutate(is_significant = ifelse(dm_pval <= 0.10, 1, 0)) -> tmp3
+
+tmp3 %>% 
+  summarise(n_significant = sum(is_significant),
+            n_tot = n()) -> tmp4
+
+tmp4 %>% 
+  mutate(result = paste0(n_significant, "/", n_tot),
+         horizon = paste0("h=", horizon)) %>% 
+  select(-n_significant, -n_tot, -model) %>% 
+  pivot_wider(names_from = "horizon", values_from = "result") -> tmp5
+```
+
+
+#### Analysis
 
 ```{r}
 df_plot %>% 
