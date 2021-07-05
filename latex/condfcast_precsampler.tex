@@ -647,11 +647,19 @@ for a sequence of S nowcasts, where ${y}^{(g)}_{i, T+s}|\Omega_{v_{s}}$ is the $
 
 To calculate the CRPS given draws from the predictive density as well a realization, we use the R package \texttt{scoringRules} \citep{jkl_2019_jss}.
 
+Finally, to compare the accuracy of the conditional and unconditional forecasts more formally, we follow \citet{ganicsodendahl_2021_ijf} and run Diebold-Mariano tests \citep{dm_1995_jbes}. Let $L_t(y^c_{i, t+h})$ denote the loss associated with the conditional forecasts made at time for variable i and horizon h. In the case of point forecasts, this is simply given by the squared forecast error; for density forecasts it is given by the corresponding CRPS. Similarly, define $L_t(y^u_{i, t+h})$ as the loss for the unconditional forecast and $d_t = L_t(y^c_{i, t+h}) - L_t(y^u_{i, t+h})$ the loss differential. The test statistic can then be written as 
+
+$$
+    DM_{i, h} = \frac{\frac{1}{T} \sum_{t=1}^{T} d_t}{\sqrt{\hat{\sigma}^2_d}}
+$$
+
+where $\hat{\sigma}^2_d$ is an estimate of the variance of $d_t$. We test the null hypothesis of equal predicitve ability against the one-sided alternative that the conditional forecasts yield a lower loss. 
+
 \section{Results}
 
 \begin{table}[ht]
     \centering
-    \begin{tabular}{lccc}
+    \begin{tabular}{lrrr}
       \hline
       category & h=0 & h=1 & h=2 \\ 
       \hline
