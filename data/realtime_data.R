@@ -254,28 +254,29 @@ realtime_data <- function()
                             code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA040.V.A"
                             )
                   )
+  # the following series are commented out because the vintages are only available until 2011
+  #
+  # df_data <- rbind(df_data, data.frame(name = "gva finance, real estate, professional services",
+  #                           mnemonic = "gva_freprof",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA050.A.I",
+  #                           code_deflate = NA
+  #                           )
+  #                 )
 
-  df_data <- rbind(df_data, data.frame(name = "gva finance, real estate, professional services",
-                            mnemonic = "gva_freprof",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA050.A.I",
-                            code_deflate = NA
-                            )
-                  )
-
-  df_data <- rbind(df_data, data.frame(name = "gva finance, real estate, professional services",
-                            mnemonic = "p_gva_freprof",
-                            category = "national accounts (production)",
-                            group = "activity",
-                            trafo = "log, diff",
-                            frequency = "Q",
-                            code = "BBKRT.Q.DE.Y.A.AU1.AA050.A.I",
-                            code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA050.V.A"
-                            )
-                  )
+  # df_data <- rbind(df_data, data.frame(name = "gva finance, real estate, professional services",
+  #                           mnemonic = "p_gva_freprof",
+  #                           category = "national accounts (production)",
+  #                           group = "activity",
+  #                           trafo = "log, diff",
+  #                           frequency = "Q",
+  #                           code = "BBKRT.Q.DE.Y.A.AU1.AA050.A.I",
+  #                           code_deflate = "BBKRT.Q.DE.Y.A.AU1.AA050.V.A"
+  #                           )
+  #                 )
   # the following series are commented out because the vintages are only available from 2011 onwards
   #
   # df_data <- rbind(df_data, data.frame(name = "gva finance",
