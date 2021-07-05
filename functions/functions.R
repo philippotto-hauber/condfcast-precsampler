@@ -125,7 +125,7 @@ dm_test <- function(e_model, e_benchmark)
 {
   d <- e_model - e_benchmark
   var_d <- coda::spectrum0(d)$spec / length(d)
-  teststat <- mean(d) / sqrt(var_d_myfunc)
+  teststat <- mean(d) / sqrt(var_d)
   pval <- pt(teststat, df = length(d) - 1)
   return(pval)
 }
