@@ -45,6 +45,7 @@ rm(df_fore, df_releases)
 # remove inventories as they were causing Inf when calculating the log score
 df <- filter(df, series != "inv") 
 
+# calculte sfe, logs and crps
 df %>% 
   group_by(series, quarter, vintage) %>% 
   summarise(sfe = wrap_sfe(realization, value),
