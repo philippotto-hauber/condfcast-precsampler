@@ -486,7 +486,7 @@ realtime_data <- function()
                               group = "activity",
                               trafo = "log, diff",
                               frequency = "M",
-                              code =  "BBKRT.M.DE.Y.I.IP1.AA020.C.I",
+                              code =  "BBKRT.M.DE.Y.I.IP1.AA030.C.I",
                               code_deflate = NA 
                               )
                   )
