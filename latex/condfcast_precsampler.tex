@@ -638,9 +638,9 @@ The parameters $\beta = [\beta_0, \beta_1, \beta_2]$  and $\sigma^2$ are estimat
 
 Both the point and density forecast performance is evaluated. For the former, we compute the root mean squared forecast error (RMSFE) defined as
 \begin{equation*}
-\text{RMSFE} = \frac{1}{G} \sum_{g=1}^G\left( \frac{1}{S} \sum_{s=1}^S ({y}^{(g)}_{i, T+s}|\Omega_{v_{s}} - y'_{i, T+s})^2 \right)^{\frac{1}{2}}
+\text{RMSFE} = \left( \frac{1}{S} \sum_{s=1}^S (\hat{y}_{i, T+s}|\Omega_{v_{s}} - y'_{i, T+s})^2 \right) ^{\frac{1}{2}}
 \end{equation*}
-for a sequence of S nowcasts, where ${y}^{(g)}_{i, T+s}|\Omega_{v_{s}}$ is the $g$-th draw from the predictive density of variable i at time $T+s$, conditional on the information set $\Omega_{v_s}$ available in real-time at date $v_s$ when the forecast for period $T+s$ was made. The corresponding realization, given by the first release, is denoted by $y'_{i,T+s}$. Density forecasts are evaluated by the continuous ranked probability score (CRPS) which is given by as \citep[see][]{Gneitingetal2016}:
+for a sequence of S nowcasts, where $\hat{y}_{i, T+s}|\Omega_{v_{s}}$ is the mean of the predictive density of variable i at time $T+s$, conditional on the information set $\Omega_{v_s}$ available in real-time at date $v_s$ when the forecast for period $T+s$ was made. The corresponding realization, given by the first release, is denoted by $y'_{i,T+s}$. Density forecasts are evaluated by the continuous ranked probability score (CRPS) which is given by \citep[see][]{Gneitingetal2016}:
 \begin{equation*}
 \text{CRPS} = \frac{1}{S} \sum_{s=1}^{S} \left( \frac{1}{G} \sum_{k=1}^G \left\lvert {y}^{(k)}_{i,T+s}|\Omega_{v_{s}} - y'_{i, T+s} \right\rvert - \sum_{k=1}^G \sum_{j=1}^G \left\lvert {y}^{(k)}_{i,T+s}|\Omega_{v_{s}} - {y}^{(j)}_{i,T+s}|\Omega_{v_{s}} \right\rvert \right).
 \end{equation*}
@@ -738,34 +738,49 @@ This Appenix describes the dataset used in the empirical application. Most serie
     \rowcolor{gray!50}
     \textbf{Series} & \textbf{Mnem.} &  \textbf{Group} & \textbf{Transf.} & \textbf{Source} & \textbf{Notes} \\
     \midrule
-    gross domestic product, chain index\tnote{s, c} & gdp &  nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
-    gross domestic product, deflator\tnote{s, c} & p\_gdp &  nat. accounts, expenditure &  log, 1\textsuperscript{st} diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
-    private consumption expenditure, chain index\tnote{s, c} & c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
-    private consumption expenditure, deflator\tnote{s, c} & p\_c &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline 
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline 
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
+    gross domestic product, chain index\tnote{s,c} & gdp &  nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
+    gross domestic product, deflator\tnote{s,c} & p\_gdp &  nat. accounts, expenditure &  log, 1\textsuperscript{st} diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    private consumption expenditure, chain index\tnote{s,c} & c\_priv &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
+    private consumption expenditure, deflator\tnote{s,c} & p\_c\_priv &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    government consumption expenditure, chain index\tnote{s,c} & c\_gov &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
+    government consumption expenditure, implicit deflator\tnote{s,c} & p\_c\_gov &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & nominal series divided by chain index  \\ \hline
+    equipment investment, chain index\tnote{s,c} & gfcf\_equip & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CE1.CA010.A.I\\ \hline
+    equipment investment, implicit deflator\tnote{s,c} & p\_gfcf\_equip & nat. accounts, expenditure & log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index\\ \hline
+    construction investment, chain index\tnote{s,c} & gfcf\_constr & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CF1.CA010.A.I\\ \hline
+    construction investment, implicit deflator\tnote{s,c} & p\_gfcf\_constr & nat. accounts, expenditure & log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index\\ \hline
+    other investment, chain index\tnote{s,c} & gfcf\_other & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CI1.CA010.A.I\\ \hline
+    other investment, implicit deflator\tnote{s,c} & p\_gfcf\_other & nat. accounts, expenditure & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CI1.CA010.V.A) divided by chain index\\ \hline
+    exports (of goods and services), chain index\tnote{s,c} & x & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CX1.CA010.A.I\\ \hline
+    exports (of goods and services), implicit deflator\tnote{s,c} & p\_x & nat. accounts, expenditure & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CX1.CA010.V.A) divided by chain index\\ \hline
+    imports (of goods and services), chain index\tnote{s,c} & m & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CM1.CA010.A.I\\ \hline
+    imports (of goods and services), implicit deflator\tnote{s,c} & p\_m & nat. accounts, expenditure & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CM1.CA010.V.A) divided by chain index\\ \hline
+    gross value added, industry, chain index\tnote{s,c} & gva\_ind & nat. accounts, production & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA020.A.I\\ \hline
+    gross value added, industry, implicit deflator\tnote{s,c} & p\_gva\_ind & nat. accounts, production & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CM1.CA010.V.A) divided by chain index\\ \hline
+    gross value added, construction, chain index\tnote{s,c} & gva\_constr & nat. accounts, production & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA030.A.I\\ \hline
+    gross value added, construction, implicit deflator\tnote{s,c} & p\_gva\_constr & nat. accounts, production & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.AU1.AA030.V.A) divided by chain index\\ \hline    
+    gross value added, trade, transport \& hospitality, chain index\tnote{s,c} & gva\_tth & nat. accounts, production & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA040.A.I\\ \hline
+    gross value added, trade, transport \& hospitality, implicit deflator\tnote{s,c} & p\_gva\_tth & nat. accounts, production & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.AU1.AA040.V.A) divided by chain index\\ \hline   
+    consumer prices, index\tnote{s,c} & cpi & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.P.PC1.PC100.R.I \\ \hline
+    consumer prices excl. food \& energy, index\tnote{s,c} & cpi\_core & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PC1.PC110.R.I \\ \hline
+    producer prices, index\tnote{s,c} & ppi & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PP1.PP100.R.I \\ \hline
+    producer prices excl. energy, index\tnote{s,c} & ppi\_core & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PP1.PP200.R.I \\ \hline    
+    producer prices, construction, index\tnote{s,c} & ppi\_constr & prices & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.N.P.PP1.PP300.R.I \\ \hline
+    producer prices, agriculture, index\tnote{s,c} & ppi\_agri & prices & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.N.P.PP1.PP400.R.I \\ \hline 
+    production, industry, index\tnote{s,c} & prod & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IP1.ACM01.C.I \\ \hline
+    orders, industry, index\tnote{s,c} & ord & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IO1.ACM01.C.I \\ \hline
+    turnover, industry, index\tnote{s,c} & to & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IT1.ACM01.V.I \\ \hline
+    production, construction, index\tnote{s,c} & prod & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IP1.AA020.C.I \\ \hline
+    orders, construction, index\tnote{s,c} & ord & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IO1.AA031.C.I \\ \hline
+    turnover, construction, index\tnote{s,c} & to & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IT1.AA031.V.A \\ \hline
+    turnover, retail, index\tnote{s,c} & to & activity & log, diff  & Bundesbank RTD & price adjusted, Code: BBKRT.M.DE.Y.I.IT1.AGA01.C.I \\ \hline
+    employment \tnote{s, c} & emp & labor market & log, diff & Bundesbank RTD & Code: BBKRT.Q.DE.S.A.BF1.CA010.P.A \\ \hline
+    hours worked, industry\tnote{s,c} & h\_ind & labor market & log, diff & Bundesbank RTD & Code: BBKRT.M.DE.Y.L.BE2.AA022.H.I \\ \hline
+    hours worked, construction\tnote{s,c} & h\_constr & labor market & log, diff & Bundesbank RTD & Code: BBKRT.M.DE.Y.L.BE2.AA031.H.A \\ \hline
+    wages and salaries \tnote{s, c} & w & labor market & log, diff & Bundesbank RTD & Code: BBKRT.Q.DE.S.A.DE2.CA010.V.A \\ \hline
+
+    CDAX, index & cdax & financial & log, diff & Bundesbank & Code: BBK01.WU001A \\ \hline
+    Nominal effective exchange rate, narrow & neer19 & financial & log, diff & Bundesbank & Vis-a-vis 19 trading partners, code: BBEE1.M.I8.AAA.XZE012.A.AABAN.M00 \\ \hline
+    Nominal effective exchange rate, broad & neer38 & financial & log, diff & Bundesbank & Vis-a-vis 38 trading partners, code: BBEE1.M.I8.AAA.XZE021.A.AABAN.M00 \\ \hline    foo & bar \\ \hline
     foo & bar \\ \hline
     foo & bar \\ \hline
     foo & bar \\ \hline
