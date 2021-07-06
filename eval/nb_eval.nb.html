@@ -1767,8 +1767,9 @@ summary {
 <h2>Set-up</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2V0d2QoXCJDOi9Vc2Vycy9QaGlsaXBwL0RvY3VtZW50cy9HaXRIdWIvY29uZGZjYXN0LXByZWNzYW1wbGVyL2V2YWxcIilcbmxpYnJhcnkoZ2dwbG90MilcbmBgYCJ9 -->
-<pre class="r"><code>setwd(&quot;C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval&quot;)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucm0obGlzdCA9IGxzKCkpXG5zZXR3ZChcIkM6L1VzZXJzL1BoaWxpcHAvRG9jdW1lbnRzL0dpdEh1Yi9jb25kZmNhc3QtcHJlY3NhbXBsZXIvZXZhbFwiKVxubGlicmFyeShnZ3Bsb3QyKVxuYGBgIn0= -->
+<pre class="r"><code>rm(list = ls())
+setwd(&quot;C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval&quot;)
 library(ggplot2)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoicmVwbGFjaW5nIHByZXZpb3VzIGltcG9ydCDjpLzjuLF2Y3Ryczo6ZGF0YV9mcmFtZeOkvOO4siBieSDjpLzjuLF0aWJibGU6OmRhdGFfZnJhbWXjpLzjuLIgd2hlbiBsb2FkaW5nIOOkvOO4sWRwbHly46S847iyXG4ifQ== -->
@@ -2031,15 +2032,9 @@ ggplot(df_plot, aes(x = unconditional,
 <p>####DM tests</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbF9tb2RlbHMgJT4lIFxuYGBgIn0= -->
-<pre class="r"><code>df_eval_models %&gt;% </code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiV2Fybm1lbGR1bmc6XG5Vbmtub3duIG9yIHVuaW5pdGlhbGlzZWQgY29sdW1uOiBgdHlwZWAuIFxuIn0= -->
-<pre><code>Warnmeldung:
-Unknown or uninitialised column: `type`. </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICBzZWxlY3QoLWxvZ3MsIC1jcnBzLCAtdmludGFnZSkgJT4lIFxuICBmaWx0ZXIoaG9yaXpvbiA+PSAwLCBtb2RlbCA9PSBcIk5yMl9OajFfTnAyX05zMFwiKSAlPiUgXG4gIHBpdm90X3dpZGVyKG5hbWVzX2Zyb20gPSBcInR5cGVcIiwgdmFsdWVzX2Zyb20gPSBcInNmZVwiKSAlPiUgXG4gIGdyb3VwX2J5KG1uZW1vbmljLCBtb2RlbCwgaG9yaXpvbikgJT4lIFxuICBzdW1tYXJpc2UoZG1fcHZhbCA9IHJvdW5kKGRtX3Rlc3QoY29uZGl0aW9uYWxfaGFyZCwgdW5jb25kaXRpb25hbCksIGRpZ2l0cyA9IDIpKSAtPiB0bXAgXG5gYGAifQ== -->
-<pre class="r"><code>  select(-logs, -crps, -vintage) %&gt;% 
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfZXZhbF9tb2RlbHMgJT4lIFxuICBzZWxlY3QoLWxvZ3MsIC1jcnBzLCAtdmludGFnZSkgJT4lIFxuICBmaWx0ZXIoaG9yaXpvbiA+PSAwLCBtb2RlbCA9PSBcIk5yMl9OajFfTnAyX05zMFwiKSAlPiUgXG4gIHBpdm90X3dpZGVyKG5hbWVzX2Zyb20gPSBcInR5cGVcIiwgdmFsdWVzX2Zyb20gPSBcInNmZVwiKSAlPiUgXG4gIGdyb3VwX2J5KG1uZW1vbmljLCBtb2RlbCwgaG9yaXpvbikgJT4lIFxuICBzdW1tYXJpc2UoZG1fcHZhbCA9IHJvdW5kKGRtX3Rlc3QoY29uZGl0aW9uYWxfaGFyZCwgdW5jb25kaXRpb25hbCksIGRpZ2l0cyA9IDIpKSAtPiB0bXAgXG5gYGAifQ== -->
+<pre class="r"><code>df_eval_models %&gt;% 
+  select(-logs, -crps, -vintage) %&gt;% 
   filter(horizon &gt;= 0, model == &quot;Nr2_Nj1_Np2_Ns0&quot;) %&gt;% 
   pivot_wider(names_from = &quot;type&quot;, values_from = &quot;sfe&quot;) %&gt;% 
   group_by(mnemonic, model, horizon) %&gt;% 
