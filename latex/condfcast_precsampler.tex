@@ -657,20 +657,58 @@ where $\hat{\sigma}^2_d$ is an estimate of the variance of $d_t$. We test the nu
 
 \section{Results}
 
+In this section we present the results of the forecast evaluation. We begin with point forecast performance before looking at how the evaluation changes when we focus on the entire predictive distribution. Lastly, we consider several robustness checks like the evaluation period as well as the model size (i.e. the number of factors). 
+
+\subsection{Point forecast accuracy}
+
+Figure \ref{fig:rmsfe} illustrates the results for point forecasts. Turning to the peformance of the unconditional forecasts first, we see that for all horizons and the majority of variables, the factor model produces forecasts that perform similar to the autoregressive benchmark with relative RMSFE between 0.9 and 1.1. Noteworthy outliers in this context are the headline and "core", i.e. excluding energy, producer price indices at $h=0$ where the performanc is considerably worse than the benchmark. Conversely, for a few series there are noticeable gains over the simple univariate AR(2) model and these persist or even increase for larger horizons. For example, for $h=0$ the relative RMSFE for the construction price index and gross value added in the industrial sector is around 0.6. Smaller but still noteworthy improvements can also be found for two series from the expenditure side of the national accounts: equipment investment as well as the deflator for residential investment. For larger $h$, these relative gains even increase: the relative RMSFE for the construction subcomponent of the PPI reaches 0.35; for gross value added in the industrial sector is 0.4. In addition to these variables, at $h=2$ there also noteworthy improvements for series that are likely highly correlated to gross industrial value added like production in the industrial and construction sector as well as industrial turnover. Note, however, that these improvements are partly due to the fact that the performance of the benchmark generally worsens as the forecast horizon increases. Focusing on how the forecast performance increases when we condition on professional forecasters' views on GDP growth and CPI inflation, we see that there are only large differences in the relative RMSFE between the unconditional and conditional forecasts for $h=0$. Perhaps not surprisingly gains to conditioning arise for those series for which the models already produce decent forecasts (relative to autoregressive benchmarks) and are mainly concentrated to series from the national accounts group and - to some extent - indicators capturing real activity (but not part of the national accounts). For the labor market indicators and CPI and PPI inflation, we find much smaller gains from conditioning. Filled entries in the above plot correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level in favor of the altnerative that the loss of the conditional forecasts is lower. As can  be seen, this is the case for around a third of the variables at $h=0$ but only a few for larger horizons. In addition, there are also large differences across the groups of variables considered in the dataset: More than half of the variables for which we find significant gains from conditioning on the views of professional forecasters belong to the activity group or the expenditure components of GDP. Similarly, for the CPI and PPI series, we reject the null at $h=0$ for the producer price indices excluding energy and construction but no series at longer horizons. An outlier to this pattern are two labor market indicators - employment and hours in construction - where we do find a higher predictive accuracy of the conditional forecasts even at $h=2$. Table \ref{table:dm_rsmfe} summarizes the findings. 
+
+\begin{figure}[htbp] \centering
+    \caption{Point forecast evaluation \label{fig:rsmfe}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+        \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_eval_rmsfe.pdf}} \\
+        {
+        \footnotesize \textbf{Note:} The figure shows the root mean squared forecast errors (RMSFE)  corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. Filled points correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.
+        }
+        \end{tabular}
+    \newline
+    \normalsize
+\end{figure}
+
+
 \begin{table}[ht]
     \centering
-    \begin{tabular}{lrrr}
-      \hline
-      category & h=0 & h=1 & h=2 \\ 
-      \hline
-     activity & 3/7 & 0/7 & 1/7 \\ 
-       labor market & 2/4 & 1/4 & 2/4 \\ 
-       national accounts (expenditure) & 7/15 & 0/15 & 0/15 \\ 
-       national accounts (production) & 2/6 & 1/6 & 1/6 \\ 
-       prices & 2/5 & 0/5 & 0/5 \\ 
-       \hline
-    \end{tabular}
+    \begin{threeparttable}
+        \caption{Point forecast evaluation}
+        \label{table:dm_rsmfe}
+        \begin{tabular}{lrrr}
+        \toprule
+        category/horizon & h=0 & h=1 & h=2 \\ 
+        \midrule
+        activity & 3/7 & 0/7 & 1/7 \\ 
+        labor market & 1/4 & 1/4 & 2/4 \\ 
+        national accounts (expenditure) & 7/15 & 0/15 & 0/15 \\ 
+        national accounts (production) & 2/6 & 0/6 & 1/6 \\ 
+        prices & 2/5 & 0/5 & 0/5 \\ 
+        \textbf{total} & \textbf{15/37} & \textbf{1/37} & \textbf{4/37} \\
+        \bottomrule
+        \end{tabular}
+        \begin{tablenotes}
+            \scriptsize
+            \item The table shows the number of times the null hypothesis of the XXXX
+        \end{tablenotes}
+    \end{threeparttable}
 \end{table}
+
+\subsection{Point forecast accuracy}
+
+\subsection{Robustness checks}
+
+\section{Conclusion}
+
+\newpage
+\pagebreak
 
 
 \bibliographystyle{aernobold}
@@ -725,7 +763,7 @@ In the case of a dynamic factor model, the Kalman filter is initialized by setti
 \label{app:data}
 This Appenix describes the dataset used in the empirical application. Most series are sourced from the Deutsche Bundesbank. This includes variables from the national accounts and activity indicators such as industrial production, which are downloaded from the Deutsche Bundesbank's Real-Time Database (RTD). Survey indicators are taken from the European Commission's Business and Consumer Surveys\footnote{\url{https://ec.europa.eu/economy_finance/db_indicators/surveys/documents/series/nace2_ecfin_2106/main_indicators_sa_nace2.zip}} and were downloaded on April 27th, 2021. In Table \ref{tab:data}, we list the data series used in the empirical application, the group the indicators belong to, their source as well as any transformation applied to the series prior to estimation, e.g. whether series are in logs or differenced (diff). 
 
-\begingroup\fontsize{8}{10}\selectfont
+\begingroup\fontsize{6}{8}\selectfont
 \begin{ThreePartTable}
     \begin{TableNotes}
     \item[s] seasonally adjusted
@@ -762,10 +800,10 @@ This Appenix describes the dataset used in the empirical application. Most serie
     gross value added, trade, transport \& hospitality, implicit deflator\tnote{s,c} & p\_gva\_tth & nat. accounts, production & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.AU1.AA040.V.A) divided by chain index\\ \hline   
     consumer prices, index\tnote{s,c} & cpi & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.P.PC1.PC100.R.I \\ \hline
     consumer prices excl. food \& energy, index\tnote{s,c} & cpi\_core & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PC1.PC110.R.I \\ \hline
-    producer prices, index\tnote{s,c} & ppi & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PP1.PP100.R.I \\ \hline
-    producer prices excl. energy, index\tnote{s,c} & ppi\_core & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PP1.PP200.R.I \\ \hline    
-    producer prices, construction, index\tnote{s,c} & ppi\_constr & prices & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.N.P.PP1.PP300.R.I \\ \hline
-    producer prices, agriculture, index\tnote{s,c} & ppi\_agri & prices & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.N.P.PP1.PP400.R.I \\ \hline 
+    producer prices, index\tnote{s} & ppi & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PP1.PP100.R.I \\ \hline
+    producer prices excl. energy, index\tnote{s} & ppi\_core & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PP1.PP200.R.I \\ \hline    
+    producer prices, construction, index & ppi\_constr & prices & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.N.P.PP1.PP300.R.I \\ \hline
+    producer prices, agriculture, index\tnote{s} & ppi\_agri & prices & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.N.P.PP1.PP400.R.I \\ \hline 
     production, industry, index\tnote{s,c} & prod & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IP1.ACM01.C.I \\ \hline
     orders, industry, index\tnote{s,c} & ord & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IO1.ACM01.C.I \\ \hline
     turnover, industry, index\tnote{s,c} & to & activity & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.I.IT1.ACM01.V.I \\ \hline
@@ -776,57 +814,15 @@ This Appenix describes the dataset used in the empirical application. Most serie
     employment \tnote{s, c} & emp & labor market & log, diff & Bundesbank RTD & Code: BBKRT.Q.DE.S.A.BF1.CA010.P.A \\ \hline
     hours worked, industry\tnote{s,c} & h\_ind & labor market & log, diff & Bundesbank RTD & Code: BBKRT.M.DE.Y.L.BE2.AA022.H.I \\ \hline
     hours worked, construction\tnote{s,c} & h\_constr & labor market & log, diff & Bundesbank RTD & Code: BBKRT.M.DE.Y.L.BE2.AA031.H.A \\ \hline
-    wages and salaries \tnote{s, c} & w & labor market & log, diff & Bundesbank RTD & Code: BBKRT.Q.DE.S.A.DE2.CA010.V.A \\ \hline
-
+    wages and salaries \tnote{s,c} & w & labor market & log, diff & Bundesbank RTD & Code: BBKRT.Q.DE.S.A.DE2.CA010.V.A \\ \hline
     CDAX, index & cdax & financial & log, diff & Bundesbank & Code: BBK01.WU001A \\ \hline
     Nominal effective exchange rate, narrow & neer19 & financial & log, diff & Bundesbank & Vis-a-vis 19 trading partners, code: BBEE1.M.I8.AAA.XZE012.A.AABAN.M00 \\ \hline
-    Nominal effective exchange rate, broad & neer38 & financial & log, diff & Bundesbank & Vis-a-vis 38 trading partners, code: BBEE1.M.I8.AAA.XZE021.A.AABAN.M00 \\ \hline    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline 
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline 
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline 
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline 
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
-    foo & bar \\ \hline
+    Nominal effective exchange rate, broad & neer38 & financial & log, diff & Bundesbank & Vis-a-vis 38 trading partners, code: BBEE1.M.I8.AAA.XZE021.A.AABAN.M00 \\ \hline
+    Government bond yields (1-year) & i1y & financial & diff & Bundesbank & Code: BBK01.WZ9808 \\ \hline
+    Government bond yields (5-year) & i1y & financial & diff & Bundesbank & Code: BBK01.WZ9816 \\ \hline
+    Government bond yields (10-year) & i1y & financial & diff & Bundesbank & Code: BBK01.WZ9826 \\ \hline
+    Commodity prices, energy, index & comm\_en & financial & log, diff & HWWI & in €, sourced via Deutsche Bundesbank (BBDG1.M.HWWI.N.EURO.ENERGY00.I15.EUR.A) \\ \hline
+    Commodity prices, excl. energy, index & comm\_exen & financial & log, diff & HWWI & in €, sourced via Deutsche Bundesbank (BBDG1.M.HWWI.N.EURO.TOTNXNGY.I15.EUR.A) \\ \hline
     industrial confidence indicator\tnote{s} & survey\_ind &  surveys & diff  & Eurp. Commission &  \textemdash \\ \hline 
     services confidence indicator\tnote{s} & survey\_serv &  surveys & diff  & Eurp. Commission & \textemdash  \\ \hline 
     consumer confidence indicator\tnote{s} & survey\_cond &  surveys & diff  & Eurp. Commission & \textemdash  \\ \hline 
