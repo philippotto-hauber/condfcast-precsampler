@@ -548,13 +548,13 @@ In this section we present the results of the forecast evaluation. We begin with
 
 Figure \ref{fig:rmsfe} illustrates the results for point forecasts. Turning to the peformance of the unconditional forecasts first, we see that for all horizons and the majority of variables, the factor model produces forecasts that perform similar to the autoregressive benchmark with relative RMSFE between 0.9 and 1.1. Noteworthy outliers in this context are the headline and "core", i.e. excluding energy, producer price indices at $h=0$ where the performanc is considerably worse than the benchmark. Conversely, for a few series there are noticeable gains over the simple univariate AR(2) model and these persist or even increase for larger horizons. For example, for $h=0$ the relative RMSFE for the construction price index and gross value added in the industrial sector is around 0.6. Smaller but still noteworthy improvements can also be found for two series from the expenditure side of the national accounts: equipment investment as well as the deflator for residential investment. For larger $h$, these relative gains even increase: the relative RMSFE for the construction subcomponent of the PPI reaches 0.35; for gross value added in the industrial sector is 0.4. In addition to these variables, at $h=2$ there also noteworthy improvements for series that are likely highly correlated to gross industrial value added like production in the industrial and construction sector as well as industrial turnover. Note, however, that these improvements are partly due to the fact that the performance of the benchmark generally worsens as the forecast horizon increases. Focusing on how the forecast performance increases when we condition on professional forecasters' views on GDP growth and CPI inflation, we see that there are only large differences in the relative RMSFE between the unconditional and conditional forecasts for $h=0$. Perhaps not surprisingly gains to conditioning arise for those series for which the models already produce decent forecasts (relative to autoregressive benchmarks) and are mainly concentrated to series from the national accounts group and - to some extent - indicators capturing real activity (but not part of the national accounts). For the labor market indicators and CPI and PPI inflation, we find much smaller gains from conditioning. Filled entries in the above plot correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level in favor of the altnerative that the loss of the conditional forecasts is lower. As can  be seen, this is the case for around a third of the variables at $h=0$ but only a few for larger horizons. In addition, there are also large differences across the groups of variables considered in the dataset: More than half of the variables for which we find significant gains from conditioning on the views of professional forecasters belong to the activity group or the expenditure components of GDP. Similarly, for the CPI and PPI series, we reject the null at $h=0$ for the producer price indices excluding energy and construction but no series at longer horizons. An outlier to this pattern are two labor market indicators - employment and hours in construction - where we do find a higher predictive accuracy of the conditional forecasts even at $h=2$. Table \ref{table:dm_rsmfe} summarizes the findings. 
 
-\begin{figure}[htbp] \centering
+\begin{figure}[htp!] \centering
     \caption{Point forecast evaluation \label{fig:rsmfe}}
     \footnotesize
     \begin{tabular}{p{16cm}}
         \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_eval_rmsfe.pdf}} \\
         {
-        \footnotesize \textbf{Note:} The figure shows the root mean squared forecast errors (RMSFE)  corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. Filled points correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.
+        \footnotesize \textbf{Note:} The figure shows the root mean squared forecast errors (RMSFE)  corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones. Filled points correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level. For details, see the main text. 
         }
         \end{tabular}
     \newline
@@ -562,7 +562,7 @@ Figure \ref{fig:rmsfe} illustrates the results for point forecasts. Turning to t
 \end{figure}
 
 
-\begin{table}[ht]
+\begin{table}[htb!]
     \centering
     \begin{threeparttable}
         \caption{Point forecast evaluation}
@@ -571,11 +571,9 @@ Figure \ref{fig:rmsfe} illustrates the results for point forecasts. Turning to t
         \toprule
         category/horizon & h=0 & h=1 & h=2 \\ 
         \midrule
-        activity & 3/7 & 0/7 & 1/7 \\ 
+        activity & 9/20 & 0/20 & 2/20 \\ 
         labor market & 1/4 & 1/4 & 2/4 \\ 
-        national accounts (expenditure) & 7/15 & 0/15 & 0/15 \\ 
-        national accounts (production) & 2/6 & 0/6 & 1/6 \\ 
-        prices & 2/5 & 0/5 & 0/5 \\ 
+        prices & 5/13 & 0/13 & 0/13 \\ 
         \textbf{total} & \textbf{15/37} & \textbf{1/37} & \textbf{4/37} \\
         \bottomrule
         \end{tabular}
@@ -586,9 +584,78 @@ Figure \ref{fig:rmsfe} illustrates the results for point forecasts. Turning to t
     \end{threeparttable}
 \end{table}
 
-\subsection{Point forecast accuracy}
+\subsection{Density forecast accuracy}
+
+By and large, the results obtained in terms of point forecast accuracy carry over when we evaluate the entire predictive density. In particular, the performance relative to the benchmark as well as the gains from conditioning as measured by the average CRPS are very similar (Figure \ref{fig:crps}). Contrary to the findings for point forecasts, however, we do find significant differences between the conditional and unconditional forecast performance even as the forecast horizon increases. For example, at $h=2$ the null of equal predictive accuracy is rejected for four activity variables (equipment investment, industrial turnover as well as gross value added in the industrial and trade, transport and hospitality sectors), all labor market indicators except for hours worked in construction as well as two price series (the GDP deflator and  producer prices for construction). Table \ref{table:dm_crps} summarizes the findings. 
+
+\begin{figure}[htp!] \centering
+    \caption{Density forecast evaluation \label{fig:crps}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+        \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_eval_crps.pdf}} \\
+        {
+        \footnotesize \textbf{Note:} The figure shows the average continuous ranked probability score (CRPS)  corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the CRPS is relative to an autoregressive benchmark. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones. Filled points correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level. For details, see the main text. 
+        }
+        \end{tabular}
+    \newline
+    \normalsize
+\end{figure}
+
+\begin{table}[htb!]
+    \centering
+    \begin{threeparttable}
+        \caption{Density forecast evaluation}
+        \label{table:dm_crps}
+        \begin{tabular}{lrrr}
+        \toprule
+        category/horizon & h=0 & h=1 & h=2 \\ 
+        \midrule
+        activity & 12/20 & 9/20 & 4/20 \\ 
+        labor market & 3/4 & 2/4 & 3/4 \\ 
+        prices & 2/13 & 0/13 & 2/13 \\ 
+        \textbf{total} & \textbf{17/37} & \textbf{11/37} & \textbf{9/37} \\
+        \bottomrule
+        \end{tabular}
+        \begin{tablenotes}
+            \scriptsize
+            \item The table shows the number of times the null hypothesis of the XXXX
+        \end{tablenotes}
+    \end{threeparttable}
+\end{table}
 
 \subsection{Robustness checks}
+
+As a first robustness check, we drop the global financial crisis of 2008-09 from the evaluation sample, to see if the gains in predictive accuracy for point and density forecasts are also apparent in more tranquil times. Figure \ref{fig:postcrisis} presents the results for the evaluation subsample ranging from 2011Q1 to 2017Q4.  
+
+\begin{figure}[htbp] \centering
+    \caption{Robustness check: post-crisis evaluation sample \label{fig:postcrisis}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+        \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_eval_postcrisis.pdf}} \\
+        {
+        \footnotesize \textbf{Note:} The figure shows the root mean squared forecast errors (RMSFE) over the evaluation sample 2011Q1-2017Q4 corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones. Filled points correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level. For details, see the main text. 
+        }
+        \end{tabular}
+    \newline
+    \normalsize
+\end{figure}
+
+Overall, the forecast performance declines markedly relative to the autoregressive benchmarks but for some series, gains from conditioning still arise. However, for $h=\{1,2\}$ we also find that for many series - particularly from the activity group - conditional forecasts are on average less accuratewith the RMSFE of the unconditional forecasts, though not significantly so. Rejection of the null of the Diebold-Mariano test still occurs but with a fex exceptions, e.g. XX and YY, this occurs in cases where the autoregressive benchmark actually performs better than the factor model. As such, it is fair to say that developments during the financial crisis exert a large influence on the results presented above for the entire evaluation sample.\\
+
+Besides the evaluation period, the results presented above may also be sensitive to the model specification. In particular, they were obtained under a given number of factors, $R=2$. However, differently specified models yield similar forecast performance. Figure XX shows the relative RMSFE of the model with $R=2$ on which the results above are based as well as both smaller ($R=1$) and larger ($R = {5,8}$) models. There is little indication that model specification systematically alters the forecast performance. Conditional forecasts at $h=0$ for the change in the producer index improve substantially when $R=8$ with the relative RMSFE decreasing by 0.25. To a lesser extent this also holds for the unconditional forecasts with the relative RMSFE dropping by around 0.1. However, this is the exception and for other horizons and variables we find much smaller differences in either way. Consequently, the points corresponding to the relative RMSFE for $R={1, 5, 8}$ in Figure \ref{fig:differentR} all hug the 45-degree line, which indicates identical forecast performance, quite closely. 
+
+\begin{figure}[htbp] \centering
+    \caption{Robustness check: different $R$ \label{fig:differentR}}
+    \footnotesize
+    \begin{tabular}{p{16cm}}
+        \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_eval_robustness_Nr.pdf}} \\
+        {
+        \footnotesize \textbf{Note:} The figure shows the root mean squared forecast error (RMSFE) relative to the autoregressive benchmarks for different number of factors. On the x-axis are the values of the RMSFE for the model with 2 factors on which the main results are based. On the y-axis are the RMSFE for alternative model specifications, differentiated by colors. Entries above (below) the 45-degree line indicate that the model with 2 factors performs better (worse) than the alternative models.  
+        }
+        \end{tabular}
+    \newline
+    \normalsize
+\end{figure}
 
 \section{Conclusion}
 
@@ -661,28 +728,28 @@ This Appenix describes the dataset used in the empirical application. Most serie
     \rowcolor{gray!50}
     \textbf{Series} & \textbf{Mnem.} &  \textbf{Group} & \textbf{Transf.} & \textbf{Source} & \textbf{Notes} \\
     \midrule
-    gross domestic product, chain index\tnote{s,c} & gdp &  nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
-    gross domestic product, deflator\tnote{s,c} & p\_gdp &  nat. accounts, expenditure &  log, 1\textsuperscript{st} diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
-    private consumption expenditure, chain index\tnote{s,c} & c\_priv &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
-    private consumption expenditure, deflator\tnote{s,c} & p\_c\_priv &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
-    government consumption expenditure, chain index\tnote{s,c} & c\_gov &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
-    government consumption expenditure, implicit deflator\tnote{s,c} & p\_c\_gov &  nat. accounts, expenditure &  log, diff  & Bundesbank RTD & nominal series divided by chain index  \\ \hline
-    equipment investment, chain index\tnote{s,c} & gfcf\_equip & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CE1.CA010.A.I\\ \hline
-    equipment investment, implicit deflator\tnote{s,c} & p\_gfcf\_equip & nat. accounts, expenditure & log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index\\ \hline
-    construction investment, chain index\tnote{s,c} & gfcf\_constr & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CF1.CA010.A.I\\ \hline
-    construction investment, implicit deflator\tnote{s,c} & p\_gfcf\_constr & nat. accounts, expenditure & log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index\\ \hline
-    other investment, chain index\tnote{s,c} & gfcf\_other & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CI1.CA010.A.I\\ \hline
-    other investment, implicit deflator\tnote{s,c} & p\_gfcf\_other & nat. accounts, expenditure & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CI1.CA010.V.A) divided by chain index\\ \hline
-    exports (of goods and services), chain index\tnote{s,c} & x & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CX1.CA010.A.I\\ \hline
-    exports (of goods and services), implicit deflator\tnote{s,c} & p\_x & nat. accounts, expenditure & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CX1.CA010.V.A) divided by chain index\\ \hline
-    imports (of goods and services), chain index\tnote{s,c} & m & nat. accounts, expenditure & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CM1.CA010.A.I\\ \hline
-    imports (of goods and services), implicit deflator\tnote{s,c} & p\_m & nat. accounts, expenditure & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CM1.CA010.V.A) divided by chain index\\ \hline
-    gross value added, industry, chain index\tnote{s,c} & gva\_ind & nat. accounts, production & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA020.A.I\\ \hline
-    gross value added, industry, implicit deflator\tnote{s,c} & p\_gva\_ind & nat. accounts, production & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CM1.CA010.V.A) divided by chain index\\ \hline
-    gross value added, construction, chain index\tnote{s,c} & gva\_constr & nat. accounts, production & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA030.A.I\\ \hline
-    gross value added, construction, implicit deflator\tnote{s,c} & p\_gva\_constr & nat. accounts, production & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.AU1.AA030.V.A) divided by chain index\\ \hline    
-    gross value added, trade, transport \& hospitality, chain index\tnote{s,c} & gva\_tth & nat. accounts, production & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA040.A.I\\ \hline
-    gross value added, trade, transport \& hospitality, implicit deflator\tnote{s,c} & p\_gva\_tth & nat. accounts, production & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.AU1.AA040.V.A) divided by chain index\\ \hline   
+    gross domestic product, chain index\tnote{s,c} & gdp &  activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AG1.CA010.A.I  \\ \hline 
+    gross domestic product, deflator\tnote{s,c} & p\_gdp &  prices &  log, 1\textsuperscript{st} diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    private consumption expenditure, chain index\tnote{s,c} & c\_priv &  activity &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
+    private consumption expenditure, deflator\tnote{s,c} & p\_c\_priv &  prices &  log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index  \\ \hline 
+    government consumption expenditure, chain index\tnote{s,c} & c\_gov &  activity &  log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CA1.BA100.A.I  \\ \hline 
+    government consumption expenditure, implicit deflator\tnote{s,c} & p\_c\_gov &  prices &  log, diff  & Bundesbank RTD & nominal series divided by chain index  \\ \hline
+    equipment investment, chain index\tnote{s,c} & gfcf\_equip & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CE1.CA010.A.I\\ \hline
+    equipment investment, implicit deflator\tnote{s,c} & p\_gfcf\_equip & prices & log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index\\ \hline
+    construction investment, chain index\tnote{s,c} & gfcf\_constr & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CF1.CA010.A.I\\ \hline
+    construction investment, implicit deflator\tnote{s,c} & p\_gfcf\_constr & prices & log, diff  & Bundesbank RTD & implicit deflator, i.e. nominal series divided by chain index\\ \hline
+    other investment, chain index\tnote{s,c} & gfcf\_other & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CI1.CA010.A.I\\ \hline
+    other investment, implicit deflator\tnote{s,c} & p\_gfcf\_other & prices & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CI1.CA010.V.A) divided by chain index\\ \hline
+    exports (of goods and services), chain index\tnote{s,c} & x & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CX1.CA010.A.I\\ \hline
+    exports (of goods and services), implicit deflator\tnote{s,c} & p\_x & prices & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CX1.CA010.V.A) divided by chain index\\ \hline
+    imports (of goods and services), chain index\tnote{s,c} & m & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.CM1.CA010.A.I\\ \hline
+    imports (of goods and services), implicit deflator\tnote{s,c} & p\_m & prices & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CM1.CA010.V.A) divided by chain index\\ \hline
+    gross value added, industry, chain index\tnote{s,c} & gva\_ind & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA020.A.I\\ \hline
+    gross value added, industry, implicit deflator\tnote{s,c} & p\_gva\_ind & prices & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.CM1.CA010.V.A) divided by chain index\\ \hline
+    gross value added, construction, chain index\tnote{s,c} & gva\_constr & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA030.A.I\\ \hline
+    gross value added, construction, implicit deflator\tnote{s,c} & p\_gva\_constr & prices & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.AU1.AA030.V.A) divided by chain index\\ \hline    
+    gross value added, trade, transport \& hospitality, chain index\tnote{s,c} & gva\_tth & activity & log, diff  & Bundesbank RTD & Code: BBKRT.Q.DE.Y.A.AU1.AA040.A.I\\ \hline
+    gross value added, trade, transport \& hospitality, implicit deflator\tnote{s,c} & p\_gva\_tth & prices & log, diff  & Bundesbank RTD & nominal series (BBKRT.Q.DE.Y.A.AU1.AA040.V.A) divided by chain index\\ \hline   
     consumer prices, index\tnote{s,c} & cpi & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.Y.P.PC1.PC100.R.I \\ \hline
     consumer prices excl. food \& energy, index\tnote{s,c} & cpi\_core & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PC1.PC110.R.I \\ \hline
     producer prices, index\tnote{s} & ppi & prices & log, diff  & Bundesbank RTD & Code: BBKRT.M.DE.S.P.PP1.PP100.R.I \\ \hline
