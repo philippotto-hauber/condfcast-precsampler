@@ -16,6 +16,7 @@ library(dplyr)
 library(lubridate)
 library(ggsci)
 library(latex2exp)
+library(xtable)
 
 source("../functions/functions.R")
 
@@ -124,7 +125,7 @@ calc_relative_forecast_accuracy <- function(df_eval_models, df_eval_benchmark, s
   # merge with categories
   source("../data/realtime_data.R")
   tmp <- realtime_data()
-  tmp <- select(tmp, mnemonic, category)
+  tmp <- select(tmp, mnemonic, category = group)
   df_eval <- merge(df_eval, tmp, by = "mnemonic")
   rm(tmp)
   
@@ -134,6 +135,81 @@ calc_relative_forecast_accuracy <- function(df_eval_models, df_eval_benchmark, s
   return(df_eval)
 }
 ```
+
+## Function for DM test 
+
+```{r}
+calc_dm_stats <- function(df_eval_models, pval_threshold, subsample, str_model, score)
+{
+  if (score == "sfe")
+  {
+    df_eval_models %>% 
+    select(-logs, -crps, -vintage) %>% 
+    filter(horizon >= 0, model == str_model) %>% 
+    pivot_wider(names_from = "type", values_from = "sfe") -> tmp1
+  } else if (score == "crps") 
+  {
+    df_eval_models %>% 
+    select(-logs, -sfe, -vintage) %>% 
+    filter(horizon >= 0, model == str_model) %>% 
+    pivot_wider(names_from = "type", values_from = "crps") -> tmp1
+  } else 
+    stop("Expected score to be either sfe or crps. Abort")
+
+
+  tmp1 %>% 
+    filter(quarter>=subsample[1], quarter <= subsample[2]) %>% 
+    group_by(mnemonic, model, horizon) %>% 
+    summarise(dm_pval = dm_test(conditional_hard, unconditional)) %>%
+    left_join(unique(select(df_eval, 
+                            mnemonic, 
+                            category)), by = "mnemonic") %>% 
+    group_by(category, horizon, model) %>% 
+    mutate(is_significant = ifelse(dm_pval <= pval_threshold, 
+                                   1, 0)) -> dm_stats
+  return(dm_stats)
+}
+```
+
+```{r}
+table_dm_test <- function(dm_stats)
+{
+  dm_stats %>% 
+  summarise(n_significant = sum(is_significant),
+            n_tot = n()) -> tmp1
+
+dm_stats %>% 
+  ungroup() %>% 
+  group_by(horizon, model) %>% 
+  summarise(n_significant = sum(is_significant),
+            n_tot = n()) %>% 
+  mutate(category = "total") -> tmp2
+
+tmp3 <- rbind(tmp1, tmp2)
+
+tmp3 %>% 
+  group_by(category, model, horizon) %>% 
+  mutate(result = paste0(n_significant, "/", n_tot),
+         horizon = paste0("h=", horizon)) %>% 
+  select(-n_significant, -n_tot, -model) %>% 
+  pivot_wider(names_from = "horizon", values_from = "result") %>% 
+  xtable() %>% 
+  print.xtable() 
+  return(NULL)
+}
+```
+
+```{r}
+add_is_significant_col<- function(df_plot, dm_stats)
+{
+  dm_stats %>% 
+  ungroup() %>% 
+  select(mnemonic, is_significant, horizon) %>% 
+  right_join(df_plot, by = c("mnemonic", "horizon")) -> df_plot
+  return(df_plot)
+}
+```
+
 
 
 ## Analysis
@@ -154,9 +230,58 @@ df_eval <- calc_relative_forecast_accuracy(df_eval_models,
                                            df_eval_benchmark, 
                                            str_model, 
                                            subsample)
-
 ```
 ### Point forecast accuracy
+
+#### DM tests
+
+```{r}
+pval_threshold <- 0.1
+dm_stats <- calc_dm_stats(df_eval_models, pval_threshold, subsample, str_model, "sfe")
+```
+
+
+```{r}
+# pval_threshold <- 0.10
+# df_eval_models %>% 
+#   select(-logs, -crps, -vintage) %>% 
+#   filter(horizon >= 0, model == "Nr2_Nj1_Np2_Ns0") %>% 
+#   pivot_wider(names_from = "type", values_from = "sfe") %>% 
+#   group_by(mnemonic, model, horizon) %>% 
+#   summarise(dm_pval = dm_test(conditional_hard, unconditional)) %>%
+#   left_join(unique(select(df_eval, mnemonic, category)), by = "mnemonic") %>% 
+#   group_by(category, horizon, model) %>% 
+#   mutate(is_significant = ifelse(dm_pval <= pval_threshold, 1, 0)) -> dm_stats
+```
+```{r}
+# dm_stats %>% 
+#   summarise(n_significant = sum(is_significant),
+#             n_tot = n()) -> tmp1
+# 
+# dm_stats %>% 
+#   ungroup() %>% 
+#   group_by(horizon, model) %>% 
+#   summarise(n_significant = sum(is_significant),
+#             n_tot = n()) %>% 
+#   mutate(category = "total") -> tmp2
+# 
+# tmp3 <- rbind(tmp1, tmp2)
+# 
+# tmp3 %>% 
+#   group_by(category, model, horizon) %>% 
+#   mutate(result = paste0(n_significant, "/", n_tot),
+#          horizon = paste0("h=", horizon)) %>% 
+#   select(-n_significant, -n_tot, -model) %>% 
+#   pivot_wider(names_from = "horizon", values_from = "result") %>% 
+#   xtable() %>% 
+#   print.xtable() 
+```
+
+```{r}
+table_dm_test(dm_stats)
+```
+
+
 
 ```{r}
 # df_plot
@@ -165,8 +290,26 @@ df_eval %>%
   filter(horizon >= 0) %>%
   pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
   filter(value != Inf, score == "rel_rmsfe") %>%
-  pivot_wider(names_from = type, values_from = value) -> df_plot 
+  pivot_wider(names_from = type, values_from = value) -> df_plot
 
+```
+
+add variable indicating if DM test is significant
+
+```{r}
+df_plot <- add_is_significant_col(df_plot, dm_stats)
+```
+
+```{r}
+# dm_stats %>% 
+#   ungroup() %>% 
+#   select(mnemonic, is_significant, horizon) %>% 
+#   right_join(df_plot, by = c("mnemonic", "horizon")) -> df_plot
+```
+
+
+
+```{r}
 # data-dependent lims!
 ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
            max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
@@ -175,12 +318,17 @@ xlims <- ylims
 # manually set lims, excluding "outliers"
 # ylims <- c(0.8, 1.2)
 # xlims <- ylims
+```
 
-ggplot(df_plot, aes(x = unconditional, 
-                    y = conditional_hard, 
-                    color = category)
+
+
+```{r}
+ggplot(mapping = aes(x = unconditional, 
+                     y = conditional_hard, 
+                     color = category)
        )+
-  geom_point(size = 2, alpha = 0.7)+
+  geom_point(data = filter(df_plot, is_significant == 1), size = 3, shape = 16, show.legend = FALSE)+
+  geom_point(data = filter(df_plot, is_significant == 0), size = 3, shape = 1)+
   geom_abline()+
   geom_vline(xintercept = 0,  size = 0.2)+
   geom_hline(yintercept = 0, size = 0.2)+
@@ -192,7 +340,7 @@ ggplot(df_plot, aes(x = unconditional,
   theme(legend.position="bottom", 
         legend.text = element_text(size = 8),
         legend.title = element_blank())+
-  labs(title = "", x = "unconditional forecasts", y = "conditional forecasts")
+  labs(title = "", x = "RMSFE, unconditional forecasts", y = "RMSFE, conditional forecasts")
 ```
 
 #### Export plot to pdf
@@ -202,37 +350,44 @@ ggsave(filename = "../figures/fig_eval_rmsfe.pdf",
        width = 10, height = 6, units = "in")
 ```
 
+#### Notes for figure
 
-####DM tests
+> The figure shows the root mean squared forecast errors (RMSFE)  corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. Filled points correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
 
-```{r}
-df_eval_models %>% 
-  select(-logs, -crps, -vintage) %>% 
-  filter(horizon >= 0, model == "Nr2_Nj1_Np2_Ns0") %>% 
-  pivot_wider(names_from = "type", values_from = "sfe") %>% 
-  group_by(mnemonic, model, horizon) %>% 
-  summarise(dm_pval = round(dm_test(conditional_hard, unconditional), digits = 2)) -> tmp 
-
-tmp %>% 
-  left_join(unique(select(df_eval, mnemonic, category)), by = "mnemonic") -> tmp2
-
-tmp2 %>% 
-  group_by(category, horizon, model) %>% 
-  mutate(is_significant = ifelse(dm_pval <= 0.10, 1, 0)) -> tmp3
-
-tmp3 %>% 
-  summarise(n_significant = sum(is_significant),
-            n_tot = n()) -> tmp4
-
-tmp4 %>% 
-  mutate(result = paste0(n_significant, "/", n_tot),
-         horizon = paste0("h=", horizon)) %>% 
-  select(-n_significant, -n_tot, -model) %>% 
-  pivot_wider(names_from = "horizon", values_from = "result") -> tmp5
-```
 
 
 #### Analysis
+
+```{r}
+  df_eval_benchmark %>% 
+  filter(quarter >= subsample[1],
+         quarter <= subsample[2]) %>%
+  group_by(series, horizon) %>%
+  summarise(rmsfe = sqrt(mean(sfe))) %>% 
+  select(series, horizon, rmsfe) %>% 
+  pivot_wider(names_from = "horizon", values_from = "rmsfe")
+```
+
+
+- aboslute RMSFE across horizons
+
+```{r}
+  df_eval_models %>% 
+  filter(model == str_model,
+         quarter >= subsample[1],
+         quarter <= subsample[2],
+         type == "unconditional",
+         horizon >= 0) %>%
+  group_by(mnemonic, horizon, model) %>%
+  summarise(rmsfe = sqrt(mean(sfe))) %>% 
+  select(mnemonic, horizon, rmsfe) %>% 
+  pivot_wider(names_from = "horizon", values_from = "rmsfe")
+```
+
+
+- `h=0`
+
+top 10
 
 ```{r}
 df_plot %>% 
@@ -241,6 +396,23 @@ df_plot %>%
   pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
   arrange(`0`) %>% 
   head(10)
+```
+
+
+bottom 10
+
+```{r}
+df_plot %>% 
+  filter(horizon == 0) %>% 
+  select(mnemonic, unconditional, horizon) %>% 
+  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
+  arrange(`0`) %>% 
+  tail(10)
+```
+
+
+```{r}
+
 
 df_plot %>% 
   filter(horizon == 1) %>% 
@@ -264,15 +436,24 @@ df_plot %>%
   summarise(mean_diff = mean(diff_fore)) %>% 
   pivot_wider(values_from = mean_diff, names_from = horizon)
 ```
-#### Results
-
-> Figure XX illustrates the results for point forecasts. Turning to the peformance of the unconditional forecasts first, we see that for all horizons and the majority of variables, the factor model produces forecasts that perform similar to the autoregressive benchmark with relative RMSFE between 0.9 and 1.1. Noteworthy outliers in this context are the two price series - XX and YY- at $h=0$ where the performanc is considerably worse than the benchmark. Conversely, for a few series there are noticeable gains over the simple univariate AR(2) model and these persist or even increase for larger horizons. For example, for $h=0$ the relative RMSFE for the construction price index and gross value added in the industrial sector is around 0.6. Smaller but still noteworthy improvements can also be found for two series from the expenditure side of the national accounts: equipment investment as well as the deflator for residential investment. For larger $h$, these relative gains even increase: the relative RMSFE for the construction subcomponent of the PPI reaches 0.35; for gross value added in the industrial sector is 0.4. In addition to these variables, at $h=2$ there also noteworthy improvements for series that are likely highly correlated to gross industrial value added like production in the industrial and construction sector as well as industrial turnover. Note, however, that these improvements are relative to the benchmark, the performance of which considerably worsens as the forecast horizon increases. Indeed, for all series discussed above, the (absolute) RMSFE increases in $h$. Focusing on how the forecast performance increases when we condition on professional forecasters' views on GDP growth and CPI inflation, we see that there are only large differences in the relative RMSFE between the unconditional and conditional forecasts for $h=0$. Perhaps not surprisingly gains to conditioning  arise for those series for which the models already produce decent forecasts (relative to autoregressive benchmarks) and are mainly concentrated to series from the national accounts group and - to some extent - indicators capturing real activity (but not part of the national accounts). For the labor market indicators and CPI and PPI inflation, we find much smaller gains from conditioning.  
-
-#### Notes for figure
-
-> The figure shows the root mean squared forecast errors (RMSFE) r corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. For details, see the main text.Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
-
 ### Density forecast accuracy
+
+#### DM tests
+
+```{r}
+pval_threshold <- 0.10
+dm_stats <- calc_dm_stats(df_eval_models, 
+                          pval_threshold, 
+                          subsample,
+                          str_model, 
+                          "crps")
+```
+
+```{r}
+table_dm_test(dm_stats)
+```
+
+#### Plot
 
 ```{r}
 # df_plot
@@ -282,7 +463,16 @@ df_eval %>%
   pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
   filter(value != Inf, score == "rel_crps") %>%
   pivot_wider(names_from = type, values_from = value) -> df_plot 
+```
 
+
+
+add variable indicating if DM test is significant
+```{r}
+df_plot <- add_is_significant_col(df_plot, dm_stats)
+```
+
+```{r}
 # data-dependent lims!
 ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
            max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
@@ -291,12 +481,16 @@ xlims <- ylims
 # manually set lims, excluding "outliers"
 # ylims <- c(0.8, 1.2)
 # xlims <- ylims
+```
 
+
+```{r}
 ggplot(df_plot, aes(x = unconditional, 
                     y = conditional_hard, 
                     color = category)
        )+
-  geom_point(size = 2)+
+    geom_point(data = filter(df_plot, is_significant == 1), size = 3, shape = 16, show.legend = FALSE)+
+  geom_point(data = filter(df_plot, is_significant == 0), size = 3, shape = 1)+
   geom_abline()+
   geom_vline(xintercept = 0,  size = 0.2)+
   geom_hline(yintercept = 0, size = 0.2)+
@@ -308,7 +502,7 @@ ggplot(df_plot, aes(x = unconditional,
   theme(legend.position="bottom", 
         legend.text = element_text(size = 8),
         legend.title = element_blank())+
-  labs(title = "", x = "unconditional forecasts", y = "conditional forecasts")
+  labs(title = "", x = "CRPS, unconditional forecasts", y = "CRPS, conditional forecasts")
 ```
 
 #### Export plot to pdf
@@ -318,106 +512,11 @@ ggsave(filename = "../figures/fig_eval_crps.pdf",
        width = 10, height = 6, units = "in")
 ```
 
-#### Analyis
-
-```{r}
-df_plot %>% 
-  filter(horizon == 0) %>% 
-  select(mnemonic, unconditional, horizon) %>% 
-  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
-  arrange(`0`) %>% 
-  head(10)
-
-df_plot %>% 
-  filter(horizon == 1) %>% 
-  select(mnemonic, unconditional, horizon) %>% 
-  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
-  arrange(`1`) %>% 
-  head(10)
-
-df_plot %>% 
-  filter(horizon == 2) %>% 
-  select(mnemonic, unconditional, horizon) %>% 
-  pivot_wider(names_from = "horizon", values_from = "unconditional") %>% 
-  arrange(`2`) %>% 
-  head(10)
-```
-
-
-#### Results
-
-> Regarding density forecast accuracy, the overall results are very similar (Figure XX). The gains in unconditional forecast accuracy are less pronounced at the extremes for $h=2$ but nevertheless sizeable. In terms of the gains from conditioning the results are virtually identical to those obtained for point forecasts. 
-
-
 #### Notes for figure
 
 > The figure shows the continous rank probability score (CRPS) corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the CRPS is relative to an autoregressive benchmark. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
 
-### National accounts series
-
-
-```{r}
-# df_plot
-df_eval %>%
-  filter(horizon >= 0, 
-         category %in% c("national accounts (expenditure)", "national accounts (production)")) %>%
-  pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
-  filter(value != Inf, score == "rel_rmsfe") %>%
-  pivot_wider(names_from = type, values_from = value) -> df_plot 
-
-# data-dependent lims!
-ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
-           max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
-xlims <- ylims
-
-df_plot[df_plot$category == "national accounts (expenditure)", "category"] <- "expenditure"
-df_plot[df_plot$category == "national accounts (production)", "category"] <- "production"
-
-ind_prices <- substr(df_plot$mnemonic, 1, 1) == "p"
-
-df_plot$type <- "volume"
-df_plot$type[ind_prices] <- "prices"
-
-ggplot(df_plot, aes(x = unconditional, 
-                    y = conditional_hard, 
-                    color = category,
-                    shape = type)
-       )+
-  geom_point(size = 2)+
-  geom_abline()+
-  #geom_vline(xintercept = 1.0,  size = 0.2)+
-  #geom_hline(yintercept = 1.0, size = 0.2)+
-  facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
-  xlim(xlims)+
-  ylim(ylims)+
-  scale_color_jco()+
-  #theme_minimal()+
-  theme(legend.position="bottom", 
-        legend.text = element_text(size = 8),
-        legend.title = element_blank())+
-  labs(title = "", x = "unconditional forecasts", y = "conditional forecasts")
-```
-#### Export plot to pdf
-
-```{r}
-ggsave(filename = "../figures/fig_eval_natacc.pdf", 
-       width = 10, height = 6, units = "in")
-```
-
 #### Analyis
-
-```{r}
-df_plot %>% mutate(diff_fore = conditional_hard-unconditional) %>% group_by(type, horizon) %>% summarise(mean(diff_fore))
-```
-
-#### Results
-
-> The results for the national accounts merit special attention as they are arguably the series which analysts are most important to analysts. In addition, since our dataset includes both chain indices that capture price-adjusted or volume changes in consumption, investment etc. as well as the corresponding deflators, it is of interest to see if the benefits from conditioning differ across the two types of variables. On average, there are indeed sizeable differences in the reduction of the RMSFE of the conditional forecasts for quantity and price variables. For $h=0$, the RMSFE drops by roughly 0.1 for the former; for the latter the gains from conditioning are much less pronounced (-0.02). As the forecast horizons increases, the reduction in the RMSFE for the volume series drops considerably but still amounts to close to four percent on average. Conditional forecasts of the deflators for $h=\{1, 2\}$ are about as accurate (relative to unconditional forecasts) on average for higher forecasts. Figure XX plots the results for all national accounts series. 
-
-#### Notes for figure
-
-> The figure shows the root mean squared forecast error (RMSFE) corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for the national accounts series. For each series, the RMSFE is relative to an autoregressive benchmark. For details, see the main text. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones.  
-
 
 ## Robustness
 
@@ -434,6 +533,21 @@ df_eval <- calc_relative_forecast_accuracy(df_eval_models,
 
 ```
 
+#### DM tests
+
+```{r}
+pval_threshold <- 0.1
+dm_stats <- calc_dm_stats(df_eval_models, 
+                          pval_threshold, 
+                          subsample, 
+                          str_model, 
+                          "sfe")
+```
+
+```{r}
+table_dm_test(dm_stats)
+```
+
 ```{r}
 # df_plot
 str_title <- "post-crisis sample: RMSFE and CRPS"
@@ -442,7 +556,13 @@ df_eval %>%
   pivot_longer(c(rel_rmsfe, rel_crps, rel_logs), names_to = "score", values_to = "value") %>%
   filter(value != Inf, score %in% c("rel_rmsfe", "rel_crps")) %>%
   pivot_wider(names_from = type, values_from = value) -> df_plot 
+```
 
+```{r}
+df_plot <- add_is_significant_col(df_plot, dm_stats)
+```
+
+```{r}
 # data-dependent lims!
 ylims <- c(min(min(df_plot$unconditional), min(df_plot$conditional_hard)),
            max(max(df_plot$unconditional), max(df_plot$conditional_hard)))
@@ -451,13 +571,16 @@ xlims <- ylims
 # manually set lims, excluding "outliers"
 # ylims <- c(0.8, 1.2)
 # xlims <- ylims
+```
 
+
+```{r}
 ggplot(df_plot, aes(x = unconditional, 
                     y = conditional_hard, 
-                    color = category,
-                    shape = score)
+                    color = category)
        )+
-  geom_point(size = 2, alpha = 0.7)+
+    geom_point(data = filter(df_plot, is_significant == 1), size = 3, shape = 16, show.legend = FALSE)+
+  geom_point(data = filter(df_plot, is_significant == 0), size = 3, shape = 1)+
   geom_abline()+
   geom_vline(xintercept = 0,  size = 0.2)+
   geom_hline(yintercept = 0, size = 0.2)+
@@ -469,8 +592,21 @@ ggplot(df_plot, aes(x = unconditional,
   theme(legend.position="bottom", 
         legend.text = element_text(size = 8),
         legend.title = element_blank())+
-  labs(title = str_title, x = "unconditional forecasts", y = "conditional forecasts")
+  labs(title = "", x = "RMSFE, unconditional forecasts", y = "RMSFE, conditional forecasts")
 ```
+
+#### Export plot to pdf
+
+```{r}
+ggsave(filename = "../figures/fig_eval_postcrisis.pdf", 
+       width = 10, height = 6, units = "in")
+```
+
+#### Notes for figure
+
+> The figure shows the root mean squared forecast errors (RMSFE) over the evaluation sample 2011Q1-2017Q4 corresponding to unconditional forecasts (x-axis) and forecasts conditional on professional forecasters' view on GDP growth and CPI inflation (y-axis) for different time series. For each series, the RMSFE is relative to an autoregressive benchmark. Entries above (below) the 45-degree line indicate that conditional forecasts perform worse (better) than the unconditional ones. Filled points correspond to those variables for which the null hypothesis of the Diebold-Mariano test can be rejected at the 10 percent level. For details, see the main text.  
+
+
 
 ### Different models
 
@@ -478,6 +614,7 @@ Compare the models' performance when $R\neq 2$
 ```{r}
 subsample <- c(min(df_eval_models$quarter), max(df_eval_models$quarter))
 df_compare_R <- data.frame()
+dm_stats_R <- data.frame()
 
 for (nr in c(2, 1, 5, 8))
 {
@@ -489,8 +626,18 @@ for (nr in c(2, 1, 5, 8))
                                subsample) %>% 
   mutate(Nr = paste0(nr)) %>% 
   rbind(df_compare_R) -> df_compare_R
+  
+  calc_dm_stats(df_eval_models, 
+                        pval_threshold, 
+                        subsample, 
+                        str_model, 
+                        "sfe") %>% 
+  mutate(Nr = paste0(nr)) %>% 
+  rbind(dm_stats_R) -> dm_stats_R
 }
 ```
+
+
 ```{r}
 df_compare_R %>% 
   filter(horizon >= 0) %>%
@@ -502,15 +649,17 @@ df_compare_R %>%
   pivot_longer(cols = c(`1`, `5`, `8`), 
                names_to = "Nr", 
                values_to = "other_models") -> df_plot
-
 # data-dependent lims!
 ylims <- c(min(min(df_plot$base_model), min(df_plot$other_models)),
            max(max(df_plot$base_model), max(df_plot$other_models)))
 xlims <- ylims
 
+# change label
+df_plot$type[df_plot$type == "conditional_hard"] <- "conditional"
+
 
 ggplot(df_plot, aes(x = base_model, y = other_models, color = Nr, shape = type))+
-  geom_point(size = 2, alpha = 0.7)+
+      geom_point(size = 3)+
   geom_abline()+
   geom_vline(xintercept = 0,  size = 0.2)+
   geom_hline(yintercept = 0, size = 0.2)+
