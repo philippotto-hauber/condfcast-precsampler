@@ -876,32 +876,15 @@ Common values in the literature are $\pi_0 = 0.2$ and $\pi_1=0.1$, thus shrinkin
 \pagebreak
 \newpage
 
-\section{Computational efficiency analysis}
+\section{Computational efficiency analysis}\label{app:simulation}
 
-\subsubsection{Motivation and related literature}
+This Appendix comparesthe computational efficiency of the precision-sampling algorithms outlined above to simulation smoothers such as \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} that rely on the Kalman-filter and are commonly used in the literature. Previous work in this area has analyzed the computational advantages of such simulation smoothers compared to the algorithms for conditional forecasting given in \citet{waggonerzha1999_res} in the context of a vector autoregressions \citep{bgl_2015ijf}; \citet{mmp2011_csda} analyzes the performance of precision-based samplers in the context of a time-varying parameter regression and dynamic factor models and compares the performance to the \citet{durbinkoopman2002_biomtr} simulation smoother.\\
 
-In simulations I compare the computational efficiency of the precision-sampling algorithms outlined above to simulation smoothers such as \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} that rely on the Kalman-filter and are commonly used in the literature. The focus is \textbf{not} on finding the overall best-performing algorithms. In particular, I do not consider low-level implementations in C or Fortran. Also I do not explore the extent to which parallelized execution could provide. Instead, the aim is to compare the algorithms .Previous work in this area has analyzed the computational advantages of such simulation smoothers compared to the algorithms for conditional forecasting given in \citet{waggonerzha1999_res} in the context of a vector autoregressions \citep{bgl_2015ijf}; \citet{mmp2011_csda} analyzes the performance of precision-based samplers in the context of a time-varying parameter regression and dynamic factor models and compares the performance to the \citet{durbinkoopman2002_biomtr} simulation smoother.\\
-
-I focus on both small ($N=20,\,R=2$) and large factor models ($N=100\,,R=10$) as well as a medium- and large-sized vector autoregression with $N=20$ and $N=100$, respectively; the lag length equals $P=4$ in both vector autoregressions. I evaluate the runtime of obtaining $100$ draws from the predictive density $p(y^f|y^o, y^c)$ given a sample size $T=100$ and forecast horizons $H = \{5, 20, 50\}$ conditional on a share $\kappa = 0.1$ of the observables (\textit{hard conditioning}).\footnote{The size of the conditioning set does not have a large impact on the relative runtime and in the interest of space I do not report results for $\kappa = \{0.5, 0.75\}$. They are available upon request.} Furthermore, I also consider the costs of producing repeated samples from the predictive density given the parameters as would be the case when on top of the conditioning set $$\mathbf{y}^{c} = [y_{1, T+1}, \dots, y_{\kappa \cdot N, T+1}, \dots, y_{1,T+H}, \dots, y_{\kappa \cdot N, T+H}]$$ restrictions are imposed on the remainining observables to lie within a prespecified range (\textit{soft conditioning}). 
-
-\subsubsection{Data-generating process}
+We focus on both small ($N=20,\,R=2$) and two variants of larger factor models with $N=100\,,R=2$ (\textit{large N factor model}) and $N=100\,,R=2$ (\textit{large factor model}).  evaluate the runtime of obtaining $100$ draws from the predictive density $p(y^f|y^o, y^c)$ given a sample size $T=100$ and forecast horizons $H = \{5, 20, 50\}$ conditional on a share $\kappa = 0.1$ of the observables (\textit{hard conditioning}).\footnote{The size of the conditioning set does not have a large impact on the relative runtime and in the interest of space I do not report results for $\kappa = \{0.5, 0.75\}$. They are available upon request.} Furthermore, we also consider the costs of producing repeated samples from the predictive density given the parameters as would be the case when on top of the conditioning set $$\mathbf{y}^{c} = [y_{1, T+1}, \dots, y_{\kappa \cdot N, T+1}, \dots, y_{1,T+H}, \dots, y_{\kappa \cdot N, T+H}]$$ restrictions are imposed on the remainining observables to lie within a prespecified range (\textit{soft conditioning}).\\ 
 
 In the case of the dynamic factor model outlined in Section \ref{sec:dfm} the factor dynamics are given by a VAR(1) with parameters $\phi_1 = 0.7 \cdot I_R$ and $\Sigma = I_R$. The elements of the loadings on the contemporaneous factors $\lambda_0$ are drawn from independent Normal distributions with mean $0.5$ and variance $0.1$; all remaining loadings are set to 0, i.e. $K=0$. Setting $J=0$, the idiosyncratic components are i.i.d and $\omega_i$ is chosen such that the common component - $\boldsymbol{\lambda}_{0,i\cdot} \mathbf{f}_t$ - explains \sfrac{2}{3} of the total variation in the i-th variable. \\
 
-To generate data from a vector autoregression as discussed in Section \ref{sec:var}, I closely follow the set-up outlined in \citet{CHP2020_ijf}. Let $b_{p, ij}$ denote the element of $B_p$ in row i and column j. The diagonal elements are set to
-
-\begin{subequations}
-    \begin{align}
-        b_{1, ii} = \mathcal{N}(0, \sigma^2_o), \: \forall i = 1, \dots, N \\
-b_{p, ii} = \frac{b_{1,ii}}{p}, \: \forall p = 2, \dots, P
-    \end{align}    
-\end{subequations}
-
-\noindent while each off-diagonal element is drawn from $\mathcal{N}(0, \sigma^2_c)$ with probability $p_c$, otherwise it is set to $10^7$. The lag length $P$ equals 4 and for the medium-sized VAR with $N=20$ variables $\sigma^2_o = 0.2 $, $\sigma^2_c = 0.05$ and $p_c = 0.2$. To ensure a stationary VAR when the cross-section is large, i.e. $N=100$, the values are adjusted to $\sigma^2_o = 0.05 $, $\sigma^2_c = 0.001$ and $p_c = 0.1$.
-
 Details on the implementation of the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers are provided in Appendix \ref{app:kalmansimsmoothers}.\\
-
-\subsubsection{Results}
 
 I simulate each model $10$ times and calculate the time it takes to draw from the predictive density using the Kalman-filter based simulation smoother and the precision sampling algorithms outlined above.\footnote{The simulations were run using Matlab2020a and a XX and XX. To time the execution of the code, I used the function \texttt{timeit()}.} Figure \ref{figsimulation} shows the relative runtime for hard (left column) and soft (right column) as boxplots. The precision-based algorithms perform as well or better than the Kalman-filter based simulation smoothers for all models and horizons. When repeated draws from the predictive density are required as in the case of soft conditioning, the gains in computational efficiency are generally quite large. 
 
@@ -909,7 +892,7 @@ I simulate each model $10$ times and calculate the time it takes to draw from th
     \caption{Computational efficiency analysis of different simulation smoothers \label{figsimulation}}
     \footnotesize
     \begin{tabular}{p{16cm}}
-    \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_simulations_Ncond_10.pdf}} \\
+    \multicolumn{1}{c}{\includegraphics*[scale = 0.5]{../figures/fig_simulations_Ncond_10.pdf}} \\
     {
     \footnotesize \textbf{Note:} The figure shows the time it takes to generate a draw from the predictive density $p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})$ for different forecast horizons $H$ using the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers relative to the precision sampler outlined above. The conditioning set $\mathbf{y}^{\sf{c}}$ consists of the first $0.1\cdot N$ variables (left column). For the small factor model, the number of variables is $N=20$ and the number of static factors is $R=2$. For the large factor model $N=100,\, R = 10$. For the medium- and large-sized vector autoregressions the number of lags is set to $P=4$ as well as $N=20$ and $N=100$, respectively. The runtime measures the entire procedure of generating a draw from the predictive density, including building the system matrices. For the precision-sampler this includes the costs of setting up the permutation matrices which is incurred only once.In the case of soft conditioning (right column), the runtime of producing 100 draws given the same parameters is reported. For details, see the main text.
     }
@@ -923,11 +906,11 @@ I simulate each model $10$ times and calculate the time it takes to draw from th
 
 \section{Kalman-filter based simulation smoothers}\label{app:kalmansimsmoothers}
 
-This appendix provides details on the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers that are used in the simulations in Section \ref{sec:models}
+This appendix provides details on the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers that are used in the simulations in Appendix \ref{app:simulation}
 
 In this section we highlight how we implement the Kalman-filter based simulation smoothers and show how to obtain draws from the predictive densities. Although both the \citet{carterkohn1994_biomtr} and \citet{durbinkoopman2002_biomtr} simulation smoothers rely on the Kalman filter and smoother to produce a draw from the conditional distribution of the states, there are important conceptual differences between the two. Let $a_{t|s} = E[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ and $P_{t|s} = Var[\alpha_t|\mathbf{y}_1, \dots, \mathbf{y}_s]$ denote the conditional mean and variance of the state at time $t$ conditional on information up to time $s$ which can be obtainted from the Kalman filter or smoother. In addition, let $a_t$ denote a draw from the conditional distribution $p(\alpha_t | \mathbf{y}_1, \dots, \mathbf{y}_{T+H})$. 
 
-\subsubsection{\citet{carterkohn1994_biomtr} simulation smoother}
+\subsubsection*{\citet{carterkohn1994_biomtr} simulation smoother}
 
 Given the parameters of the state space model $\Theta$ and  $a_{t|t}, P_{t|t} \: \forall t = 1, \dots, T+H$, the algorithm in \citet{carterkohn1994_biomtr} generates $a_{T+H}$ from 
 
@@ -944,7 +927,7 @@ $$
 
  For $t=T+H-1, \dots, 1$ $a_t$ is generated from $p(\alpha_{t}|\mathbf{y}_t, a_{t+1})$. For details on how to derive the moments of the conditional distributions given the output of the Kalman filter, see the original paper as well as the textbook treatment in \citet{KimNelson1999mit}.
 
- \subsubsection{\citet{durbinkoopman2002_biomtr} simulation smoother}
+ \subsubsection*{\citet{durbinkoopman2002_biomtr} simulation smoother}
 
 The \citet{durbinkoopman2002_biomtr} simulation smoother produces a draw from the conditional distribution of the states by first simulating the state space model in Equation \ref{eqn:statespacesys}, producing a draw from the \textit{joint} distribution of states and observables
 
@@ -952,134 +935,134 @@ $$p(\alpha_{1}, \dots, \alpha_{T+H}, \mathbf{y}_1, \dots, \mathbf{y}_{T+H}).$$
 
 Denote this joint draw by $a^+_1, \dots, a^+_{T+H}, y^+_1, \dots, y^+_{T+H}$. Running the Kalman smoother recursions yields $a_{t|T+H}, \: a^+_{t|T+H}$ where $a^+_{t|T+H} = E[\alpha^+_t|y^+_1, \dots, y^+_{T+H}]$.  By setting $a_t = a_{t|T+H} - a^+_{t|T+H} + a^+$ adjusts the mean of $a^+_t$ to yield a draw from the desired conditional distribution. In practice, it is more efficient to first construct $y^* = y-y^+$ and run the Kalman smoother only once, yielding $a^*_{t|T+H} = E[a^*_t|y^*]$. A draw from $p(\alpha_{1}, \dots, \alpha_{T+H}|\mathbf{y}_1, \dots, \mathbf{y}_{T+H})$ is then obtainted by setting $a_t = a^*_{t|T+H} + a^+_t$. Note that since only an estimate of the smoothed mean of the states is required, more efficient smoothing recursions can be employed which do not require the storage of $a_{t|t}$ and $P_{t|t}$ \citep[see][ch. 4.4.2]{durbinkoopman2002_biomtr}.
 
-\subsubsection{Drawing from the (conditional) predictive density $p(y^f|I, \Theta)$}
+\subsubsection*{Drawing from the (conditional) predictive density $p(y^f|I, \Theta)$}
 Under the common assumption of uncorrelated measurement errors, draws from the predictive density $p(y^{\sf{f}}_t\,|\,a_t, y^o, y^c, \Theta)$ can  be obtained by sampling the measurement errors independently from $\mathcal{N}(0, \omega_i) \: \forall i s.t. y_{i,t} \notin y_{c,t}$ and adding them to the draw of the state vector \citep[see][for the general case of a full covariance matrix $\Omega$]{bgl_2015ijf}. For the \citet{durbinkoopman2002_biomtr} simulation smoother the generated artifical observations $y^+$ can be re-used, since $F a^*_{t|T+H} + y^+_t$ is a draw of the observations conditional on the sampled states. In the case of a VAR, there is no 
 measurement error so that $y^{\sf{f}}_t$ can be set equal to the corresponding elements of $a_t$. 
 
-\subsubsection{Multiple draws from $p(y^f|I, \Theta)$}
+\subsubsection*{Multiple draws from $p(y^f|I, \Theta)$}
 Additional draws from the (conditional) predictive density given the same set of parameters $\Theta$ can be produced recursively from the \citet{carterkohn1994_biomtr} simulation smoother by independently sampling $a_t$ as many times as required and conditioning on the draw to generate $y^{\sf{f}}_t$. In the case of the \citet{durbinkoopman2002_biomtr} simulation smoother, each additional draw requires new simulated values of the states and observations, $a^+_1, \dots, a^+_{T+H}, y^+_1, \dots, y^+_{T+H}$. Given these, the entire filtering and smoothing recursions need to be re-run. However, computational savings still arise as the state covariances $P_{t|t}$ and functions thereof that are calculated during the recursions do not depend on the observations. As such they only need be calculated once and can be passed on to subsequent runs of the Kalman filter and smoother \citep[p. 606]{durbinkoopman2002_biomtr}.
 
-\subsubsection{Initialisation}
+\subsubsection*{Initialisation}
 
 In the case of a dynamic factor model, the Kalman filter is initialized by setting $a_{1|0}$ and $P_{1|0}$ equal to the unconditional mean and variance, respectively, of the factor VAR. Vector autoregression applications only require the simulation smoother to run over the sample with missing observations, i.e. $t\geq T+1$. The recursions are therefore initialized with $a_{T+1|T} = \mathbf{T} \, \transpose{[\transpose{\mathbf{y}}_T, \dots, \transpose{\mathbf{y}}_{T-P+1}]}$ and $P_{T+1|T} = \Sigma$, unless the more efficient one-step algorithm in \citet{durbinkoopman2002_biomtr} is employed, in which case $a_{T+1|T} = 0$ is required \citep[see][]{jarocinski2015csda}.
 
 \pagebreak
-\section{Extension to vector autoregressions}
+% \section{Extension to vector autoregressions}
 
-Vector autoregressions (VAR) are another class of popular macroeconometric models and can be described by the following equation: 
+% Vector autoregressions (VAR) are another class of popular macroeconometric models and can be described by the following equation: 
 
-\begin{equation}\label{eqn:var}
-    \mathbf{y}_t = \mathbf{b} + \sum_{p=1}^P \mathbf{B}_p \mathbf{y}_{t-p} + \boldsymbol{\upsilon}_t
-\end{equation}
+% \begin{equation}\label{eqn:var}
+%     \mathbf{y}_t = \mathbf{b} + \sum_{p=1}^P \mathbf{B}_p \mathbf{y}_{t-p} + \boldsymbol{\upsilon}_t
+% \end{equation}
 
-where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots, \mathbf{B}_P$ are the $N \times N$ coefficient matrices and $\boldsymbol{\upsilon}_t \sim \mathcal{N}(0, \Sigma)$. With slight modifications that account for the fact that in the case of a VAR the states are observed without meausrement error, the algorithm outlined above can also be employed to generate conditional forecasts.\footnote{Unconditional forecasts given the parameters can simply be obtained by drawing $\boldsymbol{\upsilon}_{T+1}, \dots, \boldsymbol{\upsilon}_{T+1}$ and using Equation \ref{eqn:var} to recursively construct $\mathbf{y}_{T+1}, \dots, \mathbf{y}_{T+H}$.}
+% where $\mathbf{b}$ is an $N \times 1$ vector of intercepts, $\mathbf{B}_1, \dots, \mathbf{B}_P$ are the $N \times N$ coefficient matrices and $\boldsymbol{\upsilon}_t \sim \mathcal{N}(0, \Sigma)$. With slight modifications that account for the fact that in the case of a VAR the states are observed without meausrement error, the algorithm outlined above can also be employed to generate conditional forecasts.\footnote{Unconditional forecasts given the parameters can simply be obtained by drawing $\boldsymbol{\upsilon}_{T+1}, \dots, \boldsymbol{\upsilon}_{T+1}$ and using Equation \ref{eqn:var} to recursively construct $\mathbf{y}_{T+1}, \dots, \mathbf{y}_{T+H}$.}
 
-For conditional forecasts, the predictive density is given by 
+% For conditional forecasts, the predictive density is given by 
 
-\begin{equation}\label{eqn:preddens}    
-    p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y}_T, \dots, \mathbf{y}_{T-P+1}, \mathbf{y^{\sf{c}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})\, \text{d}\Theta.
-\end{equation}
+% \begin{equation}\label{eqn:preddens}    
+%     p(\mathbf{y^{\sf{f}}}|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}}) \propto \int_{\Theta} p(\mathbf{y^{\sf{f}}}|\mathbf{y}_T, \dots, \mathbf{y}_{T-P+1}, \mathbf{y^{\sf{c}}}, \Theta) p(\Theta|\mathbf{y^{\sf{o}}}, \mathbf{y^{\sf{c}}})\, \text{d}\Theta.
+% \end{equation}
 
-where in the absence of unobserved states the forecasts given the parameters only depend on the last $P$ observations of the observables. 
+% where in the absence of unobserved states the forecasts given the parameters only depend on the last $P$ observations of the observables. 
 
-That is to say, given the parameters the model can rewritten in stacked form as
+% That is to say, given the parameters the model can rewritten in stacked form as
 
 
-\begin{equation*}
-    \begin{bmatrix}
-        I_N \\
-        \shortminus\mathbf{B}_1 & I_N \\
-        & \ddots & \ddots & \\
-        \shortminus\mathbf{B}_{P} & \dots & \shortminus\mathbf{B}_1 & I_N & & \\
-        & \ddots &  & \ddots & \ddots & \\
-        & & \shortminus\mathbf{B}_{P} & \dots & \shortminus\mathbf{B}_1 & I_N       
-    \end{bmatrix}
-    \begin{bmatrix}
-        \mathbf{y}_{T-P+1} \\
-        \vdots \\
-        \mathbf{y}_{T} \\
-        \mathbf{y}_{T+1} \\
-        \vdots \\
-        \mathbf{y}_{T+H} 
-    \end{bmatrix}
-    =
-    \begin{bmatrix}
-        \mathbf{b} \\
-        \vdots \\
-        \mathbf{b} \\
-        \mathbf{b} \\
-        \vdots \\
-        \mathbf{b} 
-    \end{bmatrix}
-    +
-    \begin{bmatrix}
-        \boldsymbol{\upsilon}_{T-P+1} \\
-        \vdots \\
-        \boldsymbol{\upsilon}_{T} \\
-        \boldsymbol{\upsilon}_{T+1} \\
-        \vdots \\
-        \boldsymbol{\upsilon}_{T+H} 
-    \end{bmatrix}
-\end{equation*}
+% \begin{equation*}
+%     \begin{bmatrix}
+%         I_N \\
+%         \shortminus\mathbf{B}_1 & I_N \\
+%         & \ddots & \ddots & \\
+%         \shortminus\mathbf{B}_{P} & \dots & \shortminus\mathbf{B}_1 & I_N & & \\
+%         & \ddots &  & \ddots & \ddots & \\
+%         & & \shortminus\mathbf{B}_{P} & \dots & \shortminus\mathbf{B}_1 & I_N       
+%     \end{bmatrix}
+%     \begin{bmatrix}
+%         \mathbf{y}_{T-P+1} \\
+%         \vdots \\
+%         \mathbf{y}_{T} \\
+%         \mathbf{y}_{T+1} \\
+%         \vdots \\
+%         \mathbf{y}_{T+H} 
+%     \end{bmatrix}
+%     =
+%     \begin{bmatrix}
+%         \mathbf{b} \\
+%         \vdots \\
+%         \mathbf{b} \\
+%         \mathbf{b} \\
+%         \vdots \\
+%         \mathbf{b} 
+%     \end{bmatrix}
+%     +
+%     \begin{bmatrix}
+%         \boldsymbol{\upsilon}_{T-P+1} \\
+%         \vdots \\
+%         \boldsymbol{\upsilon}_{T} \\
+%         \boldsymbol{\upsilon}_{T+1} \\
+%         \vdots \\
+%         \boldsymbol{\upsilon}_{T+H} 
+%     \end{bmatrix}
+% \end{equation*}
 
-or more compactly:
-\begin{equation*}
-    \mathbf{H} \mathbf{y} = \mathbf{c} + \boldsymbol{\upsilon}.
-\end{equation*}
+% or more compactly:
+% \begin{equation*}
+%     \mathbf{H} \mathbf{y} = \mathbf{c} + \boldsymbol{\upsilon}.
+% \end{equation*}
 
-Define $\mathbf{z}={y} = \transpose{[\transpose{\mathbf{y}_{T-P+1}}, \dots, \transpose{\mathbf{y}_T}, \dots, \transpose{\mathbf{y}_{T+H}}]}$. Then the joint distribution of available observations and forecasts is Normal:
+% Define $\mathbf{z}={y} = \transpose{[\transpose{\mathbf{y}_{T-P+1}}, \dots, \transpose{\mathbf{y}_T}, \dots, \transpose{\mathbf{y}_{T+H}}]}$. Then the joint distribution of available observations and forecasts is Normal:
 
-$$
-\mathbf{z} \sim \mathcal{N}(\mathbf{H}^{-1} \mathbf{c}, (\transpose{\mathbf{H}} \mathbf{V}^{-1}_{\!\upsilon}\mathbf{H})^{-1}).
-$$
+% $$
+% \mathbf{z} \sim \mathcal{N}(\mathbf{H}^{-1} \mathbf{c}, (\transpose{\mathbf{H}} \mathbf{V}^{-1}_{\!\upsilon}\mathbf{H})^{-1}).
+% $$
 
-Draws from the predictive density $p(y^f| y^o, y^c)$ can be obtained by permuting $\mathcal{P} \mathbf{z} \coloneqq \mathbf{z}_{\mathcal{P}} = \transpose{[\mathbf{y}^{\sf{f}}, \mathbf{y}^{\sf{o}}, \mathbf{y}^{\sf{c}}]}$, where $y^o = \transpose{[\transpose{\mathbf{y}_{T-P+1}}, \dots, \transpose{\mathbf{y}_T}]}$.\\
+% Draws from the predictive density $p(y^f| y^o, y^c)$ can be obtained by permuting $\mathcal{P} \mathbf{z} \coloneqq \mathbf{z}_{\mathcal{P}} = \transpose{[\mathbf{y}^{\sf{f}}, \mathbf{y}^{\sf{o}}, \mathbf{y}^{\sf{c}}]}$, where $y^o = \transpose{[\transpose{\mathbf{y}_{T-P+1}}, \dots, \transpose{\mathbf{y}_T}]}$.\\
 
-The corresponding mean and precision matrix can be partitioned as follows:
+% The corresponding mean and precision matrix can be partitioned as follows:
 
-\begin{align*}
-    \boldsymbol{\mu}_{z_{\mathcal{P}}} &= 
-    \coloneqq
-    \begin{bmatrix}
-        \boldsymbol{\mu}_{y^{\sf{f}}} \\
-        \boldsymbol{\mu}_{y^{\sf{o}}}
-    \end{bmatrix}
-    ,\\
-    \mathbf{Q}_{z_{\mathcal{P}}} &= 
-    \coloneqq
-    \begin{bmatrix}
-        \mathbf{Q}_{y^f} & \mathbf{Q}_{y^f\!y^o, y^c} \\
-        \mathbf{Q}^{\sf{T}}_{y^f\!y^o, y^c} & \mathbf{Q}_{y^o, y^c}
-    \end{bmatrix}
-    .
-\end{align*}
+% \begin{align*}
+%     \boldsymbol{\mu}_{z_{\mathcal{P}}} &= 
+%     \coloneqq
+%     \begin{bmatrix}
+%         \boldsymbol{\mu}_{y^{\sf{f}}} \\
+%         \boldsymbol{\mu}_{y^{\sf{o}}}
+%     \end{bmatrix}
+%     ,\\
+%     \mathbf{Q}_{z_{\mathcal{P}}} &= 
+%     \coloneqq
+%     \begin{bmatrix}
+%         \mathbf{Q}_{y^f} & \mathbf{Q}_{y^f\!y^o, y^c} \\
+%         \mathbf{Q}^{\sf{T}}_{y^f\!y^o, y^c} & \mathbf{Q}_{y^o, y^c}
+%     \end{bmatrix}
+%     .
+% \end{align*}
 
-The distribution of forecasts given observed data and conditioning set $y^c$ is then given by 
+% The distribution of forecasts given observed data and conditioning set $y^c$ is then given by 
 
-\begin{align*}
-    \boldsymbol{\mu}_{y^f|y^o, y^c} &= 
-    \boldsymbol{\mu}_{y^f} - \mathbf{Q}_{y^f}^{-1} \mathbf{Q}_{y^{\sf{f}}\!y^o, y^c} (\mathbf{y}_o - \boldsymbol{\mu}_{y^o, y^c})\\
-    \mathbf{Q}_{y^f|y^o, y^c} &= \mathbf{Q}_{y^f}.
-\end{align*}
+% \begin{align*}
+%     \boldsymbol{\mu}_{y^f|y^o, y^c} &= 
+%     \boldsymbol{\mu}_{y^f} - \mathbf{Q}_{y^f}^{-1} \mathbf{Q}_{y^{\sf{f}}\!y^o, y^c} (\mathbf{y}_o - \boldsymbol{\mu}_{y^o, y^c})\\
+%     \mathbf{Q}_{y^f|y^o, y^c} &= \mathbf{Q}_{y^f}.
+% \end{align*}
 
-Draws from $p(y^f|y^o, y^c)$ can be obtained efficiently even when $H$ is large as the precision matrix $\mathbf{Q}_{y^f}$ is banded. As above, we illustrate this point by way of an example: Figure \ref{figQVAR} shows the precision matrix $Q_{z_{\mathcal{P}}}$ for a VAR with $N=100$, $P=4$, a forecast horizon of $H=20$ and forecasts conditional on the first 10 variables, i.e. 
+% Draws from $p(y^f|y^o, y^c)$ can be obtained efficiently even when $H$ is large as the precision matrix $\mathbf{Q}_{y^f}$ is banded. As above, we illustrate this point by way of an example: Figure \ref{figQVAR} shows the precision matrix $Q_{z_{\mathcal{P}}}$ for a VAR with $N=100$, $P=4$, a forecast horizon of $H=20$ and forecasts conditional on the first 10 variables, i.e. 
 
-$$y^c = [y_{1,T+1}, \dots, y_{10,T+1}, \dots, y_{1,T+20}, \dots, y_{10,T+20}].$$
+% $$y^c = [y_{1,T+1}, \dots, y_{10,T+1}, \dots, y_{1,T+20}, \dots, y_{10,T+20}].$$
 
-The highlighted area corresponds to $\mathbf{Q}_{y^f}$.
+% The highlighted area corresponds to $\mathbf{Q}_{y^f}$.
 
-\begin{figure}[htbp] \centering
-    \caption{Precision matrix $Q_{\mathcal{z}_{\mathcal{P}}}$ in the case of a VAR \label{figQVAR}}
-    \footnotesize
-    \begin{tabular}{p{16cm}}
-    \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_Qperm_VAR.pdf}} \\
-    {
-    \footnotesize \textbf{Note:} The figure shows the precision matrix of the permuted vector $\mathbf{z}_{\mathcal{P}}$ for a vector autoregression with  $N=100$, $P=4$, a forecast horizon of $H=20$ and forecasts conditional on the first 10 variables. Highlighted by the square is the partition corresponding to the forecasts $\mathbf{y}^{\sf{f}} = [y_{-c, T+1}, \dots, y_{-c, T+H}]$.
-    }
-    \end{tabular}
-    \newline
-    \normalsize
-\end{figure}
+% \begin{figure}[htbp] \centering
+%     \caption{Precision matrix $Q_{\mathcal{z}_{\mathcal{P}}}$ in the case of a VAR \label{figQVAR}}
+%     \footnotesize
+%     \begin{tabular}{p{16cm}}
+%     \multicolumn{1}{c}{\includegraphics*[scale = 0.6]{../figures/fig_Qperm_VAR.pdf}} \\
+%     {
+%     \footnotesize \textbf{Note:} The figure shows the precision matrix of the permuted vector $\mathbf{z}_{\mathcal{P}}$ for a vector autoregression with  $N=100$, $P=4$, a forecast horizon of $H=20$ and forecasts conditional on the first 10 variables. Highlighted by the square is the partition corresponding to the forecasts $\mathbf{y}^{\sf{f}} = [y_{-c, T+1}, \dots, y_{-c, T+H}]$.
+%     }
+%     \end{tabular}
+%     \newline
+%     \normalsize
+% \end{figure}
 
 \pagebreak
 
