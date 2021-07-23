@@ -1,8 +1,6 @@
 ---
 title: "Simulation results"
-output:
-  html_document:
-    df_print: paged
+output: html_notebook
 ---
 
 # Overview
@@ -330,7 +328,9 @@ dat %>%
 dat %>% 
   filter(!(sampler == "precision-sampler"),
          !(ftype == "unconditional forecasts"),
-         !(mod %in% c("large N factor model", "small-sized VAR")),
+         !(mod %in% c("small-sized VAR", 
+                      "medium-sized VAR", 
+                      "large-sized VAR")),
          Ncond == "N_c=0.1") %>%
   ggplot(aes(x = mod, y = value_rel, 
              color = sampler))+
