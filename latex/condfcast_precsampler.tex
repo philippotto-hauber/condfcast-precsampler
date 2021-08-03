@@ -48,6 +48,19 @@
 
 \maketitle
 
+\begin{abstract}\noindent
+    This paper evaluates forecasts from a factor model, estimated with a large real-time dataset of the German economy. The evaluation focuses on a broad cross-section of variables including , deflators and other price measures as well as several labor market indicators. In addition to unconditional forecasts for these variables, we also investigate to what extent the forecast accuracy improves when we condition on professional forecasters' view on GDP growth and CPI inflation. We find that the model forecasts are broadly in line with autoregressive benchmarks, in some cases performing slightly better and in other slightly worse. For a few variables, however, we find large gains in predictive accuracy that persist as the forecast horizon increases. Conditioning on external information tends to improve the forecast accuracy in some instances but typically only for those series where the unconditional forecasts are already quite accurate. From a methodological point of view, this paper proposes precision-based sampling algorithms to draw from the predictive density - unconditional or conditional on a subset of the system variables - in factor models and other models with unobserved components. Simulations show that these algorithms perform favorably compared to Kalman filter-based alternative typically used in the literature.  
+    
+    \bigskip\noindent\textbf{Keywords:} factor models, conditional forecasting, precision-based sampling
+    
+    \bigskip\noindent \textbf{JEL classification:} C11, C53, C55, E37.
+    \vfill
+    \end{abstract}
+    
+    \pagebreak \pagestyle{plain} \pagenumbering{arabic}
+
+
+
 \section{Introduction}
 
 Factor models feature prominently in macroeconomic now- and forecasting applications. Typically, however, forecast evaluations in this literature consider only a small subset of the large number of time series that are used to estimate these models. For example, \citet{stockwatson_2002} focus on the forecast performance of their models for industrial production, personal income, manufacturing and trade sales and (nonagricultural) employment. The factor-model based nowcasting literature has almost exclusively focused on predicting the real gross domestic product (GDP) \citep[see][]{grs_2008, bok_etal_2018, breitungschumacher_2008, kms_jae_2013}. While arguably the single most important measure of economic activity, forecasts for other variables, e.g. concerning the labor market, other price measures including deflators, components of GDP or activity measures like industrial production or turnover may also be of interest to analysts or policy-makers. Moreover, forecasts of these variables given a path of future real GDP growth and CPI inflation may be of particular interest in scenario analysis. Such forecasts conditional on the future path of some of the system variables have received little attention in the factor model literature.\\
