@@ -236,45 +236,8 @@ df_eval <- calc_relative_forecast_accuracy(df_eval_models,
 #### DM tests
 
 ```{r}
-pval_threshold <- 0.1
+pval_threshold <- 0.05
 dm_stats <- calc_dm_stats(df_eval_models, pval_threshold, subsample, str_model, "sfe")
-```
-
-
-```{r}
-# pval_threshold <- 0.10
-# df_eval_models %>% 
-#   select(-logs, -crps, -vintage) %>% 
-#   filter(horizon >= 0, model == "Nr2_Nj1_Np2_Ns0") %>% 
-#   pivot_wider(names_from = "type", values_from = "sfe") %>% 
-#   group_by(mnemonic, model, horizon) %>% 
-#   summarise(dm_pval = dm_test(conditional_hard, unconditional)) %>%
-#   left_join(unique(select(df_eval, mnemonic, category)), by = "mnemonic") %>% 
-#   group_by(category, horizon, model) %>% 
-#   mutate(is_significant = ifelse(dm_pval <= pval_threshold, 1, 0)) -> dm_stats
-```
-```{r}
-# dm_stats %>% 
-#   summarise(n_significant = sum(is_significant),
-#             n_tot = n()) -> tmp1
-# 
-# dm_stats %>% 
-#   ungroup() %>% 
-#   group_by(horizon, model) %>% 
-#   summarise(n_significant = sum(is_significant),
-#             n_tot = n()) %>% 
-#   mutate(category = "total") -> tmp2
-# 
-# tmp3 <- rbind(tmp1, tmp2)
-# 
-# tmp3 %>% 
-#   group_by(category, model, horizon) %>% 
-#   mutate(result = paste0(n_significant, "/", n_tot),
-#          horizon = paste0("h=", horizon)) %>% 
-#   select(-n_significant, -n_tot, -model) %>% 
-#   pivot_wider(names_from = "horizon", values_from = "result") %>% 
-#   xtable() %>% 
-#   print.xtable() 
 ```
 
 ```{r}
@@ -299,15 +262,6 @@ add variable indicating if DM test is significant
 ```{r}
 df_plot <- add_is_significant_col(df_plot, dm_stats)
 ```
-
-```{r}
-# dm_stats %>% 
-#   ungroup() %>% 
-#   select(mnemonic, is_significant, horizon) %>% 
-#   right_join(df_plot, by = c("mnemonic", "horizon")) -> df_plot
-```
-
-
 
 ```{r}
 # data-dependent lims!
@@ -441,7 +395,7 @@ df_plot %>%
 #### DM tests
 
 ```{r}
-pval_threshold <- 0.10
+pval_threshold <- 0.05
 dm_stats <- calc_dm_stats(df_eval_models, 
                           pval_threshold, 
                           subsample,
@@ -536,7 +490,7 @@ df_eval <- calc_relative_forecast_accuracy(df_eval_models,
 #### DM tests
 
 ```{r}
-pval_threshold <- 0.1
+pval_threshold <- 0.05
 dm_stats <- calc_dm_stats(df_eval_models, 
                           pval_threshold, 
                           subsample, 
