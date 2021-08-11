@@ -274,6 +274,10 @@ xlims <- ylims
 # xlims <- ylims
 ```
 
+```{r}
+# convert horizon to factor outside of plot pipe as this was causing problems with the order of the levels (h=0, h=2, h=1)!
+df_plot$horizon <- horizon_as_factor(df_plot$horizon)
+```
 
 
 ```{r}
@@ -286,7 +290,7 @@ ggplot(mapping = aes(x = unconditional,
   geom_abline()+
   geom_vline(xintercept = 0,  size = 0.2)+
   geom_hline(yintercept = 0, size = 0.2)+
-  facet_wrap(~horizon_as_factor(horizon), nrow = 1)+
+  facet_wrap(~horizon, nrow = 1)+
   xlim(xlims)+
   ylim(ylims)+
   scale_color_jco()+
