@@ -26,7 +26,7 @@ types <- c("unconditional", "conditional_hard")
 source("../data/realtime_data.R")
 tmp <- realtime_data()
 mnemonic_select <- tmp$mnemonic
-mnemonic_select <- setdiff(mnemonic_select, c("gdp", "cpi", "inv"))
+mnemonic_select <- setdiff(mnemonic_select, c("inv"))
 rm(tmp)
 
 # Functions----
