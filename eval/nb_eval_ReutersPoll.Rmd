@@ -1,0 +1,107 @@
+---
+title: "Evaluate Reuters Poll forecasts for GDP and CPI"
+output: html_notebook
+---
+
+# Description
+
+This notebook evaluates the Reuters Poll forecasts for GDP growth and CPI inflation. While these are not the focus of the paper, it is useful to compare the professional forecasts for these two variables with the model's unconditional forecasts. 
+
+# Output
+
+- table with RMSFE for GDP growth and CPI inflation by horizon
+
+# Analysis
+
+## Housekeeping
+
+```{r}
+rm(list = ls())
+
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval")
+
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(lubridate)
+library(ggsci)
+library(latex2exp)
+library(xtable)
+
+source("../functions/functions.R")
+
+options(scipen = 999) # turn of scientific notation
+```
+
+
+## Load data
+
+```{r}
+# Reuters Poll
+load("../data/ReutersPoll_data.Rda")
+
+df_out %>% 
+  filter(horizon >= 0, 
+         horizon <= 2) %>% 
+  select(quarter, mnemonic = var, horizon, fore = med) %>% 
+  # convert quarter to format 2006Q2 = 2006-06-01 to bring in line with df_releases!
+  mutate(quarter = make_date(year = year(quarter), 
+                            month = ceiling(month(quarter)/3)*3, 
+                            day = 1)
+         ) -> df_reuterspoll 
+rm("df_out")
+
+# actuals
+load("releases/releases.Rda")
+df_releases %>% 
+  filter(mnemonic %in% c("gdp", "cpi")) %>% 
+  select(quarter, actual = value, mnemonic) -> df_releases
+
+# benchmarks
+load("benchmarks/df_eval_benchmark.Rda")
+df_eval_benchmark %>% 
+  filter(series %in% c("gdp", "cpi")) %>% 
+  rename(mnemonic = series) -> df_eval_benchmark
+```
+
+## Point forecasts
+
+Calculate RMSFE for Reuters Poll
+
+```{r}
+df_reuterspoll %>% 
+  merge(df_releases, by = c("quarter", "mnemonic")) %>% 
+  mutate(sfe = (fore - actual)^2) %>% 
+  group_by(horizon, mnemonic) %>% 
+  summarise(rmsfe_reuters = sqrt(mean(sfe))) -> rmsfe_reuters
+```
+RMSFE of benchmarks
+
+```{r}
+df_eval_benchmark %>% 
+  filter(horizon >= 0, 
+         horizon <= 2) %>% 
+  group_by(horizon, mnemonic) %>% 
+  summarise(rmsfe_benchmark = sqrt(mean(sfe))) -> rmsfe_benchmark
+```
+relative RMSFE
+
+```{r}
+merge(rmsfe_reuters, rmsfe_benchmark, by = c("horizon", "mnemonic")) %>% 
+  mutate(rel_rmsfe = rmsfe_reuters / rmsfe_benchmark) -> df_rmsfe
+
+df_rmsfe %>% 
+  select(mnemonic, horizon, rel_rmsfe) %>% 
+  spread(horizon, rel_rmsfe)
+```
+
+# Summary
+
+- GDP nowcasts ($h=0$) from the Reuters Poll are considerably more accurate than the autoregressive benchmarks and outperfrom the model's uncondtional forecasts (see notebook `nb_eval_gdp_cpi_forecasts.Rmd`)
+
+- for longer horizons the relative gains in forecast accuracy are more in line with the model's unconditional forecasts
+
+- inflation nowcasts from the Reuters Poll are slightly less accurate as the model's unconditional forecast and outperform the benchmark but by a much smaller margin than in the case of GDP
+
+- for $h={1,2}$, the forecasts are considerably (slightly) worse than the autoregressive benchmark (the model's unconditonal) forecasts
+

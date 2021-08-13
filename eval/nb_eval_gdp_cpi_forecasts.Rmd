@@ -1,0 +1,120 @@
+---
+title: "Evaluate model forecasts for GDP and CPI"
+output: html_notebook
+---
+
+# Description
+
+This notebook evaluates the factor model forecasts for GDP growth and CPI inflation. While these are not the focus of the paper, it is useful to compare the model's unconditional forecasts for these two variables to the Reuters Poll forecasts. 
+
+# Output
+
+- table with RMSFE for GDP growth and CPI by horizon
+
+- table with CRPS for GDP growth and CPI by horizon
+
+# Analysis
+
+## Housekeeping
+
+```{r}
+rm(list = ls())
+
+setwd("C:/Users/Philipp/Documents/GitHub/condfcast-precsampler/eval")
+
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(lubridate)
+library(ggsci)
+library(latex2exp)
+library(xtable)
+
+source("../functions/functions.R")
+
+options(scipen = 999) # turn of scientific notation
+```
+
+
+## Load data
+
+```{r}
+# models
+load("df_eval_models.Rda")
+df_eval_models$quarter <- as_date(df_eval_models$quarter)
+df_eval_models$vintage <- as_date(df_eval_models$vintage)
+
+df_eval_models %>% filter(mnemonic %in% c("gdp", "cpi")) -> df_eval_models
+
+# benchmarks
+load("benchmarks/df_eval_benchmark.Rda")
+df_eval_benchmark %>% 
+  filter(series %in% c("gdp", "cpi")) %>% 
+  rename(mnemonic = series) -> df_eval_benchmark
+```
+
+## Point forecasts
+
+RMSFE of model forecasts
+
+```{r}
+df_eval_models %>% 
+  filter(horizon >= 0, 
+         horizon <= 2,
+         model == "Nr2_Nj1_Np2_Ns0") %>% 
+  group_by(horizon, mnemonic) %>% 
+  summarise(rmsfe_model = sqrt(mean(sfe))) -> rmsfe_model
+```
+RMSFE of benchmarks
+
+```{r}
+df_eval_benchmark %>% 
+  filter(horizon >= 0, 
+         horizon <= 2) %>% 
+  group_by(horizon, mnemonic) %>% 
+  summarise(rmsfe_benchmark = sqrt(mean(sfe))) -> rmsfe_benchmark
+```
+relative RMSFE
+
+```{r}
+merge(rmsfe_model, rmsfe_benchmark, by = c("horizon", "mnemonic")) %>% 
+  mutate(rel_rmsfe = rmsfe_model / rmsfe_benchmark) -> df_rmsfe
+
+df_rmsfe %>% 
+  select(mnemonic, horizon, rel_rmsfe) %>% 
+  spread(horizon, rel_rmsfe)
+```
+
+## Density forecasts
+
+CRPS for model forecasts
+
+```{r}
+df_eval_models %>% 
+  filter(horizon >= 0, 
+         horizon <= 2,
+         model == "Nr2_Nj1_Np2_Ns0") %>% 
+  group_by(horizon, mnemonic) %>% 
+  summarise(crps_model = mean(crps)) -> crps_model
+```
+
+CRPS for benchmark
+
+```{r}
+df_eval_benchmark %>% 
+  filter(horizon >= 0, 
+         horizon <= 2) %>% 
+  group_by(horizon, mnemonic) %>% 
+  summarise(crps_benchmark = mean(crps)) -> crps_benchmark
+```
+relative CRPS
+
+```{r}
+merge(crps_model, crps_benchmark, by = c("horizon", "mnemonic")) %>% 
+  mutate(rel_crps = crps_model / crps_benchmark) -> df_crps
+
+df_crps %>% 
+  select(mnemonic, horizon, rel_crps) %>% 
+  spread(horizon, rel_crps)
+```
+
