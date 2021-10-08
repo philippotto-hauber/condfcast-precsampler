@@ -101,7 +101,7 @@ df_rmsfe %>%
 
 - for longer horizons the relative gains in forecast accuracy are more in line with the model's unconditional forecasts
 
-- inflation nowcasts from the Reuters Poll are slightly less accurate as the model's unconditional forecast and outperform the benchmark but by a much smaller margin than in the case of GDP
+- inflation nowcasts from the Reuters Poll are slightly more accurate than the model's unconditional forecast but by a much smaller margin than in the case of GDP
 
 - for $h={1,2}$, the forecasts are considerably (slightly) worse than the autoregressive benchmark (the model's unconditonal) forecasts
 
